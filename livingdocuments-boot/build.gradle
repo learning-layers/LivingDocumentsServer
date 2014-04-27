@@ -1,0 +1,20 @@
+/*
+ * BOOT: The output directory of this project contains the application. This is either a jar with an embedded servlet
+ * container or a war file.
+ */
+
+apply plugin: 'spring-boot'
+if (project.target.equals('war')) {
+    apply plugin: 'war'
+}
+
+// Add all subprojects as a dependency
+afterEvaluate {
+    def children = rootProject.allprojects.collect {
+        if (it.name != rootProject.name && it.name != project.name) it
+    }
+    children.each { dep ->
+        if (dep != null)
+            dependencies.add('compile', project(dep.path))
+    }
+}

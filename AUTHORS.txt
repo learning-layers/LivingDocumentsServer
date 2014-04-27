@@ -1,0 +1,5 @@
+Copyright 2014 Karlsruhe University of Applied Sciences
+
+List of authors:
+Dennis Soehnen <info@soehnen.com>
+Martin 'Aur0r' Bachl <martin@bachl.pro>

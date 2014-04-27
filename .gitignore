@@ -1,0 +1,24 @@
+# Gradle #
+##########
+.gradle
+
+# IntelliJ #
+############
+*.iml
+*.ipr
+*.iws
+/.idea
+*/.idea
+
+# Build output #
+################
+/target
+*/target
+/build
+*/build
+/out
+*/out
+/classes
+*/classes
+/data
+*/data
