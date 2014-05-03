@@ -19,7 +19,6 @@ subprojects {
         springBootVersion = '1.0.1.RELEASE'
         springSecurityLdapVersion = '3.2.1.RELEASE'
         springVersion = '4.0.3.RELEASE'
-        springJcrVersion = '0.8'
         validationApiVersion = '1.1.0.Final'
         jcrVersion = '2.0'
         commonsDbcpVersion = '1.4'
@@ -61,7 +60,6 @@ subprojects {
         compile "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion"
         compile "org.springframework.boot:spring-boot-starter-security:$springBootVersion"
         compile "org.springframework.security:spring-security-ldap:$springSecurityLdapVersion"
-        compile "org.springmodules:spring-modules-jcr:$springJcrVersion"
         compile "javax.validation:validation-api:$validationApiVersion"
         compile "javax.jcr:jcr:$jcrVersion"
         compile "org.apache.jackrabbit:jackrabbit-core:$jackrabbitVersion"
