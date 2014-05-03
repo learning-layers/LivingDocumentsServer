@@ -22,48 +22,32 @@
 
 package de.hska.livingdocuments.core.config;
 
+import org.apache.jackrabbit.core.TransientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
-import org.springmodules.jcr.JcrSessionFactory;
-import org.springmodules.jcr.JcrTemplate;
-import org.springmodules.jcr.SessionFactory;
-import org.springmodules.jcr.jackrabbit.JackrabbitSessionFactory;
-import org.springmodules.jcr.jackrabbit.RepositoryFactoryBean;
 
-import javax.jcr.Credentials;
 import javax.jcr.Repository;
-import javax.jcr.SimpleCredentials;
+import java.io.File;
+import java.io.IOException;
 
 @Configuration
 public class JcrConfig {
 
     @Autowired
+    private Environment env;
+
+    @Autowired
     private ResourceLoader resourceLoader;
 
     @Bean
-    public RepositoryFactoryBean repositoryFactoryBean() {
-        RepositoryFactoryBean factoryBean = new RepositoryFactoryBean();
-        factoryBean.setConfiguration(resourceLoader.getResource("classpath:/jackrabbit-repository.xml"));
-        factoryBean.setHomeDir(resourceLoader.getResource("file:./data/jackrabbit"));
-        return factoryBean;
-    }
-
-    @Bean
-    public SessionFactory sessionFactory() throws Exception {
-        JcrSessionFactory sessionFactory = new JackrabbitSessionFactory();
-        sessionFactory.setRepository((Repository) repositoryFactoryBean().getObject());
-        Credentials credentials = new SimpleCredentials("superuser", "".toCharArray());
-        sessionFactory.setCredentials(credentials);
-        return sessionFactory;
-    }
-
-    @Bean
-    public JcrTemplate jcrTemplate() throws Exception {
-        JcrTemplate jcrTemplate = new JcrTemplate();
-        jcrTemplate.setSessionFactory(sessionFactory());
-        jcrTemplate.setAllowCreate(true);
-        return jcrTemplate;
+    public Repository repository() throws IOException {
+        String homePathCfg = env.getProperty("module.core.repository.home");
+        String homePath = resourceLoader.getResource("file:" + homePathCfg).getURL().getPath();
+        //String config = resourceLoader.getResource("classpath:/repository.xml").getURI().getPath();
+        System.setProperty("derby.stream.error.file", homePath + File.separator + "derby.log");
+        return new TransientRepository(resourceLoader.getResource("file:" + homePath).getFile());
     }
 }
