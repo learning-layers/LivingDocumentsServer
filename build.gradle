@@ -43,10 +43,6 @@ subprojects {
         mavenLocal()
     }
 
-    configurations {
-        compile.exclude module: 'log4j'
-    }
-
     dependencies {
         compile("org.springframework.boot:spring-boot-starter-web:$springBootVersion") {
             // Exclude tomcat dependency if using jetty
