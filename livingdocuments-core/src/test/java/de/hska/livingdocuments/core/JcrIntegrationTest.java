@@ -22,11 +22,13 @@
 
 package de.hska.livingdocuments.core;
 
+import de.hska.livingdocuments.core.fixture.CoreFixture;
+import de.hska.livingdocuments.core.persistence.domain.User;
+import de.hska.livingdocuments.core.service.JcrService;
+import de.hska.livingdocuments.core.service.UserService;
 import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
-import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.log4j.Logger;
 import org.junit.After;
@@ -44,67 +46,84 @@ import static org.junit.Assert.assertTrue;
 public class JcrIntegrationTest extends AbstractIntegrationTest {
     static final Logger LOGGER = Logger.getLogger(JcrIntegrationTest.class);
 
-    static final String TEST_USER = "testuser";
-    Credentials userCredentials = new SimpleCredentials(TEST_USER, TEST_USER.toCharArray());
-    static final String TEST_FOLDER = "testfolder";
+    static final String TEST_USER = "user";
+    static final String TEST_ROOT = "testRoot";
     static final String TEST_PDF = "test.pdf";
-    Credentials adminCredentials = new SimpleCredentials("admin", "admin".toCharArray());
+
     @Autowired
-    Repository repository;
+    UserService userService;
+
+    @Autowired
+    JcrService jcrService;
+
+    User user;
 
     @Before
     public void setUp() throws Exception {
-        JackrabbitSession session = (JackrabbitSession) repository.login(adminCredentials);
-        // Create test user
-        UserManager userManager = session.getUserManager();
-        try {
-            userManager.createUser(TEST_USER, TEST_USER);
-        } catch (AuthorizableExistsException e) {
-            LOGGER.info("Test user already exists.");
-        }
+        init();
         // Create test folder
-        Node root = session.getRootNode();
+        Session adminSession = jcrService.adminLogin();
         try {
-            root.addNode(TEST_FOLDER, JcrConstants.NT_FOLDER);
-        } catch (ItemExistsException e) {
-            LOGGER.info("Test folder already exists.");
+            Node testRoot = null;
+            Node root = adminSession.getRootNode();
+            try {
+                testRoot = root.addNode(TEST_ROOT, JcrConstants.NT_UNSTRUCTURED);
+            } catch (ItemExistsException e) {
+                LOGGER.info("Test folder already exists.");
+            }
+            jcrService.addAllPrivileges(testRoot, adminSession);
+            adminSession.save();
+        } finally {
+            adminSession.logout();
         }
 
-        session.save();
+        // Create test user
+        user = userService.findByUsername("user");
+        jcrService.login(user);
     }
 
     @After
     public void tearDown() throws Exception {
-        JackrabbitSession session = (JackrabbitSession) repository.login(adminCredentials);
-        // Remove test folder
-        Node root = session.getRootNode();
-        Node folderNode = root.getNode(TEST_FOLDER);
-        folderNode.remove();
-        // Remove test user
-        UserManager userManager = session.getUserManager();
-        User user = (User) userManager.getAuthorizable(TEST_USER);
-        user.remove();
+        init();
+    }
 
-        session.save();
+    private void init() throws RepositoryException {
+        JackrabbitSession adminSession = jcrService.adminLogin();
+        try {
+            // Remove test folder
+            Node root = adminSession.getRootNode();
+            Node testRoot = root.getNode(TEST_ROOT);
+            if (testRoot != null) {
+                testRoot.remove();
+            }
+            // Remove test user
+            UserManager userManager = adminSession.getUserManager();
+            org.apache.jackrabbit.api.security.user.User user =
+                    (org.apache.jackrabbit.api.security.user.User) userManager.getAuthorizable(TEST_USER);
+            if (user != null) {
+                user.remove();
+            }
+            if (testRoot != null || user != null) {
+                adminSession.save();
+            }
+        } catch (PathNotFoundException e) {
+            LOGGER.info("Test folder doesn't exists.");
+        } finally {
+            adminSession.logout();
+        }
     }
 
     @Test
     public void thatFileNodeIsCreated() throws RepositoryException {
-        Session session = repository.login(adminCredentials);
+        Node fileNode, resultNode, testRoot;
+        Session session = jcrService.login(user);
+        InputStream in = JcrIntegrationTest.class.getResourceAsStream("/" + TEST_PDF);
+        try {
+            testRoot = session.getNode("/" + TEST_ROOT);
 
-        Node fileNode;
-        Node resultNode;
-        Node root = session.getRootNode();
-
-        Node folderNode = root.getNode(TEST_FOLDER);
-
-        if (folderNode.hasNode(TEST_PDF)) {
-            LOGGER.debug("File already exists. file=" + TEST_PDF);
-        } else {
-            InputStream in = JcrIntegrationTest.class.getResourceAsStream("/" + TEST_PDF);
             ValueFactory factory = session.getValueFactory();
             Binary binary = factory.createBinary(in);
-            fileNode = folderNode.addNode(TEST_PDF, JcrConstants.NT_FILE);
+            fileNode = testRoot.addNode(TEST_PDF, JcrConstants.NT_FILE);
 
             // create the mandatory child node - jcr:content
             resultNode = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
@@ -115,18 +134,115 @@ public class JcrIntegrationTest extends AbstractIntegrationTest {
             resultNode.setProperty(JcrConstants.JCR_LASTMODIFIED, lastModified);
 
             session.save();
+
+            LOGGER.debug("Created '" + TEST_PDF + "' in " + TEST_ROOT);
+            assertTrue("File node, '" + TEST_PDF + "', doesn't exist.", testRoot.hasNode(TEST_PDF));
+            assertTrue("File content node '" + TEST_PDF + "', doesn't exist.",
+                    testRoot.getNode(TEST_PDF).hasNode(JcrConstants.JCR_CONTENT));
+
+            Node contentNode = testRoot.getNode(TEST_PDF).getNode(JcrConstants.JCR_CONTENT);
+            Property dataProperty = contentNode.getProperty(JcrConstants.JCR_DATA);
+            assertNotNull(dataProperty);
+        } finally {
+            session.logout();
             IOUtils.closeQuietly(in);
-            LOGGER.debug("Created '" + TEST_PDF + "' in " + TEST_FOLDER);
         }
-
-        assertTrue("File node, '" + TEST_PDF + "', doesn't exist.", folderNode.hasNode(TEST_PDF));
-        assertTrue("File content node, '" + TEST_PDF + "', doesn't exist.",
-                folderNode.getNode(TEST_PDF).hasNode(JcrConstants.JCR_CONTENT));
-
-        Node contentNode = folderNode.getNode(TEST_PDF).getNode(JcrConstants.JCR_CONTENT);
-        Property dataProperty = contentNode.getProperty(JcrConstants.JCR_DATA);
-        assertNotNull(dataProperty);
-
-        //JcrUtils.readFile(fileNode);
     }
+
+    @Test
+    public void thatUserHasNoAccessToRootNode() throws RepositoryException {
+        Session session = jcrService.login(user);
+        try {
+            Node root = session.getRootNode();
+            root.addNode("thatUserHasNoAccessToRootNode");
+            session.save();
+        } catch (AccessDeniedException e) {
+            expectedException = e;
+        } finally {
+            session.logout();
+        }
+        assertNotNull(expectedException);
+        assertTrue(expectedException instanceof AccessDeniedException);
+    }
+
+    @Test
+    public void createNodeWithAttachment() throws RepositoryException {
+        Session session = jcrService.login(user);
+        try {
+            Node testRoot = session.getNode("/" + TEST_ROOT);
+            Node nodeWithAttachment = testRoot.addNode("nodeWithAttachment", JcrConstants.NT_UNSTRUCTURED);
+            nodeWithAttachment.setProperty("message", "Node with attachment");
+            Node attachedNode = nodeWithAttachment.addNode("attachedNode");
+            attachedNode.setProperty("message", "Attached node");
+            session.save();
+
+            // Get message property from the attached node
+            Property property = attachedNode.getProperties("message").nextProperty();
+            LOGGER.info(property.getValue().getString());
+        } finally {
+            session.logout();
+        }
+    }
+
+    @Test
+    public void thatUserHasNoAccessToNodesFromOtherUsers() throws RepositoryException {
+        User otherUser = userService.save(CoreFixture.newUser(), "pass");
+
+        Session session = jcrService.login(otherUser);
+        Node testRoot = session.getNode("/" + TEST_ROOT);
+        testRoot.addNode("thatUserHasNoAccessToNodesFromOtherUsers_1", JcrConstants.NT_UNSTRUCTURED);
+        session.save();
+        session.logout();
+
+        session = jcrService.login(user);
+        Node testNode = session.getNode("/" + TEST_ROOT + "/" + "thatUserHasNoAccessToNodesFromOtherUsers_1");
+        testNode.addNode("thatUserHasNoAccessToNodesFromOtherUsers_2", JcrConstants.NT_UNSTRUCTURED);
+        session.save();
+        session.logout();
+    }
+
+/*    @Test
+    public void dummy() throws RepositoryException {
+        // usual entry point into the Jackrabbit API
+        JackrabbitSession js = jcrService.login(user);
+
+        // get user/principal for whom to read/set ACLs
+
+        // Note: the ACL security API works using Java Principals as high-level abstraction and does not
+        // assume the users are actually stored in the JCR with the Jackrabbit UserManagement; an example
+        // are external users provided by a custom LoginModule via LDAP
+        PrincipalManager pMgr = js.getPrincipalManager();
+        Principal principal = pMgr.getPrincipal(js.getUserID());
+
+        // get the Jackrabbit access control manager
+        JackrabbitAccessControlManager acMgr = (JackrabbitAccessControlManager) js.getAccessControlManager();
+
+        JackrabbitAccessControlPolicy[] ps = acMgr.getPolicies(principal);
+        if (ps.length == 0) {
+            ps = acMgr.getApplicablePolicies(principal);
+        }
+        JackrabbitAccessControlList list = (JackrabbitAccessControlList) ps[0];
+
+        // list entries
+        JackrabbitAccessControlEntry[] entries = (JackrabbitAccessControlEntry[]) list.getAccessControlEntries();
+        JackrabbitAccessControlEntry entry = entries[0];
+
+        // remove entry
+        list.removeAccessControlEntry(entry);
+
+        // add entry
+        Privilege[] privileges = new Privilege[] { acMgr.privilegeFromName(Privilege.JCR_READ) };
+        Map<String, Value> restrictions = new HashMap<>();
+        ValueFactory vf = js.getValueFactory();
+        restrictions.put("rep:nodePath", vf.createValue("/some/path", PropertyType.PATH));
+        restrictions.put("rep:glob", vf.createValue("*"));
+        list.addEntry(principal, privileges, true *//* allow or deny *//*, restrictions);
+
+        // reorder entries
+        //list.orderBefore(entry, entry2);
+
+        // finally set policy again & save
+        acMgr.setPolicy(list.getPath(), list);
+        js.save();
+    }*/
 }

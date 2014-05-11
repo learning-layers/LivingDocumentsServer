@@ -2,9 +2,9 @@ package de.hska.livingdocuments.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.hska.livingdocuments.core.persistence.domain.User;
 import org.junit.After;
 import org.junit.runner.RunWith;
-import de.hska.livingdocuments.core.persistence.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.IntegrationTest;
@@ -32,16 +32,14 @@ import java.util.Map;
 @IntegrationTest
 @WebAppConfiguration
 public abstract class AbstractIntegrationTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIntegrationTest.class);
-
-    private static final String URL_API = "http://localhost:9000/api";
     protected static final byte[] AUTH_USER = "user:pass".getBytes();
     protected static final byte[] AUTH_ADMIN = "admin:pass".getBytes();
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIntegrationTest.class);
+    private static final String URL_API = "http://localhost:9000/api";
+    protected Exception expectedException;
+    protected HttpStatusCodeException expectedClientException;
     private ObjectMapper objectMapper = new ObjectMapper();
     private RestTemplate template = new RestTemplate();
-
-    protected HttpStatusCodeException expectedClientException;
 
     @After
     public void tearDown() throws Exception {

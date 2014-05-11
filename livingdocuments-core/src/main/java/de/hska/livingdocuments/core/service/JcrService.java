@@ -20,32 +20,21 @@
  * limitations under the License.
  */
 
-package de.hska.livingdocuments.core.config;
+package de.hska.livingdocuments.core.service;
 
-import de.hska.livingdocuments.core.service.JcrService;
-import de.hska.livingdocuments.core.service.RoleService;
-import de.hska.livingdocuments.core.service.UserService;
-import de.hska.livingdocuments.core.service.impl.JackrabbitService;
-import de.hska.livingdocuments.core.service.impl.RoleServiceImpl;
-import de.hska.livingdocuments.core.service.impl.UserServiceImpl;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import de.hska.livingdocuments.core.persistence.domain.User;
 
-@Configuration
-public class CoreConfig {
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
-    @Bean
-    public UserService userService() {
-        return new UserServiceImpl();
-    }
+public interface JcrService {
 
-    @Bean
-    public RoleService roleService() {
-        return new RoleServiceImpl();
-    }
+    <T extends Session> T login(User user);
 
-    @Bean
-    public JcrService jcrService() {
-        return new JackrabbitService();
-    }
+    <T extends Session> T adminLogin() throws RepositoryException;
+
+    void addAllPrivileges(Node node, Session adminSession) throws RepositoryException;
+
+    void addAllPrivileges(String path, Session adminSession) throws RepositoryException;
 }
