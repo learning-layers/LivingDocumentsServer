@@ -1,7 +1,9 @@
 include 'livingdocuments-boot'
 include 'livingdocuments-core'
+include 'livingdocuments-sandbox'
 
 /* Include non-child project
 def projectDir = file('../project-name')
 def rootProjectDescriptor = settings.rootProject
 settings.createProjectDescriptor(rootProjectDescriptor, 'project-name', projectDir) */
+
