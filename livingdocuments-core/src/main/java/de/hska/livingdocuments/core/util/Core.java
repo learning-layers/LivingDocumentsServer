@@ -22,8 +22,23 @@
 
 package de.hska.livingdocuments.core.util;
 
+import javax.jcr.Credentials;
+import javax.jcr.SimpleCredentials;
+
 public class Core {
+
+    public static final Credentials ADMIN_CREDENTIALS = new SimpleCredentials("admin", "admin".toCharArray());
 
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     public static final String ROLE_USER = "ROLE_USER";
+
+    public static final String LD_DOCUMENT = "ld:document";
+
+    public static final String LD_FILE_NODE = "file";
+    public static final String LD_COMMENTS_NODE = "comments";
+    public static final String LD_ATTACHMENT_NODE = "attachments";
+    public static final String LD_DESCRIPTION_PROPERTY = "description";
+    public static final String LD_MESSAGE_PROPERTY = "message";
+
+    public static final String JCR_LASTMODIFIED_BY = "jcr:lastModifiedBy";
 }

@@ -27,14 +27,22 @@ import de.hska.livingdocuments.core.persistence.domain.User;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import java.io.InputStream;
+import java.util.List;
 
 public interface JcrService {
 
-    <T extends Session> T login(User user);
+    <T extends Session> T login(User user) throws RepositoryException;
 
-    <T extends Session> T adminLogin() throws RepositoryException;
+    void addAllPrivileges(Node node, Session session) throws RepositoryException;
 
-    void addAllPrivileges(Node node, Session adminSession) throws RepositoryException;
+    void addAllPrivileges(String path, Session session) throws RepositoryException;
 
-    void addAllPrivileges(String path, Session adminSession) throws RepositoryException;
+    Node addComment(Session session, Node documentNode, String comment) throws RepositoryException;
+
+    Node updateComment(Session session, Node commentNode, String comment) throws RepositoryException;
+
+    List<Node> getComments(Session documentNode) throws RepositoryException;
+
+    Node addFileNode(Session session, Node documentNode, InputStream inputStream) throws RepositoryException;
 }

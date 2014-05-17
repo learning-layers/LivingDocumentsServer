@@ -57,12 +57,14 @@ public class JcrIntegrationTest extends AbstractIntegrationTest {
     JcrService jcrService;
 
     User user;
+    User adminUser;
 
     @Before
     public void setUp() throws Exception {
+        adminUser = userService.findByUsername("admin");
         init();
         // Create test folder
-        Session adminSession = jcrService.adminLogin();
+        Session adminSession = jcrService.login(adminUser);
         try {
             Node testRoot = null;
             Node root = adminSession.getRootNode();
@@ -88,7 +90,7 @@ public class JcrIntegrationTest extends AbstractIntegrationTest {
     }
 
     private void init() throws RepositoryException {
-        JackrabbitSession adminSession = jcrService.adminLogin();
+        JackrabbitSession adminSession = jcrService.login(adminUser);
         try {
             // Remove test folder
             Node root = adminSession.getRootNode();

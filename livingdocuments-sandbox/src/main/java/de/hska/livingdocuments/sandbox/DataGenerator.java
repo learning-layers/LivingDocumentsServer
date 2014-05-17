@@ -22,48 +22,34 @@
 
 package de.hska.livingdocuments.sandbox;
 
+import de.hska.livingdocuments.core.persistence.domain.User;
 import de.hska.livingdocuments.core.service.JcrService;
+import de.hska.livingdocuments.core.service.UserService;
+import de.hska.livingdocuments.core.util.Core;
 import org.apache.commons.io.IOUtils;
-import org.apache.jackrabbit.JcrConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.jcr.*;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import java.io.InputStream;
-import java.util.Calendar;
 
 public class DataGenerator {
 
     @Autowired
-    public void init(JcrService jcrService) throws RepositoryException {
+    public void init(JcrService jcrService, UserService userService) throws RepositoryException {
         InputStream in = null;
         Session session = null;
         try {
             in = DataGenerator.class.getResourceAsStream("/" + "sandbox.pdf");
-            session = jcrService.adminLogin();
+            User admin = userService.findByUsername("admin");
+            session = jcrService.login(admin);
 
             Node root = session.getRootNode();
-
-            ValueFactory factory = session.getValueFactory();
-            Binary binary = factory.createBinary(in);
-
-            Node sandboxDocument = root.addNode("sandboxDocument", JcrConstants.NT_UNSTRUCTURED);
-            sandboxDocument.setProperty("description", "Sandbox Node with PDF-File");
-
-            Node fileNode = sandboxDocument.addNode("fileNode", JcrConstants.NT_FILE);
-
-            // create the mandatory child node - jcr:content
-            Node resourceNode = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
-            resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, "application/pdf");
-            resourceNode.setProperty(JcrConstants.JCR_DATA, binary);
-            Calendar lastModified = Calendar.getInstance();
-            lastModified.setTimeInMillis(System.currentTimeMillis());
-            resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, lastModified);
-
-            Node commentContainer = sandboxDocument.addNode("commentContainer", JcrConstants.NT_UNSTRUCTURED);
-            jcrService.addAllPrivileges(commentContainer, session);
-
-            Node helloWorldComment = commentContainer.addNode("helloWorldComment", JcrConstants.NT_UNSTRUCTURED);
-            helloWorldComment.setProperty("message", "Hello World!");
+            Node sandboxDocument = root.addNode("sandboxDocument", Core.LD_DOCUMENT);
+            sandboxDocument.setProperty(Core.LD_DESCRIPTION_PROPERTY, "Sandbox Node with PDF-File");
+            jcrService.addFileNode(session, sandboxDocument, in);
+            jcrService.addComment(session, sandboxDocument, "Hello World!");
 
             session.save();
         } finally {

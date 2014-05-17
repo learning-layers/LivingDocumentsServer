@@ -1,11 +1,19 @@
 package de.hska.livingdocuments.core.dto;
 
+import javax.jcr.Node;
 import java.io.InputStream;
 
 public class NodeDto {
 
     private String description;
     private InputStream inputStream;
+
+    public NodeDto() {
+    }
+
+    public NodeDto(Node node) {
+
+    }
 
     public String getDescription() {
         return description;

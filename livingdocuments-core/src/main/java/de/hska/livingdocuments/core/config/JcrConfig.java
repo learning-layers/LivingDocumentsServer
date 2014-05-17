@@ -22,6 +22,9 @@
 
 package de.hska.livingdocuments.core.config;
 
+import de.hska.livingdocuments.core.util.Core;
+import org.apache.jackrabbit.JcrConstants;
+import org.apache.jackrabbit.commons.cnd.ParseException;
 import org.apache.jackrabbit.core.TransientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +32,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 
-import javax.jcr.Repository;
+import javax.jcr.*;
+import javax.jcr.nodetype.NodeTypeManager;
+import javax.jcr.nodetype.NodeTypeTemplate;
 import java.io.File;
 import java.io.IOException;
 
@@ -49,5 +54,30 @@ public class JcrConfig {
         //String config = resourceLoader.getResource("classpath:/repository.xml").getURI().getPath();
         System.setProperty("derby.stream.error.file", homePath + File.separator + "derby.log");
         return new TransientRepository(resourceLoader.getResource("file:" + homePath).getFile());
+    }
+
+    @Autowired
+    private void registerNodeTypes() throws IOException, RepositoryException, ParseException {
+        Repository repository = repository();
+        Session session = repository.login(Core.ADMIN_CREDENTIALS);
+
+        NamespaceRegistry namespaceRegistry = session.getWorkspace().getNamespaceRegistry();
+        try {
+            namespaceRegistry.registerNamespace("ld", "http://learning-layers.eu/nt/ld");
+
+            // Retrieve node type manager from the session
+            NodeTypeManager nodeTypeManager = session.getWorkspace().getNodeTypeManager();
+
+            // Create node type
+            NodeTypeTemplate ldDocumentNodeType = nodeTypeManager.createNodeTypeTemplate();
+            ldDocumentNodeType.setName(Core.LD_DOCUMENT);
+
+            String[] superTypeNames = {JcrConstants.NT_UNSTRUCTURED};
+            ldDocumentNodeType.setDeclaredSuperTypeNames(superTypeNames);
+
+            nodeTypeManager.registerNodeType(ldDocumentNodeType, false);
+        } catch (NamespaceException e) {
+            // namespace ld -> http://learning-layers.eu/nt/ld: mapping already exists
+        }
     }
 }

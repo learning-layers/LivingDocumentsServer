@@ -24,6 +24,10 @@ package de.hska.livingdocuments.core.service.impl;
 
 import de.hska.livingdocuments.core.persistence.domain.User;
 import de.hska.livingdocuments.core.service.JcrService;
+import de.hska.livingdocuments.core.service.UserService;
+import de.hska.livingdocuments.core.util.Core;
+import org.apache.commons.collections.IteratorUtils;
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.core.security.principal.EveryonePrincipal;
@@ -33,26 +37,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.jcr.*;
+import javax.jcr.nodetype.InvalidNodeTypeDefinitionException;
+import javax.jcr.nodetype.NodeType;
 import javax.jcr.security.AccessControlEntry;
 import javax.jcr.security.AccessControlList;
 import javax.jcr.security.AccessControlManager;
 import javax.jcr.security.Privilege;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLConnection;
+import java.util.Calendar;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 public class JackrabbitService implements JcrService {
     private static final Logger LOGGER = LoggerFactory.getLogger(JackrabbitService.class);
 
-    private static final Credentials ADMIN_CREDENTIALS = new SimpleCredentials("admin", "admin".toCharArray());
-
     @Autowired
     private Repository repository;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private Environment env;
 
     @Override
     @SuppressWarnings("unchecked")
-    public JackrabbitSession login(User user) {
+    public JackrabbitSession login(User user) throws RepositoryException {
+        if (userService.hasRole(user, Core.ROLE_ADMIN)) {
+            return adminLogin();
+        }
         String pwd = env.getProperty("module.core.repository.password");
         Credentials credentials = new SimpleCredentials(user.getUsername(), pwd.toCharArray());
         try {
@@ -62,14 +78,11 @@ public class JackrabbitService implements JcrService {
                 LOGGER.info("Create user {}", user);
                 JackrabbitSession adminSession = null;
                 try {
-                    adminSession = (JackrabbitSession) repository.login(ADMIN_CREDENTIALS);
+                    adminSession = (JackrabbitSession) repository.login(Core.ADMIN_CREDENTIALS);
                     UserManager userManager = adminSession.getUserManager();
                     userManager.createUser(user.getUsername(), pwd);
                     adminSession.save();
                     return (JackrabbitSession) repository.login(credentials);
-                } catch (RepositoryException e1) {
-                    LOGGER.error("Login failed", e);
-                    return null;
                 } finally {
                     if (adminSession != null) {
                         adminSession.logout();
@@ -83,19 +96,13 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public JackrabbitSession adminLogin() throws RepositoryException {
-        return (JackrabbitSession) repository.login(ADMIN_CREDENTIALS);
+    public void addAllPrivileges(Node node, Session session) throws RepositoryException {
+        addAllPrivileges(node.getPath(), session);
     }
 
     @Override
-    public void addAllPrivileges(Node node, Session adminSession) throws RepositoryException {
-        addAllPrivileges(node.getPath(), adminSession);
-    }
-
-    @Override
-    public void addAllPrivileges(String path, Session adminSession) throws RepositoryException {
-        AccessControlManager aMgr = adminSession.getAccessControlManager();
+    public void addAllPrivileges(String path, Session session) throws RepositoryException {
+        AccessControlManager aMgr = session.getAccessControlManager();
 
         // create a privilege set with jcr:all
         Privilege[] privileges = new Privilege[]{aMgr.privilegeFromName(Privilege.JCR_ALL)};
@@ -116,5 +123,83 @@ public class JackrabbitService implements JcrService {
 
         // the policy must be re-set
         aMgr.setPolicy(path, acl);
+    }
+
+    @Override
+    public Node addComment(Session session, Node documentNode, String comment) throws RepositoryException {
+        Node commentsNode;
+        if (documentNode.getName().equals(Core.LD_COMMENTS_NODE)) {
+            commentsNode = documentNode;
+        } else if (documentNode.hasNode(Core.LD_COMMENTS_NODE)) {
+            commentsNode = documentNode.getNode(Core.LD_COMMENTS_NODE);
+        } else {
+            commentsNode = documentNode.addNode(Core.LD_COMMENTS_NODE, JcrConstants.NT_UNSTRUCTURED);
+        }
+        Calendar currentTime = Calendar.getInstance();
+        currentTime.setTimeInMillis(System.currentTimeMillis());
+        Node commentNode = commentsNode.addNode(UUID.randomUUID().toString(), JcrConstants.NT_UNSTRUCTURED);
+        commentNode.setProperty(Core.LD_MESSAGE_PROPERTY, comment);
+        commentNode.addMixin(NodeType.MIX_CREATED);
+        commentNode.setProperty(JcrConstants.JCR_LASTMODIFIED, currentTime);
+        commentNode.setProperty(Core.JCR_LASTMODIFIED_BY, session.getUserID());
+        return commentNode;
+    }
+
+    @Override
+    public Node updateComment(Session session, Node commentNode, String comment) throws RepositoryException {
+        if (commentNode.getParent().getName().equals(Core.LD_COMMENTS_NODE)) {
+            throw new InvalidNodeTypeDefinitionException("Parent of node '" +
+                    commentNode.getName() + "' is not a " + Core.LD_COMMENTS_NODE + ".");
+        }
+        Calendar currentTime = Calendar.getInstance();
+        currentTime.setTimeInMillis(System.currentTimeMillis());
+        commentNode.setProperty(Core.LD_MESSAGE_PROPERTY, comment);
+        commentNode.setProperty(JcrConstants.JCR_LASTMODIFIED, currentTime);
+        commentNode.setProperty(Core.JCR_LASTMODIFIED_BY, session.getUserID());
+        return commentNode;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<Node> getComments(Session documentNode) throws RepositoryException {
+        Node commentsNode = documentNode.getNode(Core.LD_COMMENTS_NODE);
+        NodeIterator nodeIterator = commentsNode.getNodes();
+        return IteratorUtils.toList(nodeIterator);
+    }
+
+    @Override
+    public Node addFileNode(Session session, Node documentNode, InputStream inputStream) throws RepositoryException {
+        ValueFactory factory = session.getValueFactory();
+        Binary binary = factory.createBinary(inputStream);
+
+        Node fileNode;
+        if (documentNode.getName().equals(Core.LD_FILE_NODE)) {
+            fileNode = documentNode;
+        } else if (documentNode.hasNode(Core.LD_FILE_NODE)) {
+            fileNode = documentNode.getNode(Core.LD_FILE_NODE);
+        } else {
+            fileNode = documentNode.addNode(Core.LD_FILE_NODE, JcrConstants.NT_FILE);
+        }
+
+        Node resourceNode = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
+        try {
+            String mimeType = URLConnection.guessContentTypeFromStream(inputStream);
+            resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, mimeType);
+        } catch (IOException e) {
+            // do not set mimeType
+        }
+        resourceNode.setProperty(JcrConstants.JCR_DATA, binary);
+        Calendar currentTime = Calendar.getInstance();
+        currentTime.setTimeInMillis(System.currentTimeMillis());
+        resourceNode.addMixin(NodeType.MIX_CREATED);
+        resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, currentTime);
+        resourceNode.setProperty(Core.JCR_LASTMODIFIED_BY, session.getUserID());
+
+        return fileNode;
+    }
+
+    @SuppressWarnings("unchecked")
+    private JackrabbitSession adminLogin() throws RepositoryException {
+        return (JackrabbitSession) repository.login(Core.ADMIN_CREDENTIALS);
     }
 }

@@ -23,6 +23,7 @@
 package de.hska.livingdocuments.core.controller;
 
 import de.hska.livingdocuments.core.dto.NodeDto;
+import de.hska.livingdocuments.core.persistence.domain.User;
 import de.hska.livingdocuments.core.service.JcrService;
 import de.hska.livingdocuments.core.util.Core;
 import org.apache.commons.io.IOUtils;
@@ -32,17 +33,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
+import javax.jcr.*;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -58,13 +56,13 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}")
-    public ResponseEntity<NodeDto> getNode(@PathVariable String nodeId, HttpServletResponse response) {
+    public ResponseEntity<NodeDto> getNode(@PathVariable String nodeId, @AuthenticationPrincipal User user, HttpServletResponse response) {
         Session session = null;
         try {
-            session = jcrService.adminLogin();
-            Node sandboxNode = session.getNode("/" + nodeId);
+            session = jcrService.login(user);
+            Node node = session.getNode("/" + nodeId);
 
-            Property descriptionProperty = sandboxNode.getProperty("description");
+            Property descriptionProperty = node.getProperty(Core.LD_DESCRIPTION_PROPERTY);
 
             NodeDto nodeDto = new NodeDto();
             nodeDto.setDescription(descriptionProperty.getString());
@@ -79,24 +77,34 @@ public class DocumentController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/download/{nodeId}")
-    public void downloadNode(@PathVariable String nodeId, HttpServletResponse response) {
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/download/{documentNodeId}")
+    public void downloadNode(@PathVariable String documentNodeId, @AuthenticationPrincipal User user, HttpServletResponse response) {
         Session session = null;
         try {
-            session = jcrService.adminLogin();
-            Node sandboxNode = session.getNode("/" + nodeId);
-            InputStream inputStream = JcrUtils.readFile(sandboxNode.getNode("fileNode/" + JcrConstants.JCR_CONTENT));
-
-            response.setContentType("application/pdf");
-
+            session = jcrService.login(user);
+            Node documentNode;
             try {
-                OutputStream outputStream = response.getOutputStream();
-                IOUtils.copy(inputStream, outputStream);
-            } catch (IOException e) {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                documentNode = session.getNode("/" + documentNodeId);
+            } catch (PathNotFoundException e) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            } catch (RepositoryException e) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                return;
             }
-        } catch (RepositoryException e) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            if (!documentNode.getPrimaryNodeType().getName().equals(Core.LD_DOCUMENT)) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+
+            InputStream inputStream = JcrUtils.readFile(documentNode
+                    .getNode(Core.LD_FILE_NODE + "/" + JcrConstants.JCR_CONTENT));
+            response.setContentType("application/pdf");
+            OutputStream outputStream = response.getOutputStream();
+            IOUtils.copy(inputStream, outputStream);
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } finally {
             if (session != null) {
                 session.logout();
