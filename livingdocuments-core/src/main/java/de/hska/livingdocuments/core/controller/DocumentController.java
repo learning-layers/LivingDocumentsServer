@@ -23,8 +23,12 @@
 package de.hska.livingdocuments.core.controller;
 
 import de.hska.livingdocuments.core.dto.NodeDto;
+import de.hska.livingdocuments.core.dto.NodeMetaDto;
+import de.hska.livingdocuments.core.persistence.domain.Subscription;
 import de.hska.livingdocuments.core.persistence.domain.User;
+import de.hska.livingdocuments.core.persistence.repository.SubscriptionRepository;
 import de.hska.livingdocuments.core.service.JcrService;
+import de.hska.livingdocuments.core.service.SubscriptionService;
 import de.hska.livingdocuments.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.JcrConstants;
@@ -40,9 +44,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.jcr.*;
+import javax.jcr.nodetype.NodeType;
+import javax.persistence.PersistenceException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Calendar;
+import java.util.PropertyResourceBundle;
 
 /**
  * <p><b>RESOURCE</b> {@code /api/documents}
@@ -53,6 +61,9 @@ public class DocumentController {
 
     @Autowired
     private JcrService jcrService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}")
@@ -68,6 +79,45 @@ public class DocumentController {
             nodeDto.setDescription(descriptionProperty.getString());
 
             return new ResponseEntity<>(nodeDto, HttpStatus.OK);
+        } catch (RepositoryException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } finally {
+            if (session != null) {
+                session.logout();
+            }
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/meta")
+    public ResponseEntity<NodeMetaDto> getNodeMetaData(@PathVariable String nodeId, @AuthenticationPrincipal User user, HttpServletResponse response) {
+        Session session = null;
+        try {
+            session = jcrService.login(user);
+            Node node = session.getNode("/" + nodeId);
+
+            Node commentsNode = node.getNode(Core.LD_COMMENTS_NODE);
+            Node helloWorldNode = commentsNode.getNodes().nextNode();
+
+
+            System.out.print(helloWorldNode.getPrimaryNodeType().getName());
+
+            Property lastModifiedProperty = helloWorldNode.getProperty(JcrConstants.JCR_LASTMODIFIED);
+            System.out.print(lastModifiedProperty.getDate().getTime());
+
+            Property mixinProp = node.getProperty(JcrConstants.JCR_MIXINTYPES);
+            Value[] values = mixinProp.getValues();
+
+            Calendar createdDate = node.getProperty(NodeType.MIX_CREATED).getDate();
+            Calendar lastModifiedDate = node.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
+            String lastModifiedByUserId = node.getProperty(Core.JCR_LASTMODIFIED_BY).getString();
+
+            NodeMetaDto nodeMetaDto = new NodeMetaDto();
+            nodeMetaDto.setCreatedAt(createdDate);
+            nodeMetaDto.setLastModifiedAt(lastModifiedDate);
+            nodeMetaDto.setLastModifiedBy(lastModifiedByUserId);
+
+            return new ResponseEntity<>(nodeMetaDto, HttpStatus.OK);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } finally {
@@ -110,5 +160,30 @@ public class DocumentController {
                 session.logout();
             }
         }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/subscribe")
+    public ResponseEntity subscribe(@PathVariable String nodeId, Subscription.Type type, @AuthenticationPrincipal User user) {
+        Session session = null;
+        try {
+            session = jcrService.login(user);
+            session.getNode("/" + nodeId);
+        } catch (Exception e) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        } finally {
+            if (session != null) {
+                session.logout();
+            }
+        }
+
+        Subscription subscription = new Subscription(nodeId, type, user);
+        try {
+            subscriptionService.save(subscription);
+        } catch (Exception e) {
+            // already exists
+        }
+
+        return new ResponseEntity(HttpStatus.CREATED);
     }
 }
