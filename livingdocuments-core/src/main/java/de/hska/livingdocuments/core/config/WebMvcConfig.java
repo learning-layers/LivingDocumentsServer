@@ -22,43 +22,27 @@
 
 package de.hska.livingdocuments.core.config;
 
-import de.hska.livingdocuments.core.controller.aop.JcrSessionAspect;
-import de.hska.livingdocuments.core.service.JcrService;
-import de.hska.livingdocuments.core.service.RoleService;
-import de.hska.livingdocuments.core.service.SubscriptionService;
-import de.hska.livingdocuments.core.service.UserService;
-import de.hska.livingdocuments.core.service.impl.JackrabbitService;
-import de.hska.livingdocuments.core.service.impl.RoleServiceImpl;
-import de.hska.livingdocuments.core.service.impl.SubscriptionServiceImpl;
-import de.hska.livingdocuments.core.service.impl.UserServiceImpl;
+import de.hska.livingdocuments.core.controller.resolver.JcrSessionMethodArgumentResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+import java.util.List;
 
 @Configuration
-public class CoreConfig {
+@EnableWebMvc
+public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
-    @Bean
-    public UserService userService() {
-        return new UserServiceImpl();
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        argumentResolvers.add(jcrSessionMethodArgumentResolver());
+        super.addArgumentResolvers(argumentResolvers);
     }
 
     @Bean
-    public RoleService roleService() {
-        return new RoleServiceImpl();
-    }
-
-    @Bean
-    public JcrService jcrService() {
-        return new JackrabbitService();
-    }
-
-    @Bean
-    public SubscriptionService subscriptionService() {
-        return new SubscriptionServiceImpl();
-    }
-
-    @Bean
-    public JcrSessionAspect jcrSessionAspect() {
-        return new JcrSessionAspect();
+    public HandlerMethodArgumentResolver jcrSessionMethodArgumentResolver() {
+        return new JcrSessionMethodArgumentResolver();
     }
 }
