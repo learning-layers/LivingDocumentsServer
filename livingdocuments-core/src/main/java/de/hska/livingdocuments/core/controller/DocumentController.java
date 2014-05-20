@@ -22,11 +22,10 @@
 
 package de.hska.livingdocuments.core.controller;
 
+import de.hska.livingdocuments.core.dto.meta.NodeMetaDto;
 import de.hska.livingdocuments.core.dto.NodeDto;
-import de.hska.livingdocuments.core.dto.NodeMetaDto;
 import de.hska.livingdocuments.core.persistence.domain.Subscription;
 import de.hska.livingdocuments.core.persistence.domain.User;
-import de.hska.livingdocuments.core.persistence.repository.SubscriptionRepository;
 import de.hska.livingdocuments.core.service.JcrService;
 import de.hska.livingdocuments.core.service.SubscriptionService;
 import de.hska.livingdocuments.core.util.Core;
@@ -38,19 +37,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.jcr.*;
-import javax.jcr.nodetype.NodeType;
-import javax.persistence.PersistenceException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Calendar;
-import java.util.PropertyResourceBundle;
 
 /**
  * <p><b>RESOURCE</b> {@code /api/documents}
@@ -95,27 +88,7 @@ public class DocumentController {
         try {
             session = jcrService.login(user);
             Node node = session.getNode("/" + nodeId);
-
-            Node commentsNode = node.getNode(Core.LD_COMMENTS_NODE);
-            Node helloWorldNode = commentsNode.getNodes().nextNode();
-
-
-            System.out.print(helloWorldNode.getPrimaryNodeType().getName());
-
-            Property lastModifiedProperty = helloWorldNode.getProperty(JcrConstants.JCR_LASTMODIFIED);
-            System.out.print(lastModifiedProperty.getDate().getTime());
-
-            Property mixinProp = node.getProperty(JcrConstants.JCR_MIXINTYPES);
-            Value[] values = mixinProp.getValues();
-
-            Calendar createdDate = node.getProperty(NodeType.MIX_CREATED).getDate();
-            Calendar lastModifiedDate = node.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
-            String lastModifiedByUserId = node.getProperty(Core.JCR_LASTMODIFIED_BY).getString();
-
-            NodeMetaDto nodeMetaDto = new NodeMetaDto();
-            nodeMetaDto.setCreatedAt(createdDate);
-            nodeMetaDto.setLastModifiedAt(lastModifiedDate);
-            nodeMetaDto.setLastModifiedBy(lastModifiedByUserId);
+            NodeMetaDto nodeMetaDto = new NodeMetaDto(node);
 
             return new ResponseEntity<>(nodeMetaDto, HttpStatus.OK);
         } catch (RepositoryException e) {
