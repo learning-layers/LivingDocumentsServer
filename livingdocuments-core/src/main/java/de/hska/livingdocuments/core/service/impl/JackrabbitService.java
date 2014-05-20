@@ -172,6 +172,7 @@ public class JackrabbitService implements JcrService {
         ValueFactory factory = session.getValueFactory();
         Binary binary = factory.createBinary(inputStream);
 
+        // create file node
         Node fileNode;
         if (documentNode.getName().equals(Core.LD_FILE_NODE)) {
             fileNode = documentNode;
@@ -181,17 +182,17 @@ public class JackrabbitService implements JcrService {
             fileNode = documentNode.addNode(Core.LD_FILE_NODE, JcrConstants.NT_FILE);
         }
 
+        // create resource node
         Node resourceNode = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
+        resourceNode.setProperty(JcrConstants.JCR_DATA, binary);
         try {
             String mimeType = URLConnection.guessContentTypeFromStream(inputStream);
             resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, mimeType);
         } catch (IOException e) {
             // do not set mimeType
         }
-        resourceNode.setProperty(JcrConstants.JCR_DATA, binary);
         Calendar currentTime = Calendar.getInstance();
         currentTime.setTimeInMillis(System.currentTimeMillis());
-        resourceNode.addMixin(NodeType.MIX_CREATED);
         resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, currentTime);
         resourceNode.setProperty(Core.JCR_LASTMODIFIED_BY, session.getUserID());
 
