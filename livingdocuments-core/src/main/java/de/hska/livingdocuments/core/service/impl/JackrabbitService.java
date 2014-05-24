@@ -163,7 +163,7 @@ public class JackrabbitService implements JcrService {
 
     @Override
     public Node updateComment(Session session, Node commentNode, String comment) throws RepositoryException {
-        if (commentNode.getParent().getName().equals(Core.LD_COMMENTS_NODE)) {
+        if (!commentNode.getParent().getName().equals(Core.LD_COMMENTS_NODE)) {
             throw new InvalidNodeTypeDefinitionException("Parent of node '" +
                     commentNode.getName() + "' is not a " + Core.LD_COMMENTS_NODE + ".");
         }

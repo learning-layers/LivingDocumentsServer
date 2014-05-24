@@ -41,6 +41,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.w3c.dom.traversal.NodeIterator;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -83,6 +84,22 @@ public class DocumentController {
         try {
             Node documentOrCommentNode = session.getNode("/" + nodeId);
             Node commentNode = jcrService.addComment(session, documentOrCommentNode, plainTextDto.getText());
+            return new ResponseEntity<>(new NodeDto(commentNode), HttpStatus.OK);
+        } catch (RepositoryException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.PUT, value = "/comment")
+    public ResponseEntity<NodeDto> updateCommentNode(@RequestBody NodeDto commentNodeDto,
+                                                     @JcrSession Session session) {
+        try {
+            Node rootNode = session.getRootNode();
+            Node documentsNode = rootNode.getNode(Core.LD_DOCUMENTS);
+
+            Node commentNode = documentsNode.getNode(commentNodeDto.getNodeId());
+            jcrService.updateComment(session, commentNode, commentNodeDto.getDescription());
             return new ResponseEntity<>(new NodeDto(commentNode), HttpStatus.OK);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
