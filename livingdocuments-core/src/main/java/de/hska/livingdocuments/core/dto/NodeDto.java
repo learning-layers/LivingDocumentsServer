@@ -1,16 +1,18 @@
 package de.hska.livingdocuments.core.dto;
 
 import de.hska.livingdocuments.core.util.Core;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.validation.constraints.NotNull;
 import java.io.InputStream;
 
 public class NodeDto {
 
+    @NotNull
     private String nodeId;
     private String description;
-    private InputStream inputStream;
 
     public NodeDto() {
     }
@@ -38,13 +40,5 @@ public class NodeDto {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public InputStream getInputStream() {
-        return inputStream;
-    }
-
-    public void setInputStream(InputStream inputStream) {
-        this.inputStream = inputStream;
     }
 }

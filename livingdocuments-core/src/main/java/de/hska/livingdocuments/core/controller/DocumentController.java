@@ -24,6 +24,7 @@ package de.hska.livingdocuments.core.controller;
 
 import de.hska.livingdocuments.core.controller.resolver.JcrSession;
 import de.hska.livingdocuments.core.dto.NodeDto;
+import de.hska.livingdocuments.core.dto.PlainTextDto;
 import de.hska.livingdocuments.core.dto.meta.NodeMetaDto;
 import de.hska.livingdocuments.core.persistence.domain.Subscription;
 import de.hska.livingdocuments.core.persistence.domain.User;
@@ -47,7 +48,9 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.io.*;
+import java.util.Map;
 
 /**
  * <p><b>RESOURCE</b> {@code /api/documents}
@@ -64,10 +67,23 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<NodeDto> saveDocumentNode(@RequestBody @Valid NodeDto nodeDto, @JcrSession Session session) {
+    public ResponseEntity<NodeDto> createDocumentNode(@RequestBody @Valid NodeDto nodeDto, @JcrSession Session session) {
         try {
             Node documentNode = jcrService.createDocumentNode(session, nodeDto.getNodeId());
             return new ResponseEntity<>(new NodeDto(documentNode), HttpStatus.OK);
+        } catch (RepositoryException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/comment")
+    public ResponseEntity<NodeDto> addCommentNode(@PathVariable String nodeId, @RequestBody PlainTextDto plainTextDto,
+                                                  @JcrSession Session session) {
+        try {
+            Node documentOrCommentNode = session.getNode("/" + nodeId);
+            Node commentNode = jcrService.addComment(session, documentOrCommentNode, plainTextDto.getText());
+            return new ResponseEntity<>(new NodeDto(commentNode), HttpStatus.OK);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -148,7 +164,6 @@ public class DocumentController {
             try {
                 Node documentNode = jcrService.getDocumentNode(session, nodeId);
                 jcrService.addFileNode(session, documentNode, file.getInputStream(), name, cmd);
-
                 return new ResponseEntity(HttpStatus.OK);
             } catch (Exception e) {
                 return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -156,5 +171,20 @@ public class DocumentController {
         } else {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @Secured(Core.ROLE_ADMIN)
+    @RequestMapping(method = RequestMethod.PUT)
+    public ResponseEntity updateNode(@RequestBody @NotNull Map<String, String> updateMap, String nodeId, NodeDto nodeDto) {
+
+        //filename: "fsdfl"
+
+        for (String key : updateMap.keySet()) {
+            if (key.equals("updateMainFileName")) {
+                String fileName = updateMap.get(key);
+
+            }
+        }
+        return null;
     }
 }

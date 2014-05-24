@@ -141,14 +141,14 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    public Node addComment(Session session, Node documentNode, String comment) throws RepositoryException {
+    public Node addComment(Session session, Node documentOrCommentNode, String comment) throws RepositoryException {
         Node commentsNode;
-        if (documentNode.getName().equals(Core.LD_COMMENTS_NODE)) {
-            commentsNode = documentNode;
-        } else if (documentNode.hasNode(Core.LD_COMMENTS_NODE)) {
-            commentsNode = documentNode.getNode(Core.LD_COMMENTS_NODE);
+        if (documentOrCommentNode.getName().equals(Core.LD_COMMENTS_NODE)) {
+            commentsNode = documentOrCommentNode;
+        } else if (documentOrCommentNode.hasNode(Core.LD_COMMENTS_NODE)) {
+            commentsNode = documentOrCommentNode.getNode(Core.LD_COMMENTS_NODE);
         } else {
-            commentsNode = documentNode.addNode(Core.LD_COMMENTS_NODE, JcrConstants.NT_UNSTRUCTURED);
+            commentsNode = documentOrCommentNode.addNode(Core.LD_COMMENTS_NODE, JcrConstants.NT_UNSTRUCTURED);
         }
         Calendar currentTime = Calendar.getInstance();
         currentTime.setTimeInMillis(System.currentTimeMillis());
@@ -157,6 +157,7 @@ public class JackrabbitService implements JcrService {
         commentNode.addMixin(NodeType.MIX_CREATED);
         commentNode.setProperty(JcrConstants.JCR_LASTMODIFIED, currentTime);
         commentNode.setProperty(Core.JCR_LASTMODIFIED_BY, session.getUserID());
+        session.save();
         return commentNode;
     }
 
@@ -171,13 +172,14 @@ public class JackrabbitService implements JcrService {
         commentNode.setProperty(Core.LD_MESSAGE_PROPERTY, comment);
         commentNode.setProperty(JcrConstants.JCR_LASTMODIFIED, currentTime);
         commentNode.setProperty(Core.JCR_LASTMODIFIED_BY, session.getUserID());
+        session.save();
         return commentNode;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<Node> getComments(Session session) throws RepositoryException {
-        Node commentsNode = session.getNode(Core.LD_COMMENTS_NODE);
+    public List<Node> getComments(Node node) throws RepositoryException {
+        Node commentsNode = node.getNode(Core.LD_COMMENTS_NODE);
         NodeIterator nodeIterator = commentsNode.getNodes();
         return IteratorUtils.toList(nodeIterator);
     }
@@ -193,6 +195,7 @@ public class JackrabbitService implements JcrService {
 
         // create file node
         Node fileNode = null;
+        Node docOrAttachNode = null;
         if ("attachment".equals(cmd)) {
             Node attachmentsNode = null;
             if (!documentNode.hasNode(Core.LD_ATTACHMENTS_NODE)) {
@@ -200,9 +203,17 @@ public class JackrabbitService implements JcrService {
             } else {
                 attachmentsNode = documentNode.getNode(Core.LD_ATTACHMENTS_NODE);
             }
-            fileNode = attachmentsNode.addNode(fileName, JcrConstants.NT_FILE);
+            docOrAttachNode = attachmentsNode;
         } else if ("main".equals(cmd)) {
-            fileNode = documentNode.addNode(fileName, JcrConstants.NT_FILE);
+            docOrAttachNode = documentNode;
+        }
+        if (docOrAttachNode != null) {
+            if (docOrAttachNode.hasNode(fileName)) {
+                // if file node exists but the content shall be updated
+                fileNode = docOrAttachNode.getNode(fileName);
+            } else {
+                fileNode = docOrAttachNode.addNode(fileName, JcrConstants.NT_FILE);
+            }
         }
 
         if (fileNode == null) {
@@ -222,6 +233,8 @@ public class JackrabbitService implements JcrService {
         currentTime.setTimeInMillis(System.currentTimeMillis());
         resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, currentTime);
         resourceNode.setProperty(Core.JCR_LASTMODIFIED_BY, session.getUserID());
+
+        session.save();
 
         return fileNode;
     }
