@@ -36,6 +36,8 @@ public interface JcrService {
 
     Node createDocumentNode(Session session, String nodeId) throws RepositoryException;
 
+    Node getDocumentNode(Session session, String nodeId) throws RepositoryException;
+
     void addAllPrivileges(Session session, Node node) throws RepositoryException;
 
     void addAllPrivileges(Session session, String path) throws RepositoryException;
@@ -46,5 +48,5 @@ public interface JcrService {
 
     List<Node> getComments(Session session) throws RepositoryException;
 
-    Node addFileNode(Session session, Node documentNode, InputStream inputStream) throws RepositoryException;
+    Node addFileNode(Session session, Node documentNode, InputStream inputStream, String fileName, String cmd) throws RepositoryException;
 }

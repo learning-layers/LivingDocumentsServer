@@ -31,8 +31,11 @@ import de.hska.livingdocuments.core.service.impl.JackrabbitService;
 import de.hska.livingdocuments.core.service.impl.RoleServiceImpl;
 import de.hska.livingdocuments.core.service.impl.SubscriptionServiceImpl;
 import de.hska.livingdocuments.core.service.impl.UserServiceImpl;
+import org.springframework.boot.context.embedded.MultiPartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.servlet.MultipartConfigElement;
 
 @Configuration
 public class CoreConfig {
@@ -60,5 +63,13 @@ public class CoreConfig {
     @Bean
     public JcrSessionAspect jcrSessionAspect() {
         return new JcrSessionAspect();
+    }
+
+    @Bean
+    public MultipartConfigElement multipartConfigElement() {
+        MultiPartConfigFactory factory = new MultiPartConfigFactory();
+        factory.setMaxFileSize("128MB");
+        factory.setMaxRequestSize("128MB");
+        return factory.createMultipartConfig();
     }
 }

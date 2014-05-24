@@ -96,10 +96,18 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
+    public Node getDocumentNode(Session session, String nodeId) throws RepositoryException {
+        Node rootNode = session.getRootNode();
+        return rootNode.getNode(Core.LD_DOCUMENTS + "/" + nodeId);
+    }
+
+    @Override
     public Node createDocumentNode(Session session, String nodeId) throws RepositoryException {
         Node rootNode = session.getRootNode();
         Node documentsNode = rootNode.getNode(Core.LD_DOCUMENTS);
-        return documentsNode.addNode(nodeId, Core.LD_DOCUMENT);
+        Node documentNode = documentsNode.addNode(nodeId, Core.LD_DOCUMENT);
+        session.save();
+        return documentNode;
     }
 
     @Override
@@ -175,18 +183,30 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    public Node addFileNode(Session session, Node documentNode, InputStream inputStream) throws RepositoryException {
+    public Node addFileNode(Session session, Node documentNode, InputStream inputStream, String fileName, String cmd) throws RepositoryException {
+        if (!documentNode.getPrimaryNodeType().getName().equals(Core.LD_DOCUMENT)) {
+            throw new RepositoryException("Argument is not a document node.");
+        }
+
         ValueFactory factory = session.getValueFactory();
         Binary binary = factory.createBinary(inputStream);
 
         // create file node
-        Node fileNode;
-        if (documentNode.getName().equals(Core.LD_FILE_NODE)) {
-            fileNode = documentNode;
-        } else if (documentNode.hasNode(Core.LD_FILE_NODE)) {
-            fileNode = documentNode.getNode(Core.LD_FILE_NODE);
-        } else {
-            fileNode = documentNode.addNode(Core.LD_FILE_NODE, JcrConstants.NT_FILE);
+        Node fileNode = null;
+        if ("attachment".equals(cmd)) {
+            Node attachmentsNode = null;
+            if (!documentNode.hasNode(Core.LD_ATTACHMENTS_NODE)) {
+                attachmentsNode = documentNode.addNode(Core.LD_ATTACHMENTS_NODE, JcrConstants.NT_FOLDER);
+            } else {
+                attachmentsNode = documentNode.getNode(Core.LD_ATTACHMENTS_NODE);
+            }
+            fileNode = attachmentsNode.addNode(fileName, JcrConstants.NT_FILE);
+        } else if ("main".equals(cmd)) {
+            fileNode = documentNode.addNode(fileName, JcrConstants.NT_FILE);
+        }
+
+        if (fileNode == null) {
+            throw new RepositoryException("Could not create file node with cmd=[" + cmd + "] and filename=[" + fileName + "]");
         }
 
         // create resource node

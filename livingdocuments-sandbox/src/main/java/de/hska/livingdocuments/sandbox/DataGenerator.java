@@ -50,7 +50,7 @@ public class DataGenerator {
 
             Node sandboxDocument = jcrService.createDocumentNode(session, "sandboxDocument");
             sandboxDocument.setProperty(Core.LD_DESCRIPTION_PROPERTY, "Sandbox Node with PDF-File");
-            jcrService.addFileNode(session, sandboxDocument, in);
+            jcrService.addFileNode(session, sandboxDocument, in, "sandbox.pdf", "main");
             jcrService.addComment(session, sandboxDocument, "Hello World!");
 
             session.save();

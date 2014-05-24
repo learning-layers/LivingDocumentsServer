@@ -39,6 +39,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -46,8 +47,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 /**
  * <p><b>RESOURCE</b> {@code /api/documents}
@@ -89,7 +89,7 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/download/{documentNodeId}")
-    public void downloadNode(@PathVariable String documentNodeId, @AuthenticationPrincipal User user,
+    public void download(@PathVariable String documentNodeId, @AuthenticationPrincipal User user,
                              @JcrSession Session session, HttpServletResponse response) {
         try {
             Node documentNode;
@@ -136,5 +136,25 @@ public class DocumentController {
         }
 
         return new ResponseEntity(HttpStatus.CREATED);
+    }
+
+    @RequestMapping(value="/upload", method=RequestMethod.POST)
+    public ResponseEntity uploadFile(@RequestParam(value = "file", required = true) MultipartFile file,
+                                       @JcrSession Session session,
+                                       @RequestParam(required = true) String nodeId,
+                                       @RequestParam(required = true) String cmd){
+        String name = file.getOriginalFilename();
+        if (!file.isEmpty()) {
+            try {
+                Node documentNode = jcrService.getDocumentNode(session, nodeId);
+                jcrService.addFileNode(session, documentNode, file.getInputStream(), name, cmd);
+
+                return new ResponseEntity(HttpStatus.OK);
+            } catch (Exception e) {
+                return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
     }
 }
