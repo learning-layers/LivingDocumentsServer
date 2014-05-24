@@ -22,8 +22,9 @@
 
 package de.hska.livingdocuments.core.controller;
 
-import de.hska.livingdocuments.core.dto.meta.NodeMetaDto;
+import de.hska.livingdocuments.core.controller.resolver.JcrSession;
 import de.hska.livingdocuments.core.dto.NodeDto;
+import de.hska.livingdocuments.core.dto.meta.NodeMetaDto;
 import de.hska.livingdocuments.core.persistence.domain.Subscription;
 import de.hska.livingdocuments.core.persistence.domain.User;
 import de.hska.livingdocuments.core.service.JcrService;
@@ -39,11 +40,14 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import javax.jcr.*;
+import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Calendar;
 
 /**
  * <p><b>RESOURCE</b> {@code /api/documents}
@@ -59,53 +63,35 @@ public class DocumentController {
     private SubscriptionService subscriptionService;
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}")
-    public ResponseEntity<NodeDto> getNode(@PathVariable String nodeId, @AuthenticationPrincipal User user, HttpServletResponse response) {
-        Session session = null;
+    @RequestMapping(method = RequestMethod.POST)
+    public ResponseEntity<NodeDto> saveDocumentNode(@RequestBody @Valid NodeDto nodeDto, @JcrSession Session session) {
         try {
-            session = jcrService.login(user);
-            Node node = session.getNode("/" + nodeId);
-
-            Property descriptionProperty = node.getProperty(Core.LD_DESCRIPTION_PROPERTY);
-
-            NodeDto nodeDto = new NodeDto();
-            nodeDto.setDescription(descriptionProperty.getString());
-
-            return new ResponseEntity<>(nodeDto, HttpStatus.OK);
+            Node documentNode = jcrService.createDocumentNode(session, nodeDto.getNodeId());
+            return new ResponseEntity<>(new NodeDto(documentNode), HttpStatus.OK);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } finally {
-            if (session != null) {
-                session.logout();
-            }
         }
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/meta")
-    public ResponseEntity<NodeMetaDto> getNodeMetaData(@PathVariable String nodeId, @AuthenticationPrincipal User user, HttpServletResponse response) {
-        Session session = null;
+    public ResponseEntity<NodeMetaDto> getNodeMetaData(@PathVariable String nodeId, @AuthenticationPrincipal User user,
+                                                       @JcrSession Session session, HttpServletResponse response) {
         try {
-            session = jcrService.login(user);
             Node node = session.getNode("/" + nodeId);
             NodeMetaDto nodeMetaDto = new NodeMetaDto(node);
 
             return new ResponseEntity<>(nodeMetaDto, HttpStatus.OK);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } finally {
-            if (session != null) {
-                session.logout();
-            }
         }
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/download/{documentNodeId}")
-    public void downloadNode(@PathVariable String documentNodeId, @AuthenticationPrincipal User user, HttpServletResponse response) {
-        Session session = null;
+    public void downloadNode(@PathVariable String documentNodeId, @AuthenticationPrincipal User user,
+                             @JcrSession Session session, HttpServletResponse response) {
         try {
-            session = jcrService.login(user);
             Node documentNode;
             try {
                 documentNode = session.getNode("/" + documentNodeId);
@@ -128,26 +114,18 @@ public class DocumentController {
             IOUtils.copy(inputStream, outputStream);
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        } finally {
-            if (session != null) {
-                session.logout();
-            }
         }
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/subscribe")
-    public ResponseEntity subscribe(@PathVariable String nodeId, Subscription.Type type, @AuthenticationPrincipal User user) {
-        Session session = null;
+    public ResponseEntity subscribe(@PathVariable String nodeId, Subscription.Type type,
+                                    @JcrSession Session session, @AuthenticationPrincipal User user) {
         try {
-            session = jcrService.login(user);
-            session.getNode("/" + nodeId);
+            Node node = session.getNode("/" + nodeId);
+            // TODO check access permission
         } catch (Exception e) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
-        } finally {
-            if (session != null) {
-                session.logout();
-            }
         }
 
         Subscription subscription = new Subscription(nodeId, type, user);

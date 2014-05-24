@@ -96,12 +96,19 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    public void addAllPrivileges(Node node, Session session) throws RepositoryException {
-        addAllPrivileges(node.getPath(), session);
+    public Node createDocumentNode(Session session, String nodeId) throws RepositoryException {
+        Node rootNode = session.getRootNode();
+        Node documentsNode = rootNode.getNode(Core.LD_DOCUMENTS);
+        return documentsNode.addNode(nodeId, Core.LD_DOCUMENT);
     }
 
     @Override
-    public void addAllPrivileges(String path, Session session) throws RepositoryException {
+    public void addAllPrivileges(Session session, Node node) throws RepositoryException {
+        addAllPrivileges(session, node.getPath());
+    }
+
+    @Override
+    public void addAllPrivileges(Session session, String path) throws RepositoryException {
         AccessControlManager aMgr = session.getAccessControlManager();
 
         // create a privilege set with jcr:all
@@ -161,8 +168,8 @@ public class JackrabbitService implements JcrService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<Node> getComments(Session documentNode) throws RepositoryException {
-        Node commentsNode = documentNode.getNode(Core.LD_COMMENTS_NODE);
+    public List<Node> getComments(Session session) throws RepositoryException {
+        Node commentsNode = session.getNode(Core.LD_COMMENTS_NODE);
         NodeIterator nodeIterator = commentsNode.getNodes();
         return IteratorUtils.toList(nodeIterator);
     }

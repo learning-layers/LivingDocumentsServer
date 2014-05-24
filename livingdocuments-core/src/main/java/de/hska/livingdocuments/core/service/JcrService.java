@@ -34,15 +34,17 @@ public interface JcrService {
 
     <T extends Session> T login(User user) throws RepositoryException;
 
-    void addAllPrivileges(Node node, Session session) throws RepositoryException;
+    Node createDocumentNode(Session session, String nodeId) throws RepositoryException;
 
-    void addAllPrivileges(String path, Session session) throws RepositoryException;
+    void addAllPrivileges(Session session, Node node) throws RepositoryException;
+
+    void addAllPrivileges(Session session, String path) throws RepositoryException;
 
     Node addComment(Session session, Node documentNode, String comment) throws RepositoryException;
 
     Node updateComment(Session session, Node commentNode, String comment) throws RepositoryException;
 
-    List<Node> getComments(Session documentNode) throws RepositoryException;
+    List<Node> getComments(Session session) throws RepositoryException;
 
     Node addFileNode(Session session, Node documentNode, InputStream inputStream) throws RepositoryException;
 }

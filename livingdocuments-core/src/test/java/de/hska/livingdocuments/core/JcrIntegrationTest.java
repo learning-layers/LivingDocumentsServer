@@ -73,7 +73,7 @@ public class JcrIntegrationTest extends AbstractIntegrationTest {
             } catch (ItemExistsException e) {
                 LOGGER.info("Test folder already exists.");
             }
-            jcrService.addAllPrivileges(testRoot, adminSession);
+            jcrService.addAllPrivileges(adminSession, testRoot);
             adminSession.save();
         } finally {
             adminSession.logout();

@@ -33,6 +33,7 @@ public class Core {
     public static final String ROLE_USER = "ROLE_USER";
 
     public static final String LD_DOCUMENT = "ld:document";
+    public static final String LD_DOCUMENTS = "ld:documents";
 
     public static final String LD_FILE_NODE = "file";
     public static final String LD_COMMENTS_NODE = "comments";

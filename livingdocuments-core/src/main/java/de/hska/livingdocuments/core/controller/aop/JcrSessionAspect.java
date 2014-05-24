@@ -31,7 +31,7 @@ import javax.jcr.Session;
 @Aspect
 public class JcrSessionAspect {
 
-    @AfterReturning(pointcut = "execution(* de.hska.livingdocuments.core.controller.DocumentController.*(..)))")
+    @AfterReturning("execution(* de.hska.livingdocuments.core.controller.DocumentController.*(..))")
     public void afterReturning(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         for (Object arg : args) {

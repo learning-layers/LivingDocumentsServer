@@ -37,6 +37,9 @@ import java.io.InputStream;
 public class DataGenerator {
 
     @Autowired
+    private JcrService jcrService;
+
+    @Autowired
     public void init(JcrService jcrService, UserService userService) throws RepositoryException {
         InputStream in = null;
         Session session = null;
@@ -45,8 +48,7 @@ public class DataGenerator {
             User admin = userService.findByUsername("admin");
             session = jcrService.login(admin);
 
-            Node root = session.getRootNode();
-            Node sandboxDocument = root.addNode("sandboxDocument", Core.LD_DOCUMENT);
+            Node sandboxDocument = jcrService.createDocumentNode(session, "sandboxDocument");
             sandboxDocument.setProperty(Core.LD_DESCRIPTION_PROPERTY, "Sandbox Node with PDF-File");
             jcrService.addFileNode(session, sandboxDocument, in);
             jcrService.addComment(session, sandboxDocument, "Hello World!");

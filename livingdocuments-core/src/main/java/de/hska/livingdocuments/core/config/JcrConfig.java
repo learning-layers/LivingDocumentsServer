@@ -22,10 +22,13 @@
 
 package de.hska.livingdocuments.core.config;
 
+import de.hska.livingdocuments.core.service.JcrService;
 import de.hska.livingdocuments.core.util.Core;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.commons.cnd.ParseException;
 import org.apache.jackrabbit.core.TransientRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,12 +43,16 @@ import java.io.IOException;
 
 @Configuration
 public class JcrConfig {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JcrConfig.class);
 
     @Autowired
     private Environment env;
 
     @Autowired
     private ResourceLoader resourceLoader;
+
+    @Autowired
+    private JcrService jcrService;
 
     @Bean
     public Repository repository() throws IOException {
@@ -59,25 +66,48 @@ public class JcrConfig {
     @Autowired
     private void registerNodeTypes() throws IOException, RepositoryException, ParseException {
         Repository repository = repository();
-        Session session = repository.login(Core.ADMIN_CREDENTIALS);
+        Session session = null;
 
-        NamespaceRegistry namespaceRegistry = session.getWorkspace().getNamespaceRegistry();
         try {
-            namespaceRegistry.registerNamespace("ld", "http://learning-layers.eu/nt/ld");
+            session = repository.login(Core.ADMIN_CREDENTIALS);
+            try {
+                registerNamespacesAndNodeTypes(session);
+            } catch (NamespaceException e) {
+                LOGGER.info("namespace ld -> http://learning-layers.eu/nt/ld: mapping already exists");
+            }
 
-            // Retrieve node type manager from the session
-            NodeTypeManager nodeTypeManager = session.getWorkspace().getNodeTypeManager();
-
-            // Create node type
-            NodeTypeTemplate ldDocumentNodeType = nodeTypeManager.createNodeTypeTemplate();
-            ldDocumentNodeType.setName(Core.LD_DOCUMENT);
-
-            String[] superTypeNames = {JcrConstants.NT_UNSTRUCTURED};
-            ldDocumentNodeType.setDeclaredSuperTypeNames(superTypeNames);
-
-            nodeTypeManager.registerNodeType(ldDocumentNodeType, false);
-        } catch (NamespaceException e) {
-            // namespace ld -> http://learning-layers.eu/nt/ld: mapping already exists
+            // Create a container for all documents
+            try {
+                Node rootNode = session.getRootNode();
+                Node documentsNode = rootNode.addNode(Core.LD_DOCUMENTS, JcrConstants.NT_UNSTRUCTURED);
+                jcrService.addAllPrivileges(session, documentsNode);
+                session.save();
+            } catch (ItemExistsException e) {
+                LOGGER.info("Document Node Type already exists.");
+            }
+        } catch (RepositoryException e) {
+            LOGGER.error(e.getMessage());
+        } finally {
+            if (session != null) {
+                session.logout();
+            }
         }
+    }
+
+    private void registerNamespacesAndNodeTypes(Session session) throws RepositoryException {
+        // Register custom namespace
+        NamespaceRegistry namespaceRegistry = session.getWorkspace().getNamespaceRegistry();
+        namespaceRegistry.registerNamespace("ld", "http://learning-layers.eu/nt/ld");
+
+        // Retrieve node type manager from the session
+        NodeTypeManager nodeTypeManager = session.getWorkspace().getNodeTypeManager();
+
+        // Create document node types
+        NodeTypeTemplate ldDocumentNodeType = nodeTypeManager.createNodeTypeTemplate();
+        ldDocumentNodeType.setName(Core.LD_DOCUMENT);
+        String[] superTypeNames = {JcrConstants.NT_UNSTRUCTURED};
+        ldDocumentNodeType.setDeclaredSuperTypeNames(superTypeNames);
+
+        nodeTypeManager.registerNodeType(ldDocumentNodeType, false);
     }
 }
