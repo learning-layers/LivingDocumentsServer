@@ -39,6 +39,9 @@ import org.springframework.core.env.Environment;
 import javax.jcr.*;
 import javax.jcr.nodetype.InvalidNodeTypeDefinitionException;
 import javax.jcr.nodetype.NodeType;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
 import javax.jcr.security.AccessControlEntry;
 import javax.jcr.security.AccessControlList;
 import javax.jcr.security.AccessControlManager;
@@ -174,6 +177,73 @@ public class JackrabbitService implements JcrService {
         commentNode.setProperty(Core.JCR_LASTMODIFIED_BY, session.getUserID());
         session.save();
         return commentNode;
+    }
+
+    @Override
+    public Node addTag(Session session, Node documentsNode, Node node, String tagname, String description) throws RepositoryException {
+        Node documentsTagsNode = null;
+        if (!documentsNode.hasNode(Core.LD_TAGS_NODE)) {
+            // if the documents tag container isn't present add it
+            documentsTagsNode = documentsNode.addNode(Core.LD_TAGS_NODE, Core.LD_TAGS_NODE);
+            // save it to enable search in this node later on
+            session.save();
+        }
+
+        // see if the needed tag node is available yet
+        Node documentsTagNode = null;
+        documentsTagNode = searchDocumentsTagNode(session, tagname, documentsTagNode);
+
+        if (documentsTagNode == null) {
+            // tag node has not been found, create a new one
+            documentsTagNode = documentsTagsNode.addNode(UUID.randomUUID().toString(), JcrConstants.NT_UNSTRUCTURED);
+            documentsTagNode.setProperty(Core.LD_NAME_PROPERTY, tagname);
+            documentsTagNode.setProperty(Core.LD_DESCRIPTION_PROPERTY, description);
+        }
+
+        // add tagNode to the document node
+        Node nodeTagsNode = null;
+        if (!node.hasNode(Core.LD_TAGS_NODE)) {
+            // if the document tag container isn't present add it
+            nodeTagsNode = documentsNode.addNode(Core.LD_TAGS_NODE, Core.LD_TAGS_NODE);
+        }
+
+        Node nodeTagNode = null;
+        try {
+            nodeTagNode = addNodeTag(tagname, description, documentsTagNode, nodeTagsNode);
+        } catch (ItemExistsException e) {
+            // tag has already been added
+        }
+        session.save();
+        return nodeTagNode;
+    }
+
+    private Node addNodeTag(String tagname, String description, Node documentsTagNode, Node nodeTagsNode) throws RepositoryException {
+        Node nodeTagNode = nodeTagsNode.addNode(documentsTagNode.getIdentifier(), JcrConstants.NT_UNSTRUCTURED);
+        nodeTagNode.setProperty(Core.LD_NAME_PROPERTY, tagname);
+        nodeTagNode.setProperty(Core.LD_DESCRIPTION_PROPERTY, description);
+        return nodeTagNode;
+    }
+
+    private Node searchDocumentsTagNode(Session session, String tagname, Node documentsTagNode) throws RepositoryException {
+        // search for the tag node
+        QueryManager queryManager = session.getWorkspace().getQueryManager();
+        String expression = "//" +
+                            Core.LD_DOCUMENTS + "/" +
+                            Core.LD_TAGS_NODE + "/" +
+                            "element(" + tagname + "," + JcrConstants.NT_UNSTRUCTURED + ")" +
+                            "/@name";
+        Query query = queryManager.createQuery(expression, "XPath");
+        QueryResult result = query.execute();
+        NodeIterator nodeIter = result.getNodes();
+        while ( nodeIter.hasNext() ) {
+            documentsTagNode = nodeIter.nextNode();
+        }
+        return documentsTagNode;
+    }
+
+    @Override
+    public Node removeTag(Session session, Node documentNode, String tagId) throws RepositoryException {
+        return null;
     }
 
     @Override

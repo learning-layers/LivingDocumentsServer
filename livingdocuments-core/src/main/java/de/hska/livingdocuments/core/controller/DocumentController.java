@@ -107,6 +107,28 @@ public class DocumentController {
     }
 
     @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.PUT, value = "/{nodeId}/tag")
+    public ResponseEntity<NodeDto> addTag(@PathVariable String nodeId,
+                                          @RequestBody NodeDto nodeDtoReq, @JcrSession Session session) {
+        try {
+            Node rootNode = session.getRootNode();
+            Node documentsNode = rootNode.getNode(Core.LD_DOCUMENTS);
+            Node node = documentsNode.getNode(nodeId);
+
+            // call add tag in service method
+            Node tagNode = jcrService.addTag(session, documentsNode, node, nodeDtoReq.getNodeId(), nodeDtoReq.getDescription());
+
+            // create response dto
+            NodeDto nodeDtoRes = new NodeDto();
+            nodeDtoRes.setNodeId(tagNode.getIdentifier());
+            nodeDtoRes.setDescription(tagNode.getProperty(Core.LD_DESCRIPTION_PROPERTY).getString());
+            return new ResponseEntity<>(nodeDtoReq, HttpStatus.OK);
+        } catch (RepositoryException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/meta")
     public ResponseEntity<NodeMetaDto> getNodeMetaData(@PathVariable String nodeId, @AuthenticationPrincipal User user,
                                                        @JcrSession Session session, HttpServletResponse response) {

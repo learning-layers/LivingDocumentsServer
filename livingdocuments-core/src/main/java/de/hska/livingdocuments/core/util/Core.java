@@ -37,9 +37,12 @@ public class Core {
 
     public static final String LD_FILE_NODE = "file";
     public static final String LD_COMMENTS_NODE = "comments";
+    public static final String LD_TAGS_NODE = "comments";
     public static final String LD_ATTACHMENTS_NODE = "attachments";
     public static final String LD_DESCRIPTION_PROPERTY = "description";
+
     public static final String LD_MESSAGE_PROPERTY = "message";
+    public static final String LD_NAME_PROPERTY = "name";
 
     public static final String JCR_LASTMODIFIED_BY = "jcr:lastModifiedBy";
 }
