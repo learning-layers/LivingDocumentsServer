@@ -41,7 +41,6 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.w3c.dom.traversal.NodeIterator;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -50,7 +49,8 @@ import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.io.*;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 
 /**
@@ -133,9 +133,9 @@ public class DocumentController {
     public ResponseEntity<NodeMetaDto> getNodeMetaData(@PathVariable String nodeId, @AuthenticationPrincipal User user,
                                                        @JcrSession Session session, HttpServletResponse response) {
         try {
-            Node node = session.getNode("/" + nodeId);
+            Node rootNode = session.getRootNode();
+            Node node = rootNode.getNode(Core.LD_DOCUMENTS + "/" + nodeId);
             NodeMetaDto nodeMetaDto = new NodeMetaDto(node);
-
             return new ResponseEntity<>(nodeMetaDto, HttpStatus.OK);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

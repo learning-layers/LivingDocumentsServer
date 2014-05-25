@@ -29,7 +29,7 @@ public class NodeDto {
                 NodeIterator tagsIt = tagsNode.getNodes();
                 while (tagsIt.hasNext()) {
                     Node tag = tagsIt.nextNode();
-                    tags.put(tag.getProperty(Core.LD_NAME_PROPERTY).getString(), tag.getIdentifier());
+                    tags.put(tag.getIdentifier(), tag.getProperty(Core.LD_NAME_PROPERTY).getString());
                 }
             }
         } catch (RepositoryException e) {
