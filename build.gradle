@@ -26,6 +26,7 @@ subprojects {
         jackrabbitVersion = '2.7.5'
         h2Version = '1.3.173'
         postgresVersion = '9.1-901.jdbc4'
+        mySqlVersion = '5.1.30'
     }
 
     buildscript {
@@ -62,6 +63,7 @@ subprojects {
         compile "org.hibernate:hibernate-validator:$hibernateValidation"
         compile "commons-dbcp:commons-dbcp:$commonsDbcpVersion"
         compile "com.h2database:h2:$h2Version"
+        compile "mysql:mysql-connector-java:$mySqlVersion"
         compile "postgresql:postgresql:$postgresVersion"
         // Add the core project as a dependency for each sub project
         if (project.name != 'livingdocuments-core') {
