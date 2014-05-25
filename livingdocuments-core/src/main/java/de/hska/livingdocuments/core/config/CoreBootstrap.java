@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Component
 public class CoreBootstrap {
@@ -42,13 +43,16 @@ public class CoreBootstrap {
 
     @Autowired
     public void init(Environment env, UserService userService, RoleService roleService) {
-        Role userRole = roleService.save(new Role(Core.ROLE_USER));
-        Role adminRole = roleService.save(new Role(Core.ROLE_ADMIN));
+        List<Role> roleList = roleService.findAll();
+        if (roleList == null || roleList.isEmpty()) {
+            Role userRole = roleService.save(new Role(Core.ROLE_USER));
+            Role adminRole = roleService.save(new Role(Core.ROLE_ADMIN));
 
-        adminPassword = userService.encodePassword(env.getProperty("module.core.bootstrap.admin.password"));
+            adminPassword = userService.encodePassword(env.getProperty("module.core.bootstrap.admin.password"));
 
-        userService.save(getUser("user", "user", userRole));
-        userService.save(getUser("admin", "admin", userRole, adminRole));
+            userService.save(getUser("user", "user", userRole));
+            userService.save(getUser("admin", "admin", userRole, adminRole));
+        }
     }
 
     /**
