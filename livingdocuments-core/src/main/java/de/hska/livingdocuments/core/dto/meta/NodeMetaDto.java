@@ -1,17 +1,16 @@
 package de.hska.livingdocuments.core.dto.meta;
 
+import de.hska.livingdocuments.core.dto.NodeDto;
 import de.hska.livingdocuments.core.util.Core;
 import org.apache.jackrabbit.JcrConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
-import javax.jcr.ValueFormatException;
 import java.util.Calendar;
 
-public class NodeMetaDto {
+public class NodeMetaDto extends NodeDto {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeMetaDto.class);
 
     private Calendar createdDate;
@@ -20,6 +19,7 @@ public class NodeMetaDto {
     private String createdBy;
 
     public NodeMetaDto(Node node) {
+        super(node);
         try {
             // fetch file node meta data
             Node fileNode = node.getNode(Core.LD_FILE_NODE);
@@ -30,10 +30,6 @@ public class NodeMetaDto {
             Node resourceNode = fileNode.getNode(JcrConstants.JCR_CONTENT);
             lastModifiedAt = resourceNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
             lastModifiedBy = resourceNode.getProperty(Core.JCR_LASTMODIFIED_BY).getString();
-        } catch (PathNotFoundException e) {
-            LOGGER.error("Creating node meta dto failed", e);
-        } catch (ValueFormatException e) {
-            LOGGER.error("Creating node meta dto failed", e);
         } catch (RepositoryException e) {
             LOGGER.error("Creating node meta dto failed", e);
         }

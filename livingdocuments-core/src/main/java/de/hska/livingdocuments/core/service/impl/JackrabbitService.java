@@ -206,6 +206,8 @@ public class JackrabbitService implements JcrService {
         if (!nodeToBeTagged.hasNode(Core.LD_TAGS_NODE)) {
             // if the document tag container isn't present add it
             nodeTagsNode = nodeToBeTagged.addNode(Core.LD_TAGS_NODE, JcrConstants.NT_UNSTRUCTURED);
+        } else {
+            nodeTagsNode = nodeToBeTagged.getNode(Core.LD_TAGS_NODE);
         }
 
         Node nodeToBeTaggedTagNode = null;
@@ -219,7 +221,8 @@ public class JackrabbitService implements JcrService {
     }
 
     private Node addNodeTag(String tagname, Node documentsTagNode, Node nodeTagsNode) throws RepositoryException {
-        Node nodeTagNode = nodeTagsNode.addNode(documentsTagNode.getIdentifier(), JcrConstants.NT_UNSTRUCTURED);
+        String identifier = documentsTagNode.getIdentifier();
+        Node nodeTagNode = nodeTagsNode.addNode(identifier, JcrConstants.NT_UNSTRUCTURED);
         nodeTagNode.setProperty(Core.LD_NAME_PROPERTY, tagname);
         return nodeTagNode;
     }
