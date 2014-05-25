@@ -230,8 +230,8 @@ public class JackrabbitService implements JcrService {
         String expression = "//" +
                             Core.LD_DOCUMENTS + "/" +
                             Core.LD_TAGS_NODE + "/" +
-                            "element(" + tagname + "," + JcrConstants.NT_UNSTRUCTURED + ")" +
-                            "/@name";
+                            "element(*," + JcrConstants.NT_UNSTRUCTURED + ")" +
+                            "/[@name='" + tagname + "']";
         Query query = queryManager.createQuery(expression, "XPath");
         QueryResult result = query.execute();
         NodeIterator nodeIter = result.getNodes();
