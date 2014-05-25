@@ -48,7 +48,7 @@ public interface JcrService {
 
     Node addTag(Session session, Node documentsNode, Node node, String tagname, String description) throws RepositoryException;
 
-    Node removeTag(Session session, Node documentNode, String tagId) throws RepositoryException;
+    Node removeTag(Session session, String tagId) throws RepositoryException;
 
     List<Node> getComments(Node node) throws RepositoryException;
 

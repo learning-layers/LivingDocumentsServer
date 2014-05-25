@@ -180,20 +180,21 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    public Node addTag(Session session, Node documentsNode, Node node, String tagname, String description) throws RepositoryException {
+    public Node addTag(Session session, Node documentsNode, Node nodeToBeTagged, String tagname, String description) throws RepositoryException {
         Node documentsTagsNode = null;
         if (!documentsNode.hasNode(Core.LD_TAGS_NODE)) {
             // if the documents tag container isn't present add it
-            documentsTagsNode = documentsNode.addNode(Core.LD_TAGS_NODE, Core.LD_TAGS_NODE);
+            documentsTagsNode = documentsNode.addNode(Core.LD_TAGS_NODE, JcrConstants.NT_UNSTRUCTURED);
             // save it to enable search in this node later on
             session.save();
+        } else {
+            documentsTagsNode = documentsNode.getNode(Core.LD_TAGS_NODE);
         }
 
         // see if the needed tag node is available yet
-        Node documentsTagNode = null;
-        documentsTagNode = searchDocumentsTagNode(session, tagname, documentsTagNode);
+        Node documentsTagNode = searchDocumentsTagNode(session, tagname);
 
-        if (documentsTagNode == null) {
+        if (documentsTagNode == null && documentsTagsNode != null) {
             // tag node has not been found, create a new one
             documentsTagNode = documentsTagsNode.addNode(UUID.randomUUID().toString(), JcrConstants.NT_UNSTRUCTURED);
             documentsTagNode.setProperty(Core.LD_NAME_PROPERTY, tagname);
@@ -202,39 +203,39 @@ public class JackrabbitService implements JcrService {
 
         // add tagNode to the document node
         Node nodeTagsNode = null;
-        if (!node.hasNode(Core.LD_TAGS_NODE)) {
+        if (!nodeToBeTagged.hasNode(Core.LD_TAGS_NODE)) {
             // if the document tag container isn't present add it
-            nodeTagsNode = documentsNode.addNode(Core.LD_TAGS_NODE, Core.LD_TAGS_NODE);
+            nodeTagsNode = nodeToBeTagged.addNode(Core.LD_TAGS_NODE, JcrConstants.NT_UNSTRUCTURED);
         }
 
-        Node nodeTagNode = null;
+        Node nodeToBeTaggedTagNode = null;
         try {
-            nodeTagNode = addNodeTag(tagname, description, documentsTagNode, nodeTagsNode);
+            nodeToBeTaggedTagNode = addNodeTag(tagname, documentsTagNode, nodeTagsNode);
         } catch (ItemExistsException e) {
             // tag has already been added
         }
         session.save();
-        return nodeTagNode;
+        return nodeToBeTaggedTagNode;
     }
 
-    private Node addNodeTag(String tagname, String description, Node documentsTagNode, Node nodeTagsNode) throws RepositoryException {
+    private Node addNodeTag(String tagname, Node documentsTagNode, Node nodeTagsNode) throws RepositoryException {
         Node nodeTagNode = nodeTagsNode.addNode(documentsTagNode.getIdentifier(), JcrConstants.NT_UNSTRUCTURED);
         nodeTagNode.setProperty(Core.LD_NAME_PROPERTY, tagname);
-        nodeTagNode.setProperty(Core.LD_DESCRIPTION_PROPERTY, description);
         return nodeTagNode;
     }
 
-    private Node searchDocumentsTagNode(Session session, String tagname, Node documentsTagNode) throws RepositoryException {
+    private Node searchDocumentsTagNode(Session session, String tagname) throws RepositoryException {
         // search for the tag node
         QueryManager queryManager = session.getWorkspace().getQueryManager();
         String expression = "//" +
                             Core.LD_DOCUMENTS + "/" +
                             Core.LD_TAGS_NODE + "/" +
                             "element(*," + JcrConstants.NT_UNSTRUCTURED + ")" +
-                            "/[@name='" + tagname + "']";
-        Query query = queryManager.createQuery(expression, "XPath");
+                            "[@name='" + tagname + "']";
+        Query query = queryManager.createQuery(expression, "xpath");
         QueryResult result = query.execute();
         NodeIterator nodeIter = result.getNodes();
+        Node documentsTagNode = null;
         while ( nodeIter.hasNext() ) {
             documentsTagNode = nodeIter.nextNode();
         }
@@ -242,7 +243,7 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    public Node removeTag(Session session, Node documentNode, String tagId) throws RepositoryException {
+    public Node removeTag(Session session, String tagId) throws RepositoryException {
         return null;
     }
 

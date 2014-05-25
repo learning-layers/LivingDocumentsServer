@@ -116,13 +116,13 @@ public class DocumentController {
             Node node = documentsNode.getNode(nodeId);
 
             // call add tag in service method
+            // !nodeDtoReq.getNodeId() contains the tagname
             Node tagNode = jcrService.addTag(session, documentsNode, node, nodeDtoReq.getNodeId(), nodeDtoReq.getDescription());
 
             // create response dto
             NodeDto nodeDtoRes = new NodeDto();
             nodeDtoRes.setNodeId(tagNode.getIdentifier());
-            nodeDtoRes.setDescription(tagNode.getProperty(Core.LD_DESCRIPTION_PROPERTY).getString());
-            return new ResponseEntity<>(nodeDtoReq, HttpStatus.OK);
+            return new ResponseEntity<>(nodeDtoRes, HttpStatus.OK);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

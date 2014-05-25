@@ -37,7 +37,7 @@ public class Core {
 
     public static final String LD_FILE_NODE = "file";
     public static final String LD_COMMENTS_NODE = "comments";
-    public static final String LD_TAGS_NODE = "comments";
+    public static final String LD_TAGS_NODE = "tags";
     public static final String LD_ATTACHMENTS_NODE = "attachments";
     public static final String LD_DESCRIPTION_PROPERTY = "description";
 
