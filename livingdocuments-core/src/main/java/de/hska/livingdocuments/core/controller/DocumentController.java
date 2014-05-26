@@ -23,9 +23,9 @@
 package de.hska.livingdocuments.core.controller;
 
 import de.hska.livingdocuments.core.controller.resolver.JcrSession;
+import de.hska.livingdocuments.core.dto.CommentNodeDto;
 import de.hska.livingdocuments.core.dto.NodeDto;
 import de.hska.livingdocuments.core.dto.PlainTextDto;
-import de.hska.livingdocuments.core.dto.meta.NodeMetaDto;
 import de.hska.livingdocuments.core.persistence.domain.Subscription;
 import de.hska.livingdocuments.core.persistence.domain.User;
 import de.hska.livingdocuments.core.service.JcrService;
@@ -42,15 +42,14 @@ import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
+import javax.jcr.*;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -130,13 +129,32 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/meta")
-    public ResponseEntity<NodeMetaDto> getNodeMetaData(@PathVariable String nodeId, @AuthenticationPrincipal User user,
-                                                       @JcrSession Session session, HttpServletResponse response) {
+    public ResponseEntity<NodeDto> getNodeMetaData(@PathVariable String nodeId, @AuthenticationPrincipal User user,
+                                                   @JcrSession Session session, HttpServletResponse response) {
         try {
             Node rootNode = session.getRootNode();
             Node node = rootNode.getNode(Core.LD_DOCUMENTS + "/" + nodeId);
-            NodeMetaDto nodeMetaDto = new NodeMetaDto(node);
+            NodeDto nodeMetaDto = new NodeDto(node);
             return new ResponseEntity<>(nodeMetaDto, HttpStatus.OK);
+        } catch (RepositoryException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentNodeId}/comments")
+    public ResponseEntity<List<CommentNodeDto>> getCommentNodes(@PathVariable String documentNodeId,
+                                                                @JcrSession Session session) {
+        try {
+            Node rootNode = session.getRootNode();
+            Node node = rootNode.getNode(Core.LD_DOCUMENTS + "/" + documentNodeId + "/" + Core.LD_COMMENTS_NODE);
+            NodeIterator commentNodeIt = node.getNodes();
+            List<CommentNodeDto> commentList = new ArrayList<>();
+            while (commentNodeIt.hasNext()) {
+                Node commentNode = commentNodeIt.nextNode();
+                commentList.add(new CommentNodeDto(commentNode));
+            }
+            return new ResponseEntity<>(commentList, HttpStatus.OK);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
