@@ -52,18 +52,25 @@ public class NodeDto {
     public NodeDto(Node node) {
         try {
             this.nodeId = node.getName();
-            this.description = node.getProperty(Core.LD_DESCRIPTION_PROPERTY).getString();
+            if (node.hasProperty(Core.LD_DESCRIPTION_PROPERTY)) {
+                this.description = node.getProperty(Core.LD_DESCRIPTION_PROPERTY).getString();
+            }
+
             loadTags(node);
 
             // fetch file node meta data
-            Node fileNode = node.getNode(Core.LD_FILE_NODE);
-            this.createdDate = fileNode.getProperty(JcrConstants.JCR_CREATED).getDate();
-            this.createdBy = fileNode.getProperty("jcr:createdBy").getString();
+            if (node.hasNode(Core.LD_FILE_NODE)) {
+                Node fileNode = node.getNode(Core.LD_FILE_NODE);
+                this.createdDate = fileNode.getProperty(JcrConstants.JCR_CREATED).getDate();
+                this.createdBy = fileNode.getProperty("jcr:createdBy").getString();
 
-            // fetch resource node meta data
-            Node resourceNode = fileNode.getNode(JcrConstants.JCR_CONTENT);
-            lastModifiedAt = resourceNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
-            lastModifiedBy = resourceNode.getProperty(Core.JCR_LASTMODIFIED_BY).getString();
+                if (fileNode.hasNode(JcrConstants.JCR_CONTENT)) {
+                    // fetch resource node meta data
+                    Node resourceNode = fileNode.getNode(JcrConstants.JCR_CONTENT);
+                    lastModifiedAt = resourceNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
+                    lastModifiedBy = resourceNode.getProperty(Core.JCR_LASTMODIFIED_BY).getString();
+                }
+            }
         } catch (RepositoryException e) {
             LOGGER.error("Creating node meta dto failed", e);
         }

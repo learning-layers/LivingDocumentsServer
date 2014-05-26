@@ -34,11 +34,19 @@ public class CommentNodeDto extends NodeDto {
     }
 
     public CommentNodeDto(Node node) {
-        super();
+        super(node);
         try {
             this.text = node.getProperty(Core.LD_MESSAGE_PROPERTY).getString();
         } catch (RepositoryException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 }
