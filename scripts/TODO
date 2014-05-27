@@ -1,0 +1,2 @@
+Add build file for jetty with build command:
+* gradle -b build.gradle -Penv=prod -Ptrg=war -Pcnt=jetty -x clean build
