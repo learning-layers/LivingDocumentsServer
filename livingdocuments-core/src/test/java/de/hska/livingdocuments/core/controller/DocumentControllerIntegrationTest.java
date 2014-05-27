@@ -20,10 +20,12 @@
  * limitations under the License.
  */
 
-package de.hska.livingdocuments.core.controller;
+/*package de.hska.livingdocuments.core.controller;
+
+import de.hska.livingdocuments.core.AbstractIntegrationTest;
 
 /**
  * Created by dennis on 11.05.2014.
  */
-public class DocumentControllerIntegrationTest {
-}
+/*public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
+}*/
