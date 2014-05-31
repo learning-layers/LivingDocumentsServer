@@ -16,9 +16,9 @@ subprojects {
         target = project.hasProperty('trg') ? trg : 'jar'
         container = project.hasProperty('cnt') ? cnt : 'tomcat'
 
-        springBootVersion = '1.0.1.RELEASE'
+        springBootVersion = '1.0.2.RELEASE'
         springSecurityLdapVersion = '3.2.1.RELEASE'
-        springVersion = '4.0.3.RELEASE'
+        springVersion = '4.0.4.RELEASE'
         validationApiVersion = '1.1.0.Final'
         jcrVersion = '2.0'
         commonsDbcpVersion = '1.4'
@@ -44,12 +44,15 @@ subprojects {
         mavenLocal()
     }
 
-    dependencies {
-        compile("org.springframework.boot:spring-boot-starter-web:$springBootVersion") {
-            // Exclude tomcat dependency if using jetty
-            if (project.container == 'jetty')
-                exclude module: 'spring-boot-starter-tomcat'
+    configurations {
+        // Exclude tomcat dependency if using jetty
+        if (project.container == 'jetty') {
+            compile.exclude module: "spring-boot-starter-tomcat"
         }
+    }
+
+    dependencies {
+        compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
         // Add necessary dependency if using jetty
         if (project.container == 'jetty') {
             compile "org.springframework.boot:spring-boot-starter-jetty:$springBootVersion"
@@ -76,4 +79,10 @@ subprojects {
     test.scanForTestClasses = false
     test.include('**/*IntegrationTest.class')
     test.exclude('**/*Abstract*.class')
+    test.reports.html.enabled = false
+}
+
+task testReport(type: TestReport) {
+    destinationDir = file("$buildDir/reports/tests")
+    reportOn subprojects*.test
 }
