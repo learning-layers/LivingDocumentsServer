@@ -6,7 +6,7 @@ subprojects {
     apply plugin: 'java'
 
     version = '1.0.0'
-    group = 'de.hska.livingdocuments'
+    group = 'de.hska.ld'
 
     ext {
         title = 'LivingDocuments'
@@ -69,8 +69,8 @@ subprojects {
         compile "mysql:mysql-connector-java:$mySqlVersion"
         compile "postgresql:postgresql:$postgresVersion"
         // Add the core project as a dependency for each sub project
-        if (project.name != 'livingdocuments-core') {
-            compile project(path: ':livingdocuments-core')
+        if (project.name != 'ld-core') {
+            compile project(path: ':ld-core')
         }
         // Test dependencies
         testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"

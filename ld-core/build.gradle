@@ -1,0 +1,26 @@
+/*
+ * CORE: This project contains global configuration for all subprojects as well as database ans security settings.
+ * It is included in all other subprojects by default.
+ */
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+jar {
+    /* Configuration file must be passed as a parameter when starting the application.
+       java -jar ld-boot-x.x.x.jar --spring.config.location application.properties */
+    if (project.environment == 'prod' && project.target == 'jar')
+        exclude('application.properties')
+}
+
+/*
+ * Resource filtering
+ */
+processResources {
+    filter ReplaceTokens, tokens: [
+            'info.version'     : version,
+            'info.title'       : project.title,
+            'info.organization': project.organization
+    ]
+}
+
+// Please add core dependencies in the root project.

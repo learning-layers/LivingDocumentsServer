@@ -1,6 +1,6 @@
-include 'livingdocuments-boot'
-include 'livingdocuments-core'
-include 'livingdocuments-sandbox'
+include 'ld-boot'
+include 'ld-core'
+include 'ld-sandbox'
 
 /* Include non-child project
 def projectDir = file('../project-name')
