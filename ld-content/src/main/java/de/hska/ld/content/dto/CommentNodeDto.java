@@ -20,10 +20,34 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.persistence.repository;
+package de.hska.ld.content.dto;
 
-import de.hska.ld.core.persistence.domain.Subscription;
-import org.springframework.data.repository.CrudRepository;
+import de.hska.ld.content.util.Content;
 
-public interface SubscriptionRepository extends CrudRepository<Subscription, Long> {
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+
+public class CommentNodeDto extends NodeDto {
+
+    String text;
+
+    public CommentNodeDto() {
+    }
+
+    public CommentNodeDto(Node node) {
+        super(node);
+        try {
+            this.text = node.getProperty(Content.LD_MESSAGE_PROPERTY).getString();
+        } catch (RepositoryException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
 }

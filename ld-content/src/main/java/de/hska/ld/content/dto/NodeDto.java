@@ -20,9 +20,9 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.dto;
+package de.hska.ld.content.dto;
 
-import de.hska.ld.core.util.Core;
+import de.hska.ld.content.util.Content;
 import org.apache.jackrabbit.JcrConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,15 +53,15 @@ public class NodeDto {
     public NodeDto(Node node) {
         try {
             this.nodeId = node.getName();
-            if (node.hasProperty(Core.LD_DESCRIPTION_PROPERTY)) {
-                this.description = node.getProperty(Core.LD_DESCRIPTION_PROPERTY).getString();
+            if (node.hasProperty(Content.LD_DESCRIPTION_PROPERTY)) {
+                this.description = node.getProperty(Content.LD_DESCRIPTION_PROPERTY).getString();
             }
 
             loadTags(node);
 
             // fetch file node meta data
-            if (node.hasNode(Core.LD_FILE_NODE)) {
-                Node fileNode = node.getNode(Core.LD_FILE_NODE);
+            if (node.hasNode(Content.LD_MAIN_FILE_NODE)) {
+                Node fileNode = node.getNode(Content.LD_MAIN_FILE_NODE);
                 this.createdDate = fileNode.getProperty(JcrConstants.JCR_CREATED).getDate();
                 this.createdBy = fileNode.getProperty("jcr:createdBy").getString();
 
@@ -69,7 +69,7 @@ public class NodeDto {
                     // fetch resource node meta data
                     Node resourceNode = fileNode.getNode(JcrConstants.JCR_CONTENT);
                     lastModifiedAt = resourceNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
-                    lastModifiedBy = resourceNode.getProperty(Core.JCR_LASTMODIFIED_BY).getString();
+                    lastModifiedBy = resourceNode.getProperty(Content.JCR_LASTMODIFIED_BY).getString();
                 }
             }
         } catch (RepositoryException e) {
@@ -78,13 +78,13 @@ public class NodeDto {
     }
 
     private void loadTags(Node node) throws RepositoryException {
-        if (node.hasNode(Core.LD_TAGS_NODE)) {
+        if (node.hasNode(Content.LD_TAGS_NODE)) {
             tags = new HashMap<>();
-            Node tagsNode = node.getNode(Core.LD_TAGS_NODE);
+            Node tagsNode = node.getNode(Content.LD_TAGS_NODE);
             NodeIterator tagsIt = tagsNode.getNodes();
             while (tagsIt.hasNext()) {
                 Node tag = tagsIt.nextNode();
-                tags.put(tag.getIdentifier(), tag.getProperty(Core.LD_NAME_PROPERTY).getString());
+                tags.put(tag.getIdentifier(), tag.getProperty(Content.LD_NAME_PROPERTY).getString());
             }
         }
     }

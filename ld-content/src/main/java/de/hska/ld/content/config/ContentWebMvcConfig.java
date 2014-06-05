@@ -20,9 +20,9 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.config;
+package de.hska.ld.content.config;
 
-import de.hska.ld.core.controller.resolver.JcrSessionMethodArgumentResolver;
+import de.hska.ld.content.controller.resolver.JcrSessionMethodArgumentResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -31,9 +31,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 import java.util.List;
 
-@Configuration
 @EnableWebMvc
-public class WebMvcConfig extends WebMvcConfigurerAdapter {
+@Configuration
+public class ContentWebMvcConfig extends WebMvcConfigurerAdapter {
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {

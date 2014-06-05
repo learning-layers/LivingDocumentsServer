@@ -20,26 +20,12 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.controller.aop;
+package de.hska.ld.content.controller.resolver;
 
-import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.AfterReturning;
-import org.aspectj.lang.annotation.Aspect;
+import java.lang.annotation.*;
 
-import javax.jcr.Session;
-
-@Aspect
-public class JcrSessionAspect {
-
-    @AfterReturning("execution(* de.hska.ld.core.controller.DocumentController.*(..))")
-    public void afterReturning(JoinPoint joinPoint) {
-        Object[] args = joinPoint.getArgs();
-        for (Object arg : args) {
-            if (arg instanceof Session) {
-                Session session = (Session) arg;
-                session.logout();
-                break;
-            }
-        }
-    }
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface JcrSession {
 }

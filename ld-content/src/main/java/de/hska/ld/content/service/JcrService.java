@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.service;
+package de.hska.ld.content.service;
 
 import de.hska.ld.core.persistence.domain.User;
 
@@ -36,17 +36,15 @@ public interface JcrService {
 
     Node createDocumentNode(Session session, String nodeId) throws RepositoryException;
 
-    Node getDocumentNode(Session session, String nodeId) throws RepositoryException;
+    Node getNode(Session session, String nodeId) throws RepositoryException;
 
-    void addAllPrivileges(Session session, Node node) throws RepositoryException;
+    void addAllPrivileges(Session session, Node documentNodeId) throws RepositoryException;
 
-    void addAllPrivileges(Session session, String path) throws RepositoryException;
-
-    Node addComment(Session session, Node documentOrCommentNode, String comment) throws RepositoryException;
+    Node addComment(Session session, Node node, String comment) throws RepositoryException;
 
     Node updateComment(Session session, Node commentNode, String comment) throws RepositoryException;
 
-    Node addTag(Session session, Node documentsNode, Node node, String tagname, String description) throws RepositoryException;
+    Node addTag(Session session, Node nodeToBeTagged, String tagName, String description) throws RepositoryException;
 
     Node removeTag(Session session, String tagId) throws RepositoryException;
 
@@ -61,7 +59,7 @@ public interface JcrService {
      * @param fileName     the file name
      * @param cmd          command to which part of a document the file should be added (e.g. 'attachment')
      * @return the file node
-     * @throws RepositoryException if file node could not be created or content could not be updated.
+     * @throws RepositoryException if file node could not be created or content could not be updated
      */
     Node addFileNode(Session session, Node documentNode, InputStream inputStream, String fileName, String cmd) throws RepositoryException;
 }

@@ -20,15 +20,10 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.util;
+package de.hska.ld.content.persistence.repository;
 
-import javax.jcr.Credentials;
-import javax.jcr.SimpleCredentials;
+import de.hska.ld.content.persistence.domain.Subscription;
+import org.springframework.data.repository.CrudRepository;
 
-public class Core {
-
-    public static final Credentials ADMIN_CREDENTIALS = new SimpleCredentials("admin", "admin".toCharArray());
-
-    public static final String ROLE_ADMIN = "ROLE_ADMIN";
-    public static final String ROLE_USER = "ROLE_USER";
+public interface SubscriptionRepository extends CrudRepository<Subscription, Long> {
 }

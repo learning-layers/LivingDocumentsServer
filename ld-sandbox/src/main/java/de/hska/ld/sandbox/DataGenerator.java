@@ -22,10 +22,10 @@
 
 package de.hska.ld.sandbox;
 
+import de.hska.ld.content.service.JcrService;
+import de.hska.ld.content.util.Content;
 import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.core.service.JcrService;
 import de.hska.ld.core.service.UserService;
-import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,13 +44,15 @@ public class DataGenerator {
         InputStream in = null;
         Session session = null;
         try {
-            in = DataGenerator.class.getResourceAsStream("/" + "sandbox.pdf");
             User admin = userService.findByUsername("admin");
             session = jcrService.login(admin);
 
             Node sandboxDocument = jcrService.createDocumentNode(session, "sandboxDocument");
-            sandboxDocument.setProperty(Core.LD_DESCRIPTION_PROPERTY, "Sandbox Node with PDF-File");
-            jcrService.addFileNode(session, sandboxDocument, in, "sandbox.pdf", "main");
+            sandboxDocument.setProperty(Content.LD_DESCRIPTION_PROPERTY, "Sandbox Node with PDF-File");
+            in = DataGenerator.class.getResourceAsStream("/" + "sandbox.pdf");
+            jcrService.addFileNode(session, sandboxDocument, in, null, "main");
+            in = DataGenerator.class.getResourceAsStream("/" + "sandbox.pdf");
+            jcrService.addFileNode(session, sandboxDocument, in, "sandboxAttachment", "attachment");
             jcrService.addComment(session, sandboxDocument, "Hello World!");
 
             session.save();

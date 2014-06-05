@@ -20,11 +20,12 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core;
+package de.hska.ld.content;
 
+import de.hska.ld.content.service.JcrService;
+import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.fixture.CoreFixture;
 import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.core.service.JcrService;
 import de.hska.ld.core.service.UserService;
 import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.JcrConstants;

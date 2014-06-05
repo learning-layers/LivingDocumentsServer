@@ -20,20 +20,11 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.service.impl;
+package de.hska.ld.content.service;
 
-import de.hska.ld.core.persistence.domain.Subscription;
-import de.hska.ld.core.persistence.repository.SubscriptionRepository;
-import de.hska.ld.core.service.SubscriptionService;
-import org.springframework.beans.factory.annotation.Autowired;
+import de.hska.ld.content.persistence.domain.Subscription;
 
-public class SubscriptionServiceImpl implements SubscriptionService {
+public interface SubscriptionService {
 
-    @Autowired
-    private SubscriptionRepository subscriptionRepository;
-
-    @Override
-    public Subscription save(Subscription subscription) {
-        return subscriptionRepository.save(subscription);
-    }
+    Subscription save(Subscription subscription);
 }

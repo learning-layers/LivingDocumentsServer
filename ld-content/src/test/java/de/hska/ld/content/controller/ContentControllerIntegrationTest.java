@@ -20,12 +20,12 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.controller;
+package de.hska.ld.content.controller;
 
+import de.hska.ld.content.dto.NodeDto;
+import de.hska.ld.content.service.JcrService;
 import de.hska.ld.core.AbstractIntegrationTest;
-import de.hska.ld.core.dto.NodeDto;
 import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.core.service.JcrService;
 import de.hska.ld.core.service.UserService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,9 +38,9 @@ import org.springframework.http.ResponseEntity;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
+public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String DOCUMENT_RESOURCE = "/documents";
+    private static final String CONTENT_RESOURCE = "/content";
 
     @Autowired
     JcrService jcrService;
@@ -60,7 +60,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     public void thatGetNodeMetaDataUsesHttpOkOnEntityLookupSuccess() throws RepositoryException {
         jcrService.createDocumentNode(session, "testDocument");
 
-        ResponseEntity<NodeDto> response = exchange(DOCUMENT_RESOURCE + "/testDocument/meta", HttpMethod.GET,
+        ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/testDocument/meta", HttpMethod.GET,
                 createUserHeader(), NodeDto.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }

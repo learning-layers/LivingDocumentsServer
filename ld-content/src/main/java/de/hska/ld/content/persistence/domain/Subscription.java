@@ -21,7 +21,9 @@
  */
 
 
-package de.hska.ld.core.persistence.domain;
+package de.hska.ld.content.persistence.domain;
+
+import de.hska.ld.core.persistence.domain.User;
 
 import javax.persistence.*;
 import java.util.Date;

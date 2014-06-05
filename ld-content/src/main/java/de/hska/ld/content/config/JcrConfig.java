@@ -20,9 +20,10 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.config;
+package de.hska.ld.content.config;
 
-import de.hska.ld.core.service.JcrService;
+import de.hska.ld.content.service.JcrService;
+import de.hska.ld.content.util.Content;
 import de.hska.ld.core.util.Core;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.commons.cnd.ParseException;
@@ -79,7 +80,7 @@ public class JcrConfig {
             // Create a container for all documents
             try {
                 Node rootNode = session.getRootNode();
-                Node documentsNode = rootNode.addNode(Core.LD_DOCUMENTS, JcrConstants.NT_UNSTRUCTURED);
+                Node documentsNode = rootNode.addNode(Content.LD_DOCUMENTS, JcrConstants.NT_UNSTRUCTURED);
                 jcrService.addAllPrivileges(session, documentsNode);
                 session.save();
             } catch (ItemExistsException e) {
@@ -104,7 +105,7 @@ public class JcrConfig {
 
         // Create document node types
         NodeTypeTemplate ldDocumentNodeType = nodeTypeManager.createNodeTypeTemplate();
-        ldDocumentNodeType.setName(Core.LD_DOCUMENT);
+        ldDocumentNodeType.setName(Content.LD_DOCUMENT);
         String[] superTypeNames = {JcrConstants.NT_UNSTRUCTURED};
         ldDocumentNodeType.setDeclaredSuperTypeNames(superTypeNames);
 

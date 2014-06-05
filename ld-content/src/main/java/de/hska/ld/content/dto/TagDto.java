@@ -20,36 +20,34 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.config;
+package de.hska.ld.content.dto;
 
-import de.hska.ld.core.service.RoleService;
-import de.hska.ld.core.service.UserService;
-import de.hska.ld.core.service.impl.RoleServiceImpl;
-import de.hska.ld.core.service.impl.UserServiceImpl;
-import org.springframework.boot.context.embedded.MultiPartConfigFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+public class TagDto {
 
-import javax.servlet.MultipartConfigElement;
+    private String tagName;
+    private String description;
 
-@Configuration
-public class CoreConfig {
-
-    @Bean
-    public UserService userService() {
-        return new UserServiceImpl();
+    public TagDto() {
     }
 
-    @Bean
-    public RoleService roleService() {
-        return new RoleServiceImpl();
+    public TagDto(String tagName, String description) {
+        this.tagName = tagName;
+        this.description = description;
     }
 
-    @Bean
-    public MultipartConfigElement multipartConfigElement() {
-        MultiPartConfigFactory factory = new MultiPartConfigFactory();
-        factory.setMaxFileSize("128MB");
-        factory.setMaxRequestSize("128MB");
-        return factory.createMultipartConfig();
+    public String getTagName() {
+        return tagName;
+    }
+
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

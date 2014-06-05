@@ -20,10 +20,11 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.service.impl;
+package de.hska.ld.content.service.impl;
 
+import de.hska.ld.content.service.JcrService;
+import de.hska.ld.content.util.Content;
 import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.core.service.JcrService;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.collections.IteratorUtils;
@@ -70,7 +71,7 @@ public class JackrabbitService implements JcrService {
     @SuppressWarnings("unchecked")
     public JackrabbitSession login(User user) throws RepositoryException {
         if (userService.hasRole(user, Core.ROLE_ADMIN)) {
-            return adminLogin();
+            return (JackrabbitSession) repository.login(Core.ADMIN_CREDENTIALS);
         }
         String pwd = env.getProperty("module.core.repository.password");
         Credentials credentials = new SimpleCredentials(user.getUsername(), pwd.toCharArray());
@@ -99,27 +100,22 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    public Node getDocumentNode(Session session, String nodeId) throws RepositoryException {
-        Node rootNode = session.getRootNode();
-        return rootNode.getNode(Core.LD_DOCUMENTS + "/" + nodeId);
+    public Node getNode(Session session, String nodeId) throws RepositoryException {
+        Node documentsNode = getDocumentsNode(session);
+        return documentsNode.getNode(nodeId);
     }
 
     @Override
     public Node createDocumentNode(Session session, String nodeId) throws RepositoryException {
-        Node rootNode = session.getRootNode();
-        Node documentsNode = rootNode.getNode(Core.LD_DOCUMENTS);
-        Node documentNode = documentsNode.addNode(nodeId, Core.LD_DOCUMENT);
+        Node documentsNode = getDocumentsNode(session);
+        Node documentNode = documentsNode.addNode(nodeId, Content.LD_DOCUMENT);
         session.save();
         return documentNode;
     }
 
     @Override
     public void addAllPrivileges(Session session, Node node) throws RepositoryException {
-        addAllPrivileges(session, node.getPath());
-    }
-
-    @Override
-    public void addAllPrivileges(Session session, String path) throws RepositoryException {
+        String path = node.getPath();
         AccessControlManager aMgr = session.getAccessControlManager();
 
         // create a privilege set with jcr:all
@@ -144,75 +140,78 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    public Node addComment(Session session, Node documentOrCommentNode, String comment) throws RepositoryException {
+    public Node addComment(Session session, Node node, String comment) throws RepositoryException {
         Node commentsNode;
-        if (documentOrCommentNode.getName().equals(Core.LD_COMMENTS_NODE)) {
-            commentsNode = documentOrCommentNode;
-        } else if (documentOrCommentNode.hasNode(Core.LD_COMMENTS_NODE)) {
-            commentsNode = documentOrCommentNode.getNode(Core.LD_COMMENTS_NODE);
+        if (node.getName().equals(Content.LD_COMMENTS_NODE)) {
+            commentsNode = node;
+        } else if (node.hasNode(Content.LD_COMMENTS_NODE)) {
+            commentsNode = node.getNode(Content.LD_COMMENTS_NODE);
         } else {
-            commentsNode = documentOrCommentNode.addNode(Core.LD_COMMENTS_NODE, JcrConstants.NT_UNSTRUCTURED);
+            commentsNode = node.addNode(Content.LD_COMMENTS_NODE, JcrConstants.NT_UNSTRUCTURED);
         }
         Calendar currentTime = Calendar.getInstance();
         currentTime.setTimeInMillis(System.currentTimeMillis());
+
         Node commentNode = commentsNode.addNode(UUID.randomUUID().toString(), JcrConstants.NT_UNSTRUCTURED);
-        commentNode.setProperty(Core.LD_MESSAGE_PROPERTY, comment);
+        commentNode.setProperty(Content.LD_MESSAGE_PROPERTY, comment);
         commentNode.addMixin(NodeType.MIX_CREATED);
         commentNode.setProperty(JcrConstants.JCR_LASTMODIFIED, currentTime);
-        commentNode.setProperty(Core.JCR_LASTMODIFIED_BY, session.getUserID());
+        commentNode.setProperty(Content.JCR_LASTMODIFIED_BY, session.getUserID());
         session.save();
+
         return commentNode;
     }
 
     @Override
     public Node updateComment(Session session, Node commentNode, String comment) throws RepositoryException {
-        if (!commentNode.getParent().getName().equals(Core.LD_COMMENTS_NODE)) {
+        if (!commentNode.getParent().getName().equals(Content.LD_COMMENTS_NODE)) {
             throw new InvalidNodeTypeDefinitionException("Parent of node '" +
-                    commentNode.getName() + "' is not a " + Core.LD_COMMENTS_NODE + ".");
+                    commentNode.getName() + "' is not a " + Content.LD_COMMENTS_NODE + ".");
         }
         Calendar currentTime = Calendar.getInstance();
         currentTime.setTimeInMillis(System.currentTimeMillis());
-        commentNode.setProperty(Core.LD_MESSAGE_PROPERTY, comment);
+        commentNode.setProperty(Content.LD_MESSAGE_PROPERTY, comment);
         commentNode.setProperty(JcrConstants.JCR_LASTMODIFIED, currentTime);
-        commentNode.setProperty(Core.JCR_LASTMODIFIED_BY, session.getUserID());
+        commentNode.setProperty(Content.JCR_LASTMODIFIED_BY, session.getUserID());
         session.save();
         return commentNode;
     }
 
     @Override
-    public Node addTag(Session session, Node documentsNode, Node nodeToBeTagged, String tagname, String description) throws RepositoryException {
-        Node documentsTagsNode = null;
-        if (!documentsNode.hasNode(Core.LD_TAGS_NODE)) {
+    public Node addTag(Session session, Node nodeToBeTagged, String tagName, String description) throws RepositoryException {
+        Node documentsTagsNode;
+        Node documentsNode = getDocumentsNode(session);
+        if (!documentsNode.hasNode(Content.LD_TAGS_NODE)) {
             // if the documents tag container isn't present add it
-            documentsTagsNode = documentsNode.addNode(Core.LD_TAGS_NODE, JcrConstants.NT_UNSTRUCTURED);
+            documentsTagsNode = documentsNode.addNode(Content.LD_TAGS_NODE, JcrConstants.NT_UNSTRUCTURED);
             // save it to enable search in this node later on
             session.save();
         } else {
-            documentsTagsNode = documentsNode.getNode(Core.LD_TAGS_NODE);
+            documentsTagsNode = documentsNode.getNode(Content.LD_TAGS_NODE);
         }
 
         // see if the needed tag node is available yet
-        Node documentsTagNode = searchDocumentsTagNode(session, tagname);
+        Node documentsTagNode = searchDocumentsTagNode(session, tagName);
 
         if (documentsTagNode == null && documentsTagsNode != null) {
             // tag node has not been found, create a new one
             documentsTagNode = documentsTagsNode.addNode(UUID.randomUUID().toString(), JcrConstants.NT_UNSTRUCTURED);
-            documentsTagNode.setProperty(Core.LD_NAME_PROPERTY, tagname);
-            documentsTagNode.setProperty(Core.LD_DESCRIPTION_PROPERTY, description);
+            documentsTagNode.setProperty(Content.LD_NAME_PROPERTY, tagName);
+            documentsTagNode.setProperty(Content.LD_DESCRIPTION_PROPERTY, description);
         }
 
         // add tagNode to the document node
-        Node nodeTagsNode = null;
-        if (!nodeToBeTagged.hasNode(Core.LD_TAGS_NODE)) {
+        Node nodeTagsNode;
+        if (!nodeToBeTagged.hasNode(Content.LD_TAGS_NODE)) {
             // if the document tag container isn't present add it
-            nodeTagsNode = nodeToBeTagged.addNode(Core.LD_TAGS_NODE, JcrConstants.NT_UNSTRUCTURED);
+            nodeTagsNode = nodeToBeTagged.addNode(Content.LD_TAGS_NODE, JcrConstants.NT_UNSTRUCTURED);
         } else {
-            nodeTagsNode = nodeToBeTagged.getNode(Core.LD_TAGS_NODE);
+            nodeTagsNode = nodeToBeTagged.getNode(Content.LD_TAGS_NODE);
         }
 
         Node nodeToBeTaggedTagNode = null;
         try {
-            nodeToBeTaggedTagNode = addNodeTag(tagname, documentsTagNode, nodeTagsNode);
+            nodeToBeTaggedTagNode = addNodeTag(tagName, documentsTagNode, nodeTagsNode);
         } catch (ItemExistsException e) {
             // tag has already been added
         }
@@ -220,78 +219,58 @@ public class JackrabbitService implements JcrService {
         return nodeToBeTaggedTagNode;
     }
 
-    private Node addNodeTag(String tagname, Node documentsTagNode, Node nodeTagsNode) throws RepositoryException {
-        String identifier = documentsTagNode.getIdentifier();
-        Node nodeTagNode = nodeTagsNode.addNode(identifier, JcrConstants.NT_UNSTRUCTURED);
-        nodeTagNode.setProperty(Core.LD_NAME_PROPERTY, tagname);
-        return nodeTagNode;
-    }
-
-    private Node searchDocumentsTagNode(Session session, String tagname) throws RepositoryException {
-        // search for the tag node
-        QueryManager queryManager = session.getWorkspace().getQueryManager();
-        String expression = "//" +
-                Core.LD_DOCUMENTS + "/" +
-                Core.LD_TAGS_NODE + "/" +
-                "element(*," + JcrConstants.NT_UNSTRUCTURED + ")" +
-                "[@name='" + tagname + "']";
-        Query query = queryManager.createQuery(expression, "xpath");
-        QueryResult result = query.execute();
-        NodeIterator nodeIter = result.getNodes();
-        Node documentsTagNode = null;
-        while (nodeIter.hasNext()) {
-            documentsTagNode = nodeIter.nextNode();
-        }
-        return documentsTagNode;
-    }
-
     @Override
     public Node removeTag(Session session, String tagId) throws RepositoryException {
+        // TODO
         return null;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<Node> getComments(Node node) throws RepositoryException {
-        Node commentsNode = node.getNode(Core.LD_COMMENTS_NODE);
+        Node commentsNode = node.getNode(Content.LD_COMMENTS_NODE);
         NodeIterator nodeIterator = commentsNode.getNodes();
         return IteratorUtils.toList(nodeIterator);
     }
 
     @Override
-    public Node addFileNode(Session session, Node documentNode, InputStream inputStream, String fileName, String cmd) throws RepositoryException {
-        if (!documentNode.getPrimaryNodeType().getName().equals(Core.LD_DOCUMENT)) {
+    public Node addFileNode(Session session, Node documentNode, InputStream inputStream, String fileName, String cmd)
+            throws RepositoryException {
+        if (!documentNode.getPrimaryNodeType().getName().equals(Content.LD_DOCUMENT)) {
             throw new RepositoryException("Argument is not a document node.");
         }
 
         ValueFactory factory = session.getValueFactory();
         Binary binary = factory.createBinary(inputStream);
 
-        // create file node
+        // identify file node parent
         Node fileNode = null;
-        Node docOrAttachNode = null;
+        Node fileNodeParent = null;
         if ("attachment".equals(cmd)) {
-            Node attachmentsNode = null;
-            if (!documentNode.hasNode(Core.LD_ATTACHMENTS_NODE)) {
-                attachmentsNode = documentNode.addNode(Core.LD_ATTACHMENTS_NODE, JcrConstants.NT_FOLDER);
+            Node attachmentsNode;
+            if (!documentNode.hasNode(Content.LD_ATTACHMENTS_NODE)) {
+                attachmentsNode = documentNode.addNode(Content.LD_ATTACHMENTS_NODE, JcrConstants.NT_FOLDER);
             } else {
-                attachmentsNode = documentNode.getNode(Core.LD_ATTACHMENTS_NODE);
+                attachmentsNode = documentNode.getNode(Content.LD_ATTACHMENTS_NODE);
             }
-            docOrAttachNode = attachmentsNode;
+            fileNodeParent = attachmentsNode;
         } else if ("main".equals(cmd)) {
-            docOrAttachNode = documentNode;
+            fileName = Content.LD_MAIN_FILE_NODE;
+            fileNodeParent = documentNode;
         }
-        if (docOrAttachNode != null) {
-            if (docOrAttachNode.hasNode(fileName)) {
+        // Create file node
+        if (fileNodeParent != null) {
+            if (fileNodeParent.hasNode(fileName)) {
                 // if file node exists but the content shall be updated
-                fileNode = docOrAttachNode.getNode(fileName);
+                fileNode = fileNodeParent.getNode(fileName);
             } else {
-                fileNode = docOrAttachNode.addNode(fileName, JcrConstants.NT_FILE);
+                fileNode = fileNodeParent.addNode(fileName, JcrConstants.NT_FILE);
             }
         }
 
         if (fileNode == null) {
-            throw new RepositoryException("Could not create file node with cmd=[" + cmd + "] and filename=[" + fileName + "]");
+            throw new RepositoryException("Could not create file node with cmd=["
+                    + cmd + "] and filename=[" + fileName + "]");
         }
 
         // create resource node
@@ -306,15 +285,40 @@ public class JackrabbitService implements JcrService {
         Calendar currentTime = Calendar.getInstance();
         currentTime.setTimeInMillis(System.currentTimeMillis());
         resourceNode.setProperty(JcrConstants.JCR_LASTMODIFIED, currentTime);
-        resourceNode.setProperty(Core.JCR_LASTMODIFIED_BY, session.getUserID());
+        resourceNode.setProperty(Content.JCR_LASTMODIFIED_BY, session.getUserID());
 
         session.save();
 
         return fileNode;
     }
 
-    @SuppressWarnings("unchecked")
-    private JackrabbitSession adminLogin() throws RepositoryException {
-        return (JackrabbitSession) repository.login(Core.ADMIN_CREDENTIALS);
+    private Node addNodeTag(String tagName, Node documentsTagNode, Node nodeTagsNode) throws RepositoryException {
+        String identifier = documentsTagNode.getIdentifier();
+        Node nodeTagNode = nodeTagsNode.addNode(identifier, JcrConstants.NT_UNSTRUCTURED);
+        nodeTagNode.setProperty(Content.LD_NAME_PROPERTY, tagName);
+        return nodeTagNode;
+    }
+
+    private Node searchDocumentsTagNode(Session session, String tagName) throws RepositoryException {
+        // search for the tag node
+        QueryManager queryManager = session.getWorkspace().getQueryManager();
+        String expression = "//" +
+                Content.LD_DOCUMENTS + "/" +
+                Content.LD_TAGS_NODE + "/" +
+                "element(*," + JcrConstants.NT_UNSTRUCTURED + ")" +
+                "[@name='" + tagName + "']";
+        Query query = queryManager.createQuery(expression, "xpath");
+        QueryResult result = query.execute();
+        NodeIterator nodeIter = result.getNodes();
+        Node documentsTagNode = null;
+        while (nodeIter.hasNext()) {
+            documentsTagNode = nodeIter.nextNode();
+        }
+        return documentsTagNode;
+    }
+
+    private Node getDocumentsNode(Session session) throws RepositoryException {
+        Node rootNode = session.getRootNode();
+        return rootNode.getNode(Content.LD_DOCUMENTS);
     }
 }

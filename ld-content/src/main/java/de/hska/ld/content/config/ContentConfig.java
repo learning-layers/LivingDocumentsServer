@@ -20,36 +20,31 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.config;
+package de.hska.ld.content.config;
 
-import de.hska.ld.core.service.RoleService;
-import de.hska.ld.core.service.UserService;
-import de.hska.ld.core.service.impl.RoleServiceImpl;
-import de.hska.ld.core.service.impl.UserServiceImpl;
-import org.springframework.boot.context.embedded.MultiPartConfigFactory;
+import de.hska.ld.content.controller.aop.JcrSessionAspect;
+import de.hska.ld.content.service.JcrService;
+import de.hska.ld.content.service.SubscriptionService;
+import de.hska.ld.content.service.impl.JackrabbitService;
+import de.hska.ld.content.service.impl.SubscriptionServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.servlet.MultipartConfigElement;
-
 @Configuration
-public class CoreConfig {
+public class ContentConfig {
 
     @Bean
-    public UserService userService() {
-        return new UserServiceImpl();
+    public JcrService jcrService() {
+        return new JackrabbitService();
     }
 
     @Bean
-    public RoleService roleService() {
-        return new RoleServiceImpl();
+    public SubscriptionService subscriptionService() {
+        return new SubscriptionServiceImpl();
     }
 
     @Bean
-    public MultipartConfigElement multipartConfigElement() {
-        MultiPartConfigFactory factory = new MultiPartConfigFactory();
-        factory.setMaxFileSize("128MB");
-        factory.setMaxRequestSize("128MB");
-        return factory.createMultipartConfig();
+    public JcrSessionAspect jcrSessionAspect() {
+        return new JcrSessionAspect();
     }
 }

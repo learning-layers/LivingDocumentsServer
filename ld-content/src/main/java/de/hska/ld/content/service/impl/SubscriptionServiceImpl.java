@@ -20,34 +20,20 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.dto;
+package de.hska.ld.content.service.impl;
 
-import de.hska.ld.core.util.Core;
+import de.hska.ld.content.persistence.domain.Subscription;
+import de.hska.ld.content.persistence.repository.SubscriptionRepository;
+import de.hska.ld.content.service.SubscriptionService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
+public class SubscriptionServiceImpl implements SubscriptionService {
 
-public class CommentNodeDto extends NodeDto {
+    @Autowired
+    private SubscriptionRepository subscriptionRepository;
 
-    String text;
-
-    public CommentNodeDto() {
-    }
-
-    public CommentNodeDto(Node node) {
-        super(node);
-        try {
-            this.text = node.getProperty(Core.LD_MESSAGE_PROPERTY).getString();
-        } catch (RepositoryException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
+    @Override
+    public Subscription save(Subscription subscription) {
+        return subscriptionRepository.save(subscription);
     }
 }

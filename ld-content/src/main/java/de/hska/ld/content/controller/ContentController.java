@@ -20,16 +20,18 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.controller;
+package de.hska.ld.content.controller;
 
-import de.hska.ld.core.controller.resolver.JcrSession;
-import de.hska.ld.core.dto.CommentNodeDto;
-import de.hska.ld.core.dto.NodeDto;
+import de.hska.ld.content.controller.resolver.JcrSession;
+import de.hska.ld.content.dto.CommentNodeDto;
+import de.hska.ld.content.dto.NodeDto;
+import de.hska.ld.content.dto.TagDto;
+import de.hska.ld.content.persistence.domain.Subscription;
+import de.hska.ld.content.service.JcrService;
+import de.hska.ld.content.service.SubscriptionService;
+import de.hska.ld.content.util.Content;
 import de.hska.ld.core.dto.TextDto;
-import de.hska.ld.core.persistence.domain.Subscription;
 import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.core.service.JcrService;
-import de.hska.ld.core.service.SubscriptionService;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.JcrConstants;
@@ -53,11 +55,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p><b>RESOURCE</b> {@code /api/documents}
+ * <p><b>RESOURCE</b> {@code /api/content}
  */
 @RestController
-@RequestMapping("/api/documents")
-public class DocumentController {
+@RequestMapping("/api/content")
+public class ContentController {
 
     @Autowired
     private JcrService jcrService;
@@ -96,7 +98,7 @@ public class DocumentController {
     public ResponseEntity<NodeDto> addCommentNode(@PathVariable String nodeId, @RequestBody TextDto textDto,
                                                   @JcrSession Session session) {
         try {
-            Node documentOrCommentNode = session.getNode("/" + nodeId);
+            Node documentOrCommentNode = jcrService.getNode(session, nodeId);
             Node commentNode = jcrService.addComment(session, documentOrCommentNode, textDto.getText());
             return new ResponseEntity<>(new NodeDto(commentNode), HttpStatus.OK);
         } catch (RepositoryException e) {
@@ -109,7 +111,7 @@ public class DocumentController {
     public ResponseEntity<NodeDto> updateCommentNode(@RequestBody NodeDto commentNodeDto, @JcrSession Session session) {
         try {
             Node rootNode = session.getRootNode();
-            Node documentsNode = rootNode.getNode(Core.LD_DOCUMENTS);
+            Node documentsNode = rootNode.getNode(Content.LD_DOCUMENTS);
 
             Node commentNode = documentsNode.getNode(commentNodeDto.getNodeId());
             jcrService.updateComment(session, commentNode, commentNodeDto.getDescription());
@@ -121,21 +123,15 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/tag")
-    public ResponseEntity<NodeDto> addTag(@PathVariable String nodeId, @RequestBody NodeDto nodeDtoReq,
+    public ResponseEntity<TextDto> addTag(@PathVariable String nodeId, @RequestBody TagDto tagDto,
                                           @JcrSession Session session) {
         try {
-            Node rootNode = session.getRootNode();
-            Node documentsNode = rootNode.getNode(Core.LD_DOCUMENTS);
-            Node node = documentsNode.getNode(nodeId);
+            Node nodeToBeTagged = jcrService.getNode(session, nodeId);
+            Node tagNode = jcrService.addTag(session, nodeToBeTagged, tagDto.getTagName(), tagDto.getDescription());
 
-            // call add tag in service method
-            // !nodeDtoReq.getNodeId() contains the tagname
-            Node tagNode = jcrService.addTag(session, documentsNode, node, nodeDtoReq.getNodeId(), nodeDtoReq.getDescription());
-
-            // create response dto
-            NodeDto nodeDtoRes = new NodeDto();
-            nodeDtoRes.setNodeId(tagNode.getIdentifier());
-            return new ResponseEntity<>(nodeDtoRes, HttpStatus.OK);
+            TextDto nodeDto = new TextDto();
+            nodeDto.setText(tagNode.getIdentifier());
+            return new ResponseEntity<>(nodeDto, HttpStatus.OK);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -162,15 +158,15 @@ public class DocumentController {
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
-    @RequestMapping(value = "/upload", method = RequestMethod.POST)
+    @RequestMapping(method = RequestMethod.POST, value = "/upload")
     public ResponseEntity uploadFile(@RequestParam(value = "file", required = true) MultipartFile file,
-                                     @JcrSession Session session,
-                                     @RequestParam(required = true) String nodeId,
-                                     @RequestParam(required = true) String cmd) {
+                                     @RequestParam(required = true) String documentNodeId,
+                                     @RequestParam(required = true) String cmd,
+                                     @JcrSession Session session) {
         String name = file.getOriginalFilename();
         if (!file.isEmpty()) {
             try {
-                Node documentNode = jcrService.getDocumentNode(session, nodeId);
+                Node documentNode = jcrService.getNode(session, documentNodeId);
                 jcrService.addFileNode(session, documentNode, file.getInputStream(), name, cmd);
                 return new ResponseEntity(HttpStatus.OK);
             } catch (Exception e) {
@@ -185,8 +181,7 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/meta")
     public ResponseEntity<NodeDto> getNodeMetaData(@PathVariable String nodeId, @JcrSession Session session) {
         try {
-            Node rootNode = session.getRootNode();
-            Node node = rootNode.getNode(Core.LD_DOCUMENTS + "/" + nodeId);
+            Node node = jcrService.getNode(session, nodeId);
             NodeDto nodeMetaDto = new NodeDto(node);
             return new ResponseEntity<>(nodeMetaDto, HttpStatus.OK);
         } catch (RepositoryException e) {
@@ -199,8 +194,7 @@ public class DocumentController {
     public ResponseEntity<List<CommentNodeDto>> getCommentNodes(@PathVariable String documentNodeId,
                                                                 @JcrSession Session session) {
         try {
-            Node rootNode = session.getRootNode();
-            Node node = rootNode.getNode(Core.LD_DOCUMENTS + "/" + documentNodeId + "/" + Core.LD_COMMENTS_NODE);
+            Node node = jcrService.getNode(session, documentNodeId + "/" + Content.LD_COMMENTS_NODE);
             NodeIterator commentNodeIt = node.getNodes();
             List<CommentNodeDto> commentList = new ArrayList<>();
             while (commentNodeIt.hasNext()) {
@@ -214,13 +208,23 @@ public class DocumentController {
     }
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/download/{documentNodeId}")
-    public void download(@PathVariable String documentNodeId, @JcrSession Session session,
-                         HttpServletResponse response) {
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentNodeId}/download")
+    public void download(@PathVariable String documentNodeId, @RequestParam(required = false) String attachment,
+                         @JcrSession Session session, HttpServletResponse response) {
         try {
-            Node documentNode;
+            Node fileNode;
             try {
-                documentNode = session.getNode("/" + documentNodeId);
+                Node documentNode = jcrService.getNode(session, documentNodeId);
+                if (!documentNode.getPrimaryNodeType().getName().equals(Content.LD_DOCUMENT)) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    return;
+                }
+                if (attachment != null) {
+                    Node attachmentsNode = documentNode.getNode(Content.LD_ATTACHMENTS_NODE);
+                    fileNode = attachmentsNode.getNode(attachment);
+                } else {
+                    fileNode = documentNode.getNode(Content.LD_MAIN_FILE_NODE);
+                }
             } catch (PathNotFoundException e) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 return;
@@ -228,13 +232,8 @@ public class DocumentController {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
-            if (!documentNode.getPrimaryNodeType().getName().equals(Core.LD_DOCUMENT)) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                return;
-            }
 
-            InputStream inputStream = JcrUtils.readFile(documentNode
-                    .getNode(Core.LD_FILE_NODE + "/" + JcrConstants.JCR_CONTENT));
+            InputStream inputStream = JcrUtils.readFile(fileNode.getNode(JcrConstants.JCR_CONTENT));
             response.setContentType("application/pdf");
             OutputStream outputStream = response.getOutputStream();
             IOUtils.copy(inputStream, outputStream);

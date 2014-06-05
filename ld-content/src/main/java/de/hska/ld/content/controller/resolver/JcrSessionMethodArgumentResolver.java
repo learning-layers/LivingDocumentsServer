@@ -20,10 +20,10 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.controller.resolver;
+package de.hska.ld.content.controller.resolver;
 
+import de.hska.ld.content.service.JcrService;
 import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.core.service.JcrService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;

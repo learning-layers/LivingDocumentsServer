@@ -20,11 +20,26 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.service;
+package de.hska.ld.content.controller.aop;
 
-import de.hska.ld.core.persistence.domain.Subscription;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Aspect;
 
-public interface SubscriptionService {
+import javax.jcr.Session;
 
-    Subscription save(Subscription subscription);
+@Aspect
+public class JcrSessionAspect {
+
+    @AfterReturning("execution(* de.hska.ld.content.controller.ContentController.*(..))")
+    public void afterReturning(JoinPoint joinPoint) {
+        Object[] args = joinPoint.getArgs();
+        for (Object arg : args) {
+            if (arg instanceof Session) {
+                Session session = (Session) arg;
+                session.logout();
+                break;
+            }
+        }
+    }
 }

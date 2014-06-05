@@ -20,12 +20,21 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.controller.resolver;
+package de.hska.ld.content.util;
 
-import java.lang.annotation.*;
+public class Content {
 
-@Target(ElementType.PARAMETER)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface JcrSession {
+    public static final String LD_DOCUMENT = "ld:document";
+    public static final String LD_DOCUMENTS = "ld:documents";
+
+    public static final String LD_MAIN_FILE_NODE = "file";
+    public static final String LD_COMMENTS_NODE = "comments";
+    public static final String LD_TAGS_NODE = "tags";
+    public static final String LD_ATTACHMENTS_NODE = "attachments";
+    public static final String LD_DESCRIPTION_PROPERTY = "description";
+
+    public static final String LD_MESSAGE_PROPERTY = "message";
+    public static final String LD_NAME_PROPERTY = "name";
+
+    public static final String JCR_LASTMODIFIED_BY = "jcr:lastModifiedBy";
 }
