@@ -34,9 +34,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpStatusCodeException;
 
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import java.util.List;
+import java.util.UUID;
 
 public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -58,10 +62,36 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void thatGetNodeMetaDataUsesHttpOkOnEntityLookupSuccess() throws RepositoryException {
-        jcrService.createDocumentNode(session, "testDocument");
+        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
 
-        ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/testDocument/meta", HttpMethod.GET,
+        ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/meta", HttpMethod.GET,
                 createUserHeader(), NodeDto.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void thatGetCommentNodesUsesHttpOkOnEntityLookupSuccess() throws RepositoryException {
+        String testComment = "This is a test node";
+        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
+        jcrService.addComment(session, node, testComment);
+
+        ResponseEntity<List> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/comments",
+                HttpMethod.GET, createUserHeader(), List.class);
+
+        Assert.assertTrue(response.getBody().size() == 1);
+        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void thatCreateDocumentNodeUsesHttpConflictOnNodeAlreadyExists() throws RepositoryException {
+        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
+        try {
+            exchange(CONTENT_RESOURCE + "/document/" + node.getName(), HttpMethod.POST, createUserHeader(), NodeDto.class);
+        } catch (HttpStatusCodeException e) {
+            expectedClientException = e;
+        }
+        Assert.assertNotNull(expectedClientException);
+        Assert.assertEquals(HttpStatus.CONFLICT, expectedClientException.getStatusCode());
     }
 }

@@ -46,13 +46,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.jcr.*;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p><b>RESOURCE</b> {@code /api/content}
@@ -68,13 +67,69 @@ public class ContentController {
     private SubscriptionService subscriptionService;
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<NodeDto> createDocumentNode(@RequestBody @Valid NodeDto nodeDto, @JcrSession Session session) {
+    @RequestMapping(method = RequestMethod.POST, value = "/document/{documentNodeId}")
+    public ResponseEntity<NodeDto> createDocumentNode(@PathVariable String documentNodeId, @JcrSession Session session) {
         try {
-            Node documentNode = jcrService.createDocumentNode(session, nodeDto.getNodeId());
+            Node documentNode = jcrService.createDocumentNode(session, documentNodeId);
             return new ResponseEntity<>(new NodeDto(documentNode), HttpStatus.OK);
+        } catch (ItemExistsException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/document/upload")
+    public ResponseEntity uploadFile(@RequestParam(value = "file", required = true) MultipartFile file,
+                                     @RequestParam(required = true) String documentNodeId,
+                                     @RequestParam(required = true) String cmd,
+                                     @JcrSession Session session) {
+        String name = file.getOriginalFilename();
+        if (!file.isEmpty()) {
+            try {
+                Node documentNode = jcrService.getNode(session, documentNodeId);
+                jcrService.addFileNode(session, documentNode, file.getInputStream(), name, cmd);
+                return new ResponseEntity(HttpStatus.OK);
+            } catch (Exception e) {
+                return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/document/{documentNodeId}/download")
+    public void download(@PathVariable String documentNodeId, @RequestParam(required = false) String attachment,
+                         @JcrSession Session session, HttpServletResponse response) {
+        try {
+            Node fileNode;
+            try {
+                Node documentNode = jcrService.getNode(session, documentNodeId);
+                if (!documentNode.getPrimaryNodeType().getName().equals(Content.LD_DOCUMENT)) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    return;
+                }
+                if (attachment != null) {
+                    Node attachmentsNode = documentNode.getNode(Content.LD_ATTACHMENTS_NODE);
+                    fileNode = attachmentsNode.getNode(attachment);
+                } else {
+                    fileNode = documentNode.getNode(Content.LD_MAIN_FILE_NODE);
+                }
+            } catch (PathNotFoundException e) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            } catch (RepositoryException e) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
+
+            InputStream inputStream = JcrUtils.readFile(fileNode.getNode(JcrConstants.JCR_CONTENT));
+            response.setContentType("application/pdf");
+            OutputStream outputStream = response.getOutputStream();
+            IOUtils.copy(inputStream, outputStream);
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -158,25 +213,6 @@ public class ContentController {
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/upload")
-    public ResponseEntity uploadFile(@RequestParam(value = "file", required = true) MultipartFile file,
-                                     @RequestParam(required = true) String documentNodeId,
-                                     @RequestParam(required = true) String cmd,
-                                     @JcrSession Session session) {
-        String name = file.getOriginalFilename();
-        if (!file.isEmpty()) {
-            try {
-                Node documentNode = jcrService.getNode(session, documentNodeId);
-                jcrService.addFileNode(session, documentNode, file.getInputStream(), name, cmd);
-                return new ResponseEntity(HttpStatus.OK);
-            } catch (Exception e) {
-                return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } else {
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-        }
-    }
-
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/meta")
     public ResponseEntity<NodeDto> getNodeMetaData(@PathVariable String nodeId, @JcrSession Session session) {
@@ -190,55 +226,16 @@ public class ContentController {
     }
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/{documentNodeId}/comments")
-    public ResponseEntity<List<CommentNodeDto>> getCommentNodes(@PathVariable String documentNodeId,
+    @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/comments")
+    public ResponseEntity<List<CommentNodeDto>> getCommentNodes(@PathVariable String nodeId,
                                                                 @JcrSession Session session) {
         try {
-            Node node = jcrService.getNode(session, documentNodeId + "/" + Content.LD_COMMENTS_NODE);
-            NodeIterator commentNodeIt = node.getNodes();
-            List<CommentNodeDto> commentList = new ArrayList<>();
-            while (commentNodeIt.hasNext()) {
-                Node commentNode = commentNodeIt.nextNode();
-                commentList.add(new CommentNodeDto(commentNode));
-            }
-            return new ResponseEntity<>(commentList, HttpStatus.OK);
+            Node node = jcrService.getNode(session, nodeId);
+            List<Node> commentList = jcrService.getComments(node);
+            List<CommentNodeDto> dtoList = commentList.stream().map(CommentNodeDto::new).collect(Collectors.toList());
+            return new ResponseEntity<>(dtoList, HttpStatus.OK);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/{documentNodeId}/download")
-    public void download(@PathVariable String documentNodeId, @RequestParam(required = false) String attachment,
-                         @JcrSession Session session, HttpServletResponse response) {
-        try {
-            Node fileNode;
-            try {
-                Node documentNode = jcrService.getNode(session, documentNodeId);
-                if (!documentNode.getPrimaryNodeType().getName().equals(Content.LD_DOCUMENT)) {
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    return;
-                }
-                if (attachment != null) {
-                    Node attachmentsNode = documentNode.getNode(Content.LD_ATTACHMENTS_NODE);
-                    fileNode = attachmentsNode.getNode(attachment);
-                } else {
-                    fileNode = documentNode.getNode(Content.LD_MAIN_FILE_NODE);
-                }
-            } catch (PathNotFoundException e) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                return;
-            } catch (RepositoryException e) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                return;
-            }
-
-            InputStream inputStream = JcrUtils.readFile(fileNode.getNode(JcrConstants.JCR_CONTENT));
-            response.setContentType("application/pdf");
-            OutputStream outputStream = response.getOutputStream();
-            IOUtils.copy(inputStream, outputStream);
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 }

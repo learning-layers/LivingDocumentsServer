@@ -42,7 +42,7 @@ public class NodeDto {
     private String nodeId;
     private String description;
     private Map<String, String> tags;
-    private Calendar createdDate;
+    private Calendar createdAt;
     private Calendar lastModifiedAt;
     private String lastModifiedBy;
     private String createdBy;
@@ -59,10 +59,13 @@ public class NodeDto {
 
             loadTags(node);
 
+            this.createdAt = node.getProperty(JcrConstants.JCR_CREATED).getDate();
+            this.createdBy = node.getProperty("jcr:createdBy").getString();
+
             // fetch file node meta data
             if (node.hasNode(Content.LD_MAIN_FILE_NODE)) {
                 Node fileNode = node.getNode(Content.LD_MAIN_FILE_NODE);
-                this.createdDate = fileNode.getProperty(JcrConstants.JCR_CREATED).getDate();
+                this.createdAt = fileNode.getProperty(JcrConstants.JCR_CREATED).getDate();
                 this.createdBy = fileNode.getProperty("jcr:createdBy").getString();
 
                 if (fileNode.hasNode(JcrConstants.JCR_CONTENT)) {
@@ -113,12 +116,12 @@ public class NodeDto {
         this.tags = tags;
     }
 
-    public Calendar getCreatedDate() {
-        return createdDate;
+    public Calendar getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreatedDate(Calendar createdDate) {
-        this.createdDate = createdDate;
+    public void setCreatedAt(Calendar createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Calendar getLastModifiedAt() {

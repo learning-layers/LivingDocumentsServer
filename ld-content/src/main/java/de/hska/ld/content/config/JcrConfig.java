@@ -82,6 +82,8 @@ public class JcrConfig {
                 Node rootNode = session.getRootNode();
                 Node documentsNode = rootNode.addNode(Content.LD_DOCUMENTS, JcrConstants.NT_UNSTRUCTURED);
                 jcrService.addAllPrivileges(session, documentsNode);
+                Node documentTagsNode = documentsNode.addNode(Content.LD_TAGS_NODE, JcrConstants.NT_UNSTRUCTURED);
+                jcrService.addAllPrivileges(session, documentTagsNode);
                 session.save();
             } catch (ItemExistsException e) {
                 LOGGER.info("Document Node Type already exists.");

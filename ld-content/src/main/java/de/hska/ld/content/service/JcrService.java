@@ -34,7 +34,7 @@ public interface JcrService {
 
     <T extends Session> T login(User user) throws RepositoryException;
 
-    Node createDocumentNode(Session session, String nodeId) throws RepositoryException;
+    Node createDocumentNode(Session session, String documentNodeId) throws RepositoryException;
 
     Node getNode(Session session, String nodeId) throws RepositoryException;
 
@@ -54,12 +54,13 @@ public interface JcrService {
      * Creates a file node or updates an existing file node content.
      *
      * @param session      the current user's JCR session
-     * @param documentNode the parent document node
+     * @param documentNode the document node
      * @param inputStream  the file content
      * @param fileName     the file name
      * @param cmd          command to which part of a document the file should be added (e.g. 'attachment')
      * @return the file node
      * @throws RepositoryException if file node could not be created or content could not be updated
      */
-    Node addFileNode(Session session, Node documentNode, InputStream inputStream, String fileName, String cmd) throws RepositoryException;
+    Node addFileNode(Session session, Node documentNode, InputStream inputStream, String fileName, String cmd)
+            throws RepositoryException;
 }

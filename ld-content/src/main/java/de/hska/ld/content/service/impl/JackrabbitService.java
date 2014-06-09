@@ -106,9 +106,12 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    public Node createDocumentNode(Session session, String nodeId) throws RepositoryException {
+    public Node createDocumentNode(Session session, String documentNodeId) throws RepositoryException {
         Node documentsNode = getDocumentsNode(session);
-        Node documentNode = documentsNode.addNode(nodeId, Content.LD_DOCUMENT);
+        if (documentsNode.hasNode(documentNodeId)) {
+            throw new ItemExistsException("Document already exists.");
+        }
+        Node documentNode = documentsNode.addNode(documentNodeId, Content.LD_DOCUMENT);
         session.save();
         return documentNode;
     }
@@ -179,44 +182,39 @@ public class JackrabbitService implements JcrService {
 
     @Override
     public Node addTag(Session session, Node nodeToBeTagged, String tagName, String description) throws RepositoryException {
-        Node documentsTagsNode;
-        Node documentsNode = getDocumentsNode(session);
-        if (!documentsNode.hasNode(Content.LD_TAGS_NODE)) {
-            // if the documents tag container isn't present add it
-            documentsTagsNode = documentsNode.addNode(Content.LD_TAGS_NODE, JcrConstants.NT_UNSTRUCTURED);
-            // save it to enable search in this node later on
-            session.save();
-        } else {
-            documentsTagsNode = documentsNode.getNode(Content.LD_TAGS_NODE);
-        }
+        // Get global tags container
+        Node globalTagsNode = getNode(session, Content.LD_TAGS_NODE);
 
-        // see if the needed tag node is available yet
-        Node documentsTagNode = searchDocumentsTagNode(session, tagName);
+        // See if the needed tag node is available yet
+        Node globalTagNode = searchDocumentsTagNode(session, tagName);
 
-        if (documentsTagNode == null && documentsTagsNode != null) {
+        if (globalTagNode == null) {
             // tag node has not been found, create a new one
-            documentsTagNode = documentsTagsNode.addNode(UUID.randomUUID().toString(), JcrConstants.NT_UNSTRUCTURED);
-            documentsTagNode.setProperty(Content.LD_NAME_PROPERTY, tagName);
-            documentsTagNode.setProperty(Content.LD_DESCRIPTION_PROPERTY, description);
+            globalTagNode = globalTagsNode.addNode(UUID.randomUUID().toString(), JcrConstants.NT_UNSTRUCTURED);
+            globalTagNode.setProperty(Content.LD_NAME_PROPERTY, tagName);
+            globalTagNode.setProperty(Content.LD_DESCRIPTION_PROPERTY, description);
         }
 
-        // add tagNode to the document node
-        Node nodeTagsNode;
+        // Get nodes tags container
+        Node tagsNode;
         if (!nodeToBeTagged.hasNode(Content.LD_TAGS_NODE)) {
-            // if the document tag container isn't present add it
-            nodeTagsNode = nodeToBeTagged.addNode(Content.LD_TAGS_NODE, JcrConstants.NT_UNSTRUCTURED);
+            // if tags container isn't present add it
+            tagsNode = nodeToBeTagged.addNode(Content.LD_TAGS_NODE, JcrConstants.NT_UNSTRUCTURED);
         } else {
-            nodeTagsNode = nodeToBeTagged.getNode(Content.LD_TAGS_NODE);
+            tagsNode = nodeToBeTagged.getNode(Content.LD_TAGS_NODE);
         }
 
-        Node nodeToBeTaggedTagNode = null;
-        try {
-            nodeToBeTaggedTagNode = addNodeTag(tagName, documentsTagNode, nodeTagsNode);
-        } catch (ItemExistsException e) {
-            // tag has already been added
+        Node tagNode;
+        String identifier = globalTagNode.getIdentifier();
+        if (!tagsNode.hasNode(identifier)) {
+            tagNode = tagsNode.addNode(identifier, JcrConstants.NT_UNSTRUCTURED);
+            tagNode.setProperty(Content.LD_NAME_PROPERTY, tagName);
+        } else {
+            throw new ItemExistsException("Tag already exists.");
         }
+
         session.save();
-        return nodeToBeTaggedTagNode;
+        return tagNode;
     }
 
     @Override
@@ -292,13 +290,6 @@ public class JackrabbitService implements JcrService {
         return fileNode;
     }
 
-    private Node addNodeTag(String tagName, Node documentsTagNode, Node nodeTagsNode) throws RepositoryException {
-        String identifier = documentsTagNode.getIdentifier();
-        Node nodeTagNode = nodeTagsNode.addNode(identifier, JcrConstants.NT_UNSTRUCTURED);
-        nodeTagNode.setProperty(Content.LD_NAME_PROPERTY, tagName);
-        return nodeTagNode;
-    }
-
     private Node searchDocumentsTagNode(Session session, String tagName) throws RepositoryException {
         // search for the tag node
         QueryManager queryManager = session.getWorkspace().getQueryManager();
@@ -309,10 +300,10 @@ public class JackrabbitService implements JcrService {
                 "[@name='" + tagName + "']";
         Query query = queryManager.createQuery(expression, "xpath");
         QueryResult result = query.execute();
-        NodeIterator nodeIter = result.getNodes();
+        NodeIterator nodeIt = result.getNodes();
         Node documentsTagNode = null;
-        while (nodeIter.hasNext()) {
-            documentsTagNode = nodeIter.nextNode();
+        while (nodeIt.hasNext()) {
+            documentsTagNode = nodeIt.nextNode();
         }
         return documentsTagNode;
     }
