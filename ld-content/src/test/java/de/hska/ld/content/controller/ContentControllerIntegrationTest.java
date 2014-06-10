@@ -23,8 +23,10 @@
 package de.hska.ld.content.controller;
 
 import de.hska.ld.content.dto.NodeDto;
+import de.hska.ld.content.dto.TagDto;
 import de.hska.ld.content.service.JcrService;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.dto.TextDto;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.junit.Assert;
@@ -61,6 +63,25 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void thatCreateDocumentNodeUsesHttpOkOnPersist() throws RepositoryException {
+        ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/document/" + UUID.randomUUID().toString(),
+                HttpMethod.POST, createUserHeader(), NodeDto.class);
+        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void thatCreateDocumentNodeUsesHttpConflictOnNodeAlreadyExists() throws RepositoryException {
+        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
+        try {
+            exchange(CONTENT_RESOURCE + "/document/" + node.getName(), HttpMethod.POST, createUserHeader(), NodeDto.class);
+        } catch (HttpStatusCodeException e) {
+            expectedClientException = e;
+        }
+        Assert.assertNotNull(expectedClientException);
+        Assert.assertEquals(HttpStatus.CONFLICT, expectedClientException.getStatusCode());
+    }
+
+    @Test
     public void thatGetNodeMetaDataUsesHttpOkOnEntityLookupSuccess() throws RepositoryException {
         Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
 
@@ -84,10 +105,33 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatCreateDocumentNodeUsesHttpConflictOnNodeAlreadyExists() throws RepositoryException {
+    public void thatAddCommentNodeUsesHttpOkOnPersist() throws RepositoryException {
         Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
+
+        ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/comment",
+                HttpMethod.POST, createUserHeader(new TextDto("This is a test comment.")), NodeDto.class);
+        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void thatAddTagNodeUsesHttpOkOnPersist() throws RepositoryException {
+        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
+
+        ResponseEntity<TextDto> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/tag",
+                HttpMethod.POST, createUserHeader(new TagDto("TagName", "The description")), TextDto.class);
+        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void thatAddTagNodeUsesHttpConflictOnNodeAlreadyExists() throws RepositoryException {
+        String tagName = "TagName";
+        String description = "The description";
+        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
+        jcrService.addTag(session, node, tagName, description);
+
         try {
-            exchange(CONTENT_RESOURCE + "/document/" + node.getName(), HttpMethod.POST, createUserHeader(), NodeDto.class);
+            exchange(CONTENT_RESOURCE + "/" + node.getName() + "/tag", HttpMethod.POST,
+                    createUserHeader(new TagDto(tagName, description)), List.class);
         } catch (HttpStatusCodeException e) {
             expectedClientException = e;
         }

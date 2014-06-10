@@ -59,9 +59,6 @@ public class NodeDto {
 
             loadTags(node);
 
-            this.createdAt = node.getProperty(JcrConstants.JCR_CREATED).getDate();
-            this.createdBy = node.getProperty("jcr:createdBy").getString();
-
             // fetch file node meta data
             if (node.hasNode(Content.LD_MAIN_FILE_NODE)) {
                 Node fileNode = node.getNode(Content.LD_MAIN_FILE_NODE);

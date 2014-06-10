@@ -80,10 +80,8 @@ public class ContentController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document/upload")
-    public ResponseEntity uploadFile(@RequestParam(value = "file", required = true) MultipartFile file,
-                                     @RequestParam(required = true) String documentNodeId,
-                                     @RequestParam(required = true) String cmd,
-                                     @JcrSession Session session) {
+    public ResponseEntity uploadFile(@RequestParam MultipartFile file, @RequestParam String documentNodeId,
+                                     @RequestParam String cmd, @JcrSession Session session) {
         String name = file.getOriginalFilename();
         if (!file.isEmpty()) {
             try {
@@ -100,7 +98,7 @@ public class ContentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/document/{documentNodeId}/download")
-    public void download(@PathVariable String documentNodeId, @RequestParam(required = false) String attachment,
+    public void downloadFile(@PathVariable String documentNodeId, @RequestParam(required = false) String attachment,
                          @JcrSession Session session, HttpServletResponse response) {
         try {
             Node fileNode;
@@ -178,7 +176,7 @@ public class ContentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/tag")
-    public ResponseEntity<TextDto> addTag(@PathVariable String nodeId, @RequestBody TagDto tagDto,
+    public ResponseEntity<TextDto> addTagNode(@PathVariable String nodeId, @RequestBody TagDto tagDto,
                                           @JcrSession Session session) {
         try {
             Node nodeToBeTagged = jcrService.getNode(session, nodeId);
@@ -187,6 +185,8 @@ public class ContentController {
             TextDto nodeDto = new TextDto();
             nodeDto.setText(tagNode.getIdentifier());
             return new ResponseEntity<>(nodeDto, HttpStatus.OK);
+        } catch (ItemExistsException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
