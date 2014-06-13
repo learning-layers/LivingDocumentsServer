@@ -36,6 +36,8 @@ public interface JcrService {
 
     Node createDocumentNode(Session session, String documentNodeId) throws RepositoryException;
 
+    void removeDocumentNode(Session session, String documentNodeId) throws RepositoryException;
+
     Node getNode(Session session, String nodeId) throws RepositoryException;
 
     void addAllPrivileges(Session session, Node documentNodeId) throws RepositoryException;
@@ -46,7 +48,7 @@ public interface JcrService {
 
     Node addTag(Session session, Node nodeToBeTagged, String tagName, String description) throws RepositoryException;
 
-    Node removeTag(Session session, String tagId) throws RepositoryException;
+    void removeTag(Session session, Node taggedNode, String tagName) throws RepositoryException;
 
     List<Node> getComments(Node node) throws RepositoryException;
 

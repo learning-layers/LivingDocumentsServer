@@ -29,6 +29,7 @@ import de.hska.ld.core.service.UserService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.jcr.ItemExistsException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -46,15 +47,17 @@ public class DataGenerator {
         try {
             User admin = userService.findByUsername("admin");
             session = jcrService.login(admin);
-
-            Node sandboxDocument = jcrService.createDocumentNode(session, "sandboxDocument");
-            sandboxDocument.setProperty(Content.LD_DESCRIPTION_PROPERTY, "Sandbox Node with PDF-File");
-            in = DataGenerator.class.getResourceAsStream("/" + "sandbox.pdf");
-            jcrService.addFileNode(session, sandboxDocument, in, null, "main");
-            in = DataGenerator.class.getResourceAsStream("/" + "sandbox.pdf");
-            jcrService.addFileNode(session, sandboxDocument, in, "sandboxAttachment", "attachment");
-            jcrService.addComment(session, sandboxDocument, "Hello World!");
-
+            try {
+                Node sandboxDocument = jcrService.createDocumentNode(session, "sandboxDocument");
+                sandboxDocument.setProperty(Content.LD_DESCRIPTION_PROPERTY, "Sandbox Node with PDF-File");
+                in = DataGenerator.class.getResourceAsStream("/" + "sandbox.pdf");
+                jcrService.addFileNode(session, sandboxDocument, in, null, "main");
+                in = DataGenerator.class.getResourceAsStream("/" + "sandbox.pdf");
+                jcrService.addFileNode(session, sandboxDocument, in, "sandboxAttachment", "attachment");
+                jcrService.addComment(session, sandboxDocument, "Hello World!");
+            } catch (ItemExistsException e) {
+                // Already exists
+            }
             session.save();
         } finally {
             if (session != null) {

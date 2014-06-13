@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.jcr.*;
+import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.nodetype.InvalidNodeTypeDefinitionException;
 import javax.jcr.nodetype.NodeType;
 import javax.jcr.query.Query;
@@ -114,6 +115,16 @@ public class JackrabbitService implements JcrService {
         Node documentNode = documentsNode.addNode(documentNodeId, Content.LD_DOCUMENT);
         session.save();
         return documentNode;
+    }
+
+    @Override
+    public void removeDocumentNode(Session session, String documentNodeId) throws RepositoryException {
+        // TODO check permission
+        Node documentNode = getNode(session, documentNodeId);
+        if (!documentNode.getPrimaryNodeType().getName().equals(Content.LD_DOCUMENT)) {
+            throw new ConstraintViolationException("Remove tag from global tag container is not allowed.");
+        }
+        documentNode.remove();
     }
 
     @Override
@@ -218,9 +229,22 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    public Node removeTag(Session session, String tagId) throws RepositoryException {
-        // TODO
-        return null;
+    public void removeTag(Session session, Node taggedNode, String tagName) throws RepositoryException {
+        // Do not remove the tag from the global tag container
+        if (taggedNode.getPrimaryNodeType().getName().equals(Content.LD_DOCUMENT)) {
+            throw new ConstraintViolationException("Remove tag from global tag container is not allowed.");
+        }
+        // Check if the tagged node has a tag container
+        if (taggedNode.hasNode(Content.LD_TAGS_NODE)) {
+            throw new ItemNotFoundException("The tagged node has no tag container.");
+        }
+        Node tagsNode = taggedNode.getNode(Content.LD_TAGS_NODE);
+        if (tagsNode.hasNode(tagName)) {
+            tagsNode.getNode(tagName).remove();
+            session.save();
+        } else {
+            throw new ItemNotFoundException("No tag with name=" + tagName + " found in node=" + taggedNode.getName());
+        }
     }
 
     @Override

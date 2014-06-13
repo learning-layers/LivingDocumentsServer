@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.controller;
 
+import com.wordnik.swagger.annotations.ApiOperation;
 import de.hska.ld.content.controller.resolver.JcrSession;
 import de.hska.ld.content.dto.CommentNodeDto;
 import de.hska.ld.content.dto.NodeDto;
@@ -45,12 +46,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.jcr.*;
+import javax.jcr.nodetype.ConstraintViolationException;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +68,7 @@ public class ContentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/document/{documentNodeId}")
+    @ApiOperation(value = "Create document node", notes = "Notes...")
     public ResponseEntity<NodeDto> createDocumentNode(@PathVariable String documentNodeId, @JcrSession Session session) {
         try {
             Node documentNode = jcrService.createDocumentNode(session, documentNodeId);
@@ -77,6 +78,19 @@ public class ContentController {
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.DELETE, value = "/document/{documentNodeId}")
+    public ResponseEntity removeDocumentNode(@PathVariable String documentNodeId, @JcrSession Session session) {
+        try {
+            jcrService.removeDocumentNode(session, documentNodeId);
+        } catch (ConstraintViolationException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        } catch (RepositoryException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document/upload")
@@ -132,21 +146,6 @@ public class ContentController {
     }
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.PUT)
-    public ResponseEntity updateNode(@RequestBody @NotNull Map<String, String> updateMap, String nodeId, NodeDto nodeDto) {
-
-        // TODO
-        for (String key : updateMap.keySet()) {
-            if (key.equals("updateMainFileName")) {
-                String fileName = updateMap.get(key);
-
-            }
-        }
-
-        return null;
-    }
-
-    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/comment")
     public ResponseEntity<NodeDto> addCommentNode(@PathVariable String nodeId, @RequestBody TextDto textDto,
                                                   @JcrSession Session session) {
@@ -190,6 +189,23 @@ public class ContentController {
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.DELETE, value = "/tag/remove")
+    public ResponseEntity removeTag(@RequestParam String taggedNodeId, @RequestParam String tagName,
+                                    @JcrSession Session session) {
+        try {
+            Node node = jcrService.getNode(session, taggedNodeId);
+            jcrService.removeTag(session, node, tagName);
+        } catch (ItemNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (ConstraintViolationException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        } catch (RepositoryException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Secured(Core.ROLE_USER)
