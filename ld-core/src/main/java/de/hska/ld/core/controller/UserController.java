@@ -60,8 +60,8 @@ public class UserController {
      * <b>Path:</b> GET /api/users
      * </pre>
      *
-     * @return <b>200 OK</b> and a list with all users or <br />
-     *         <b>404 Not Found</b> if no users are in the system or <br />
+     * @return <b>200 OK</b> and a list with all users or <br>
+     *         <b>404 Not Found</b> if no users are in the system or <br>
      *         <b>403 Forbidden</b> if authorization failed
      *
      */
@@ -84,7 +84,7 @@ public class UserController {
      * <b>Path:</b> GET /api/users/authorization
      * </pre>
      *
-     * @return  <b>200 OK</b> and the current logged in user or <br />
+     * @return  <b>200 OK</b> and the current logged in user or <br>
      *          <b>403 Forbidden</b> if authorization failed
      */
     @Secured(Core.ROLE_USER)
@@ -102,8 +102,8 @@ public class UserController {
      * </pre>
      *
      * @param username the unique username as path variable
-     * @return <b>200 OK</b> and the current user or <br />
-     *         <b>404 Not Found</b> if no user with the given username has been found <br />
+     * @return <b>200 OK</b> and the current user or <br>
+     *         <b>404 Not Found</b> if no user with the given username has been found <br>
      *         <b>403 Forbidden</b> if authorization failed
      */
     @PreAuthorize("hasRole('" + Core.ROLE_ADMIN + "') or (isAuthenticated() and principal.username == #username)")
@@ -126,11 +126,11 @@ public class UserController {
      * </pre>
      *
      * @param userDto includes the user to be saved or updated. The transfer object also contains a password
-     *                field for registration. Example:<br />
+     *                field for registration. Example:<br>
      *                {user: {username: 'jdoe', fullName: 'John Doe'}, password: 'PASSWORD_ONLY_REQUIRED_FOR_NEW_USER'}
-     * @return <b>201 Created</b> and the user ID or <br />
-     *         <b>200 OK</b> and the ID of the updated subject or <br />
-     *         <b>400 Bad Request</b> if at least one property was invalid or <br />
+     * @return <b>201 Created</b> and the user ID or <br>
+     *         <b>200 OK</b> and the ID of the updated subject or <br>
+     *         <b>400 Bad Request</b> if at least one property was invalid or <br>
      *         <b>403 Forbidden</b> if authorization failed.
      */
     @RequestMapping(method = RequestMethod.POST)
@@ -172,10 +172,10 @@ public class UserController {
      * </pre>
      *
      * @param userRoleDto includes the username of the user to be updated. The transfer object also contains a role list.
-     *                    Each role will be added to the user. Example <br />
+     *                    Each role will be added to the user. Example <br>
      *                    <code>{username: 'jdoe', roleList: [{id: 1, name: 'ROLE_NAME'}]}</code>
-     * @return <b>200 OK</b> or <br />
-     *         <b>400 Bad Request</b> if at least one property was invalid or <br />
+     * @return <b>200 OK</b> or <br>
+     *         <b>400 Bad Request</b> if at least one property was invalid or <br>
      *         <b>403 Forbidden</b>
      * if authorization failed.
      */
@@ -200,7 +200,7 @@ public class UserController {
      * </pre>
      *
      * @param id the user ID as a path variable
-     * @return <b>200 OK</b> if deletion was successful, <br />
+     * @return <b>200 OK</b> if deletion was successful, <br>
      *         <b>404 Not Found</b> or {@code 403 Forbidden} if authorization failed.
      */
     @Secured(Core.ROLE_ADMIN)
