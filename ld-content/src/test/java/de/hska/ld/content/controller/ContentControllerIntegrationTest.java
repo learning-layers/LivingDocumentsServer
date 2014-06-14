@@ -42,11 +42,12 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import java.util.List;
-import java.util.UUID;
 
 public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String CONTENT_RESOURCE = "/content";
+    private static final String TITLE = "Title";
+    private static final String DESCRIPTION = "Description";
 
     @Autowired
     JcrService jcrService;
@@ -55,35 +56,27 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
     UserService userService;
 
     Session session;
+    NodeDto documentDto;
 
     @Before
     public void setUp() throws Exception {
         User user = userService.findByUsername("user");
         session = jcrService.login(user);
+        documentDto = new NodeDto();
+        documentDto.setTitle(TITLE);
+        documentDto.setDescription(DESCRIPTION);
     }
 
     @Test
     public void thatCreateDocumentNodeUsesHttpOkOnPersist() throws RepositoryException {
-        ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/document/" + UUID.randomUUID().toString(),
-                HttpMethod.POST, createUserHeader(), NodeDto.class);
+        ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/document", HttpMethod.POST,
+                createUserHeader(documentDto), NodeDto.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
-    public void thatCreateDocumentNodeUsesHttpConflictOnNodeAlreadyExists() throws RepositoryException {
-        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
-        try {
-            exchange(CONTENT_RESOURCE + "/document/" + node.getName(), HttpMethod.POST, createUserHeader(), NodeDto.class);
-        } catch (HttpStatusCodeException e) {
-            expectedClientException = e;
-        }
-        Assert.assertNotNull(expectedClientException);
-        Assert.assertEquals(HttpStatus.CONFLICT, expectedClientException.getStatusCode());
-    }
-
-    @Test
     public void thatGetNodeMetaDataUsesHttpOkOnEntityLookupSuccess() throws RepositoryException {
-        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
+        Node node = jcrService.createDocumentNode(session, TITLE, DESCRIPTION);
 
         ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/meta", HttpMethod.GET,
                 createUserHeader(), NodeDto.class);
@@ -94,7 +87,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
     @SuppressWarnings("unchecked")
     public void thatGetCommentNodesUsesHttpOkOnEntityLookupSuccess() throws RepositoryException {
         String testComment = "This is a test node";
-        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
+        Node node = jcrService.createDocumentNode(session, TITLE, DESCRIPTION);
         jcrService.addComment(session, node, testComment);
 
         ResponseEntity<List> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/comments",
@@ -106,7 +99,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void thatAddCommentNodeUsesHttpOkOnPersist() throws RepositoryException {
-        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
+        Node node = jcrService.createDocumentNode(session, TITLE, DESCRIPTION);
 
         ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/comment",
                 HttpMethod.POST, createUserHeader(new TextDto("This is a test comment.")), NodeDto.class);
@@ -115,7 +108,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void thatAddTagNodeUsesHttpOkOnPersist() throws RepositoryException {
-        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
+        Node node = jcrService.createDocumentNode(session, TITLE, DESCRIPTION);
 
         ResponseEntity<TextDto> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/tag",
                 HttpMethod.POST, createUserHeader(new TagDto("TagName", "The description")), TextDto.class);
@@ -126,7 +119,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
     public void thatAddTagNodeUsesHttpConflictOnNodeAlreadyExists() throws RepositoryException {
         String tagName = "TagName";
         String description = "The description";
-        Node node = jcrService.createDocumentNode(session, UUID.randomUUID().toString());
+        Node node = jcrService.createDocumentNode(session, TITLE, DESCRIPTION);
         jcrService.addTag(session, node, tagName, description);
 
         try {

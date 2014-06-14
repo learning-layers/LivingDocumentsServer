@@ -65,7 +65,6 @@ public class ContentController {
     @Autowired
     private SubscriptionService subscriptionService;
 
-    // TODO change documentNodeId not to be needed for creating a document
     /**
      * This resource allows it to create a document node.
      *
@@ -73,17 +72,21 @@ public class ContentController {
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> POST /api/content/document/{documentNodeId}
      * </pre>
-     *
-     * @param documentNodeId the node id that one wants to have for the new node
+     * @param documentDto Contains title and optional description of the new document. Example:
+     *                    {title: 'New Document', description: '&lt;optional&gt;'}
      * @return  <b>200 OK</b> with the generated node contents<br>
+     *          <b>400 Bad Request</b> if no title exists
      *          <b>409 Conflict</b> if a node with the given id already exists<br>
-     *          <b>500 Internal Server Error</b> if there occured any other server side issue
+     *          <b>500 Internal Server Error</b> if there occurred any other server side issue
      */
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.POST, value = "/document/{documentNodeId}")
-    public ResponseEntity<NodeDto> createDocumentNode(@PathVariable String documentNodeId, @JcrSession Session session) {
+    @RequestMapping(method = RequestMethod.POST, value = "/document")
+    public ResponseEntity<NodeDto> createDocumentNode(@JcrSession Session session, @RequestBody NodeDto documentDto) {
         try {
-            Node documentNode = jcrService.createDocumentNode(session, documentNodeId);
+            if (documentDto.getTitle() == null) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            Node documentNode = jcrService.createDocumentNode(session, documentDto.getTitle(), documentDto.getDescription());
             return new ResponseEntity<>(new NodeDto(documentNode), HttpStatus.OK);
         } catch (ItemExistsException e) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);

@@ -34,7 +34,7 @@ public interface JcrService {
 
     <T extends Session> T login(User user) throws RepositoryException;
 
-    Node createDocumentNode(Session session, String documentNodeId) throws RepositoryException;
+    Node createDocumentNode(Session session, String title, String description) throws RepositoryException;
 
     void removeDocumentNode(Session session, String documentNodeId) throws RepositoryException;
 

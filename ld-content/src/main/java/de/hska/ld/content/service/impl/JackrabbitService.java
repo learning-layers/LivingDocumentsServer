@@ -107,12 +107,17 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    public Node createDocumentNode(Session session, String documentNodeId) throws RepositoryException {
+    public Node createDocumentNode(Session session, String title, String description) throws RepositoryException {
         Node documentsNode = getDocumentsNode(session);
+        String documentNodeId = UUID.randomUUID().toString();
         if (documentsNode.hasNode(documentNodeId)) {
             throw new ItemExistsException("Document already exists.");
         }
         Node documentNode = documentsNode.addNode(documentNodeId, Content.LD_DOCUMENT);
+        documentNode.setProperty(Content.LD_TITLE_PROPERTY, title);
+        if (description != null) {
+            documentNode.setProperty(Content.LD_DESCRIPTION_PROPERTY, description);
+        }
         session.save();
         return documentNode;
     }

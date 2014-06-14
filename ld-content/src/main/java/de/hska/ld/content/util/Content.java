@@ -31,6 +31,7 @@ public class Content {
     public static final String LD_COMMENTS_NODE = "comments";
     public static final String LD_TAGS_NODE = "tags";
     public static final String LD_ATTACHMENTS_NODE = "attachments";
+    public static final String LD_TITLE_PROPERTY = "title";
     public static final String LD_DESCRIPTION_PROPERTY = "description";
 
     public static final String LD_MESSAGE_PROPERTY = "message";

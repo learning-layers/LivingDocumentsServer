@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
-import javax.validation.constraints.NotNull;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,8 +37,8 @@ import java.util.Map;
 public class NodeDto {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeDto.class);
 
-    @NotNull
     private String nodeId;
+    private String title;
     private String description;
     private Map<String, String> tags;
     private Calendar createdAt;
@@ -53,25 +52,9 @@ public class NodeDto {
     public NodeDto(Node node) {
         try {
             this.nodeId = node.getName();
-            if (node.hasProperty(Content.LD_DESCRIPTION_PROPERTY)) {
-                this.description = node.getProperty(Content.LD_DESCRIPTION_PROPERTY).getString();
-            }
-
+            loadProperties(node, Content.LD_TITLE_PROPERTY, Content.LD_DESCRIPTION_PROPERTY);
             loadTags(node);
-
-            // fetch file node meta data
-            if (node.hasNode(Content.LD_MAIN_FILE_NODE)) {
-                Node fileNode = node.getNode(Content.LD_MAIN_FILE_NODE);
-                this.createdAt = fileNode.getProperty(JcrConstants.JCR_CREATED).getDate();
-                this.createdBy = fileNode.getProperty("jcr:createdBy").getString();
-
-                if (fileNode.hasNode(JcrConstants.JCR_CONTENT)) {
-                    // fetch resource node meta data
-                    Node resourceNode = fileNode.getNode(JcrConstants.JCR_CONTENT);
-                    lastModifiedAt = resourceNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
-                    lastModifiedBy = resourceNode.getProperty(Content.JCR_LASTMODIFIED_BY).getString();
-                }
-            }
+            loadFileMetaData(node);
         } catch (RepositoryException e) {
             LOGGER.error("Creating node meta dto failed", e);
         }
@@ -89,12 +72,43 @@ public class NodeDto {
         }
     }
 
+    private void loadFileMetaData(Node node) throws RepositoryException {
+        if (node.hasNode(Content.LD_MAIN_FILE_NODE)) {
+            Node fileNode = node.getNode(Content.LD_MAIN_FILE_NODE);
+            this.createdAt = fileNode.getProperty(JcrConstants.JCR_CREATED).getDate();
+            this.createdBy = fileNode.getProperty("jcr:createdBy").getString();
+
+            if (fileNode.hasNode(JcrConstants.JCR_CONTENT)) {
+                // fetch resource node meta data
+                Node resourceNode = fileNode.getNode(JcrConstants.JCR_CONTENT);
+                lastModifiedAt = resourceNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
+                lastModifiedBy = resourceNode.getProperty(Content.JCR_LASTMODIFIED_BY).getString();
+            }
+        }
+    }
+
+    private void loadProperties(Node node, String... properties) throws RepositoryException {
+        for (String property : properties) {
+            if (node.hasProperty(property)) {
+                this.title = node.getProperty(property).getString();
+            }
+        }
+    }
+
     public String getNodeId() {
         return nodeId;
     }
 
     public void setNodeId(String nodeId) {
         this.nodeId = nodeId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getDescription() {
