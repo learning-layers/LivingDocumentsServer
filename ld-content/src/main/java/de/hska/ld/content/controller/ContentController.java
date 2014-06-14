@@ -67,11 +67,11 @@ public class ContentController {
 
     // TODO change documentNodeId not to be needed for creating a document
     /**
-     * This method allows it to create a document node.
+     * This resource allows it to create a document node.
      *
      * <pre>
-     *     <b>Roles required:</b> ROLE_USER
-     *     <b>Path:</b> POST /document/{documentNodeId}
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST /api/content/document/{documentNodeId}
      * </pre>
      *
      * @param documentNodeId the node id that one wants to have for the new node
@@ -96,8 +96,8 @@ public class ContentController {
      * Deletes a document.
      *
      * <pre>
-     *     <b>Roles required:</b> ROLE_USER
-     *     <b>Path:</b> DELETE /document/{documentNodeId}
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> DELETE /api/content/document/{documentNodeId}
      * </pre>
      *
      * @param documentNodeId the node id of the node one wants to delete
@@ -124,8 +124,8 @@ public class ContentController {
      * This resource allows uploading files.
      *
      * <pre>
-     *     <b>Roles required:</b>
-     *     <b>Path:</b> POST /document/upload
+     *     <b>Required roles:</b>
+     *     <b>Path:</b> POST /api/content/document/upload
      * </pre>
      *
      * @param file the Multipart file that has been uploaded
@@ -160,7 +160,8 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> GET /document/{documentNodeId}/download?attachment={attachmentNodeId}
+     *     <b>Path - option 1 (downloading an attachment):</b> GET /api/content/document/{documentNodeId}/download?attachment={attachmentNodeId}
+     *     <b>Path - option 2 (download a main content):</b> GET /api/content/document/{documentNodeId}/download
      * </pre>
      *
      * @param documentNodeId the node id of the document that contains the needed attachment node
@@ -210,8 +211,8 @@ public class ContentController {
      * Adds a comment node to either a parent document or a parent comment.
      *
      * <pre>
-     *     <b>Roles required:</b> ROLE_USER
-     *     <b>Path</b> POST /{nodeId}/comment
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path</b> POST /api/content/{nodeId}/comment
      * </pre>
      *
      * @param nodeId the node id of the parent to which the new comment should be added
@@ -237,7 +238,7 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> PUT /comment
+     *     <b>Path:</b> PUT /api/content/comment
      * </pre>
      *
      * @param commentNodeDto the node content that contains the changes to this comment
@@ -264,7 +265,7 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST /{nodeId}/tag
+     *     <b>Path:</b> POST /api/content/{nodeId}/tag
      * </pre>
      *
      * @param nodeId the node id of a node that shall be tagged
@@ -298,7 +299,7 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> DELETE /tag/remove?tagName=<tagName>
+     *     <b>Path:</b> DELETE /api/content/tag/remove?tagName=<tagName>
      * </pre>
      *
      * @param taggedNodeId the node id of the node the tag shall be removed from
@@ -325,11 +326,11 @@ public class ContentController {
     }
 
     /**
-     * This method allows it to add a subscription for tracking changes to a specific node.
+     * This resource allows it to add a subscription for tracking changes to a specific node.
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST /{nodeId}/subscribe
+     *     <b>Path:</b> POST /api/content/{nodeId}/subscribe
      * </pre>
      *
      * @param nodeId the node id of the node that shall be tracked
@@ -365,7 +366,7 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> GET /{nodeId}/meta
+     *     <b>Path:</b> GET /api/content/{nodeId}/meta
      * </pre>
      *
      * @param nodeId the node id the meta data shall be fetched for
@@ -389,7 +390,7 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> GET /{nodeId}/comments
+     *     <b>Path:</b> GET /api/content/{nodeId}/comments
      * </pre>
      *
      * @param nodeId the node id of the node the comments shall be fetched for
