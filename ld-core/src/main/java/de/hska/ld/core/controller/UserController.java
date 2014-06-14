@@ -53,11 +53,17 @@ public class UserController {
     private UserService userService;
 
     /**
+     * <pre>
      * Gets a list with all users.
-     * <p><b>REQUIRES</b> ROLE_ADMIN
      *
-     * @return {@code 200 OK} and a list with all users or {@code 404 Not Found} or {@code 403 Forbidden}
-     * if authorization failed.
+     * <b>Required roles:</b> ROLE_ADMIN
+     * <b>Path:</b> GET /api/users
+     * </pre>
+     *
+     * @return <b>200 OK</b> and a list with all users or <br />
+     *         <b>404 Not Found</b> if no users are in the system or <br />
+     *         <b>403 Forbidden</b> if authorization failed
+     *
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.GET)
@@ -71,24 +77,34 @@ public class UserController {
     }
 
     /**
+     * <pre>
      * Gets the current logged in user.
-     * <p><b>REQUIRES</b> ROLE_USER
      *
-     * @return {@code 200 OK} and the current user or {@code 403 Forbidden} if authorization failed.
+     * <b>Required roles:</b> ROLE_USER
+     * <b>Path:</b> GET /api/users/authorization
+     * </pre>
+     *
+     * @return  <b>200 OK</b> and the current logged in user or <br />
+     *          <b>403 Forbidden</b> if authorization failed
      */
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/current-user")
+    @RequestMapping(method = RequestMethod.GET, value = "/authorization")
     public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal User user) {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     /**
+     * <pre>
      * Gets a user by its username.
-     * <p><b>REQUIRES</b> ROLE_ADMIN or the current user
      *
-     * @param username the unique username as a path variable
-     * @return {@code 200 OK} and the current user or {@code 404 Not Found} or {@code 403 Forbidden}
-     * if authorization failed.
+     * <b>Required roles:</b> authorized user
+     * <b>Path:</b> GET /api/users/{username}
+     * </pre>
+     *
+     * @param username the unique username as path variable
+     * @return <b>200 OK</b> and the current user or <br />
+     *         <b>404 Not Found</b> if no user with the given username has been found <br />
+     *         <b>403 Forbidden</b> if authorization failed
      */
     @PreAuthorize("hasRole('" + Core.ROLE_ADMIN + "') or (isAuthenticated() and principal.username == #username)")
     @RequestMapping(method = RequestMethod.GET, value = "/{username}")
@@ -101,13 +117,21 @@ public class UserController {
     }
 
     /**
-     * Saves a user. This means a new user will be created if no ID is specified or a old user will be
-     * updated if a ID is specified.
+     * <pre>
+     * Saves a user. This means a new user will be created if no ID and password is specified or an old user will be
+     * updated if ID is specified.
+     *
+     * <b>Required roles:</b> no role required
+     * <b>Path:</b> POST /api/users
+     * </pre>
      *
      * @param userDto includes the user to be saved or updated. The transfer object also contains a password
-     *                field for registration.
-     * @return {@code 201 Created} and the user ID or {@code 200 OK} and the ID of the updated subject or
-     * {@code 400 Bad Request} if at least one property was invalid or {@code 403 Forbidden} if authorization failed.
+     *                field for registration. Example:<br />
+     *                {user: {username: 'jdoe', fullName: 'John Doe'}, password: 'PASSWORD_ONLY_REQUIRED_FOR_NEW_USER'}
+     * @return <b>201 Created</b> and the user ID or <br />
+     *         <b>200 OK</b> and the ID of the updated subject or <br />
+     *         <b>400 Bad Request</b> if at least one property was invalid or <br />
+     *         <b>403 Forbidden</b> if authorization failed.
      */
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<IdDto> saveUser(@RequestBody @Valid UserDto userDto) {
@@ -140,12 +164,19 @@ public class UserController {
     }
 
     /**
+     * <pre>
      * Adds one or more roles to an existing user.
-     * <p><b>REQUIRES</b> ROLE_ADMIN
      *
-     * @param userRoleDto includes the user to be updated. The transfer object also contains a role list. Each role
-     *                    will be added to the user.
-     * @return {@code 200 OK} or {@code 400 Bad Request} if at least one property was invalid or {@code 403 Forbidden}
+     * <b>Required roles:</b> ROLE_ADMIN
+     * <b>Path:</b> POST /api/users/{username}/roles
+     * </pre>
+     *
+     * @param userRoleDto includes the username of the user to be updated. The transfer object also contains a role list.
+     *                    Each role will be added to the user. Example <br />
+     *                    <code>{username: 'jdoe', roleList: [{id: 1, name: 'ROLE_NAME'}]}</code>
+     * @return <b>200 OK</b> or <br />
+     *         <b>400 Bad Request</b> if at least one property was invalid or <br />
+     *         <b>403 Forbidden</b>
      * if authorization failed.
      */
     @Secured(Core.ROLE_ADMIN)
@@ -161,12 +192,16 @@ public class UserController {
     }
 
     /**
+     * <pre>
      * Deletes the user.
-     * Requires ROLE_ADMIN
+     *
+     * <b>Required roles:</b> ROLE_ADMIN
+     * <b>Path:</b> DELETE /api/users/{id}
+     * </pre>
      *
      * @param id the user ID as a path variable
-     * @return {@code 200 OK} if deletion was successful, {@code 404 Not Found} or {@code 403 Forbidden}
-     * if authorization failed.
+     * @return <b>200 OK</b> if deletion was successful, <br />
+     *         <b>404 Not Found</b> or {@code 403 Forbidden} if authorization failed.
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
