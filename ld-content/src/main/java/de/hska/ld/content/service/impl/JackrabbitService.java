@@ -234,7 +234,7 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
-    public void removeTag(Session session, Node taggedNode, String tagName) throws RepositoryException {
+    public void removeTag(Session session, Node taggedNode, String tagId) throws RepositoryException {
         // Do not remove the tag from the global tag container
         if (taggedNode.getPrimaryNodeType().getName().equals(Content.LD_DOCUMENT)) {
             throw new ConstraintViolationException("Remove tag from global tag container is not allowed.");
@@ -244,11 +244,11 @@ public class JackrabbitService implements JcrService {
             throw new ItemNotFoundException("The tagged node has no tag container.");
         }
         Node tagsNode = taggedNode.getNode(Content.LD_TAGS_NODE);
-        if (tagsNode.hasNode(tagName)) {
-            tagsNode.getNode(tagName).remove();
+        if (tagsNode.hasNode(tagId)) {
+            tagsNode.getNode(tagId).remove();
             session.save();
         } else {
-            throw new ItemNotFoundException("No tag with name=" + tagName + " found in node=" + taggedNode.getName());
+            throw new ItemNotFoundException("No tag with id=" + tagId + " found in node=" + taggedNode.getName());
         }
     }
 

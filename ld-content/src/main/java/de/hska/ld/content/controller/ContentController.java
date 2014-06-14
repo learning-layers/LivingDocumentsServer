@@ -121,13 +121,11 @@ public class ContentController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // TODO define what required format means
-    // TODO roles required?
     /**
      * This resource allows uploading files.
      *
      * <pre>
-     *     <b>Required roles:</b>
+     *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> POST /api/content/document/upload
      * </pre>
      *
@@ -138,9 +136,10 @@ public class ContentController {
      *               (attaches the file to the front of a document<br>     *
      *            - "attachment" for attaching the file to the back of a document as attachment
      * @return  <b>200 OK</b> if the upload has been successfully performed<br>
-     *          <b>400 BAD REQUEST</b> if the file upload request didn't match the required format<br>
-     *          <b>500 Internal Server Error</b> if there occured any other server side issue
+     *          <b>400 BAD REQUEST</b> if empty file parameter<br>
+     *          <b>500 Internal Server Error</b> if there occurred any other server side issue
      */
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/document/upload")
     public ResponseEntity uploadFile(@RequestParam MultipartFile file, @RequestParam String documentNodeId,
                                      @RequestParam String cmd, @JcrSession Session session) {
@@ -295,8 +294,6 @@ public class ContentController {
         }
     }
 
-    // TODO remove tags based on their unique id rather than their name
-    // TODO check whether the 409 explanation here is correct
     /**
      * Removes a tag from a node.
      *
@@ -305,19 +302,19 @@ public class ContentController {
      *     <b>Path:</b> DELETE /api/content/tag/remove?tagName=<tagName>
      * </pre>
      *
-     * @param taggedNodeId the node id of the node the tag shall be removed from
-     * @param tagName the tag name of the tag that shall be removed
+     * @param taggedNodeId the node id of the node that contains the tag
+     * @param tagId the tag ID of the tag that shall be removed from the node
      * @return  <b>200 OK</b> if the tag has been removed from the node<br>
      *          <b>404 NOT FOUND</b> if there is no node with the given taggedNodeId present in the system<br>
      *          <b>409 CONFLICT</b> if there has been no tag with the given tagName present on the node
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/tag/remove")
-    public ResponseEntity removeTag(@RequestParam String taggedNodeId, @RequestParam String tagName,
+    public ResponseEntity removeTag(@RequestParam String taggedNodeId, @RequestParam String tagId,
                                     @JcrSession Session session) {
         try {
             Node node = jcrService.getNode(session, taggedNodeId);
-            jcrService.removeTag(session, node, tagName);
+            jcrService.removeTag(session, node, tagId);
         } catch (ItemNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (ConstraintViolationException e) {
@@ -363,7 +360,6 @@ public class ContentController {
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
-    // TODO explain what we do understand as meta data
     /**
      * Fetch the meta data for a specific node.
      *
