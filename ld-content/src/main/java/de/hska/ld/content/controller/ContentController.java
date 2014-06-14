@@ -299,7 +299,7 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> DELETE /api/content/tag/remove?tagName=<tagName>
+     *     <b>Path:</b> DELETE /api/content/tag/remove?tagName=&lt;tagName&gt;
      * </pre>
      *
      * @param taggedNodeId the node id of the node that contains the tag
