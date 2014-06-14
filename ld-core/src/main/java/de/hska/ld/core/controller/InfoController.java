@@ -55,8 +55,11 @@ public class InfoController {
     }
 
     /**
+     * <pre>
      * Gets information about the current application version etc.
-     * <p><b>METHOD</b> GET
+     *
+     * <b>Path:</b> GET /api/info
+     * </pre>
      *
      * @return the application information
      */

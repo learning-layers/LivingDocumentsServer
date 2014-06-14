@@ -45,13 +45,19 @@ public class RoleController {
     private RoleService roleService;
 
     /**
+     * <pre>
      * Saves a role. This means a new role will be created if no ID is specified or a old role will be
-     * updated if a ID is specified.
-     * <p><b>REQUIRES</b> ROLE_ADMIN
+     * updated if ID is specified.
      *
-     * @param role the role instance to be saved or modified as request body
-     * @return {@code 201 Created} and the lecture ID or {@code 200 OK} and the ID of the updated lecture instance
-     * or {@code 403 Forbidden} if authorization failed.
+     * <b>Required roles:</b> ROLE_ADMIN
+     * <b>Path:</b> POST /api/roles
+     * </pre>
+     *
+     * @param role the role instance to be saved or modified as request body. Example: <br>
+     *             {name: 'ROLE_SUBSCRIBER'}
+     * @return <b>201 Created</b> and the lecture ID or <br>
+     *         <b>200 OK</b> and the ID of the updated lecture instance or <br>
+     *         <b>403 Forbidden</b> if authorization failed
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST)
@@ -71,12 +77,17 @@ public class RoleController {
     }
 
     /**
+     * <pre>
      * Deletes the role.
-     * <p><b>REQUIRES</b> ROLE_ADMIN
+     *
+     * <b>Required roles:</b> ROLE_ADMIN
+     * <b>Path:</b> DELETE /api/roles/{id}
+     * </pre>
      *
      * @param id
-     * @return {@code 200 OK} if deletion was successful or {@code 404 Not Found} or {@code 403 Forbidden}
-     * if authorization failed.
+     * @return {@code 200 OK} if deletion was successful or
+     *         {@code 404 Not Found} or
+     *         {@code 403 Forbidden} if authorization failed.
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
