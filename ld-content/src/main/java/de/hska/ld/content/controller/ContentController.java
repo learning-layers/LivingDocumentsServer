@@ -22,7 +22,6 @@
 
 package de.hska.ld.content.controller;
 
-import com.wordnik.swagger.annotations.ApiOperation;
 import de.hska.ld.content.controller.resolver.JcrSession;
 import de.hska.ld.content.dto.CommentNodeDto;
 import de.hska.ld.content.dto.NodeDto;
@@ -66,9 +65,22 @@ public class ContentController {
     @Autowired
     private SubscriptionService subscriptionService;
 
+    // TODO change documentNodeId not to be needed for creating a document
+    /**
+     * This method allows it to create a document node.
+     *
+     * <pre>
+     *     <b>Roles required:</b> ROLE_USER
+     *     <b>Path:</b> POST /document/{documentNodeId}
+     * </pre>
+     *
+     * @param documentNodeId the node id that one wants to have for the new node
+     * @return  <b>200 OK</b> with the generated node contents<br>
+     *          <b>409 Conflict</b> if a node with the given id already exists<br>
+     *          <b>500 Internal Server Error</b> if there occured any other server side issue
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/document/{documentNodeId}")
-    @ApiOperation(value = "Create document node", notes = "Notes...")
     public ResponseEntity<NodeDto> createDocumentNode(@PathVariable String documentNodeId, @JcrSession Session session) {
         try {
             Node documentNode = jcrService.createDocumentNode(session, documentNodeId);
@@ -76,23 +88,56 @@ public class ContentController {
         } catch (ItemExistsException e) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         } catch (RepositoryException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Deletes a document.
+     *
+     * <pre>
+     *     <b>Roles required:</b> ROLE_USER
+     *     <b>Path:</b> DELETE /document/{documentNodeId}
+     * </pre>
+     *
+     * @param documentNodeId the node id of the node one wants to delete
+     * @return  <b>200 OK</b> if the removal of the document node has been successfully executed<br>
+     *          <b>404 NOT FOUND</b> if a document node with the given id isn't present in this application<br>
+     *          <b>500 Internal Server Error</b> if there occured any other server side issue
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/document/{documentNodeId}")
     public ResponseEntity removeDocumentNode(@PathVariable String documentNodeId, @JcrSession Session session) {
         try {
             jcrService.removeDocumentNode(session, documentNodeId);
         } catch (ConstraintViolationException e) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (RepositoryException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    // TODO define what required format means
+    // TODO roles required?
+    /**
+     * This resource allows uploading files.
+     *
+     * <pre>
+     *     <b>Roles required:</b>
+     *     <b>Path:</b> POST /document/upload
+     * </pre>
+     *
+     * @param file the Multipart file that has been uploaded
+     * @param documentNodeId the documentNodeId to which the file shall be attached
+     * @param cmd the command which decides where this file shall be attached within the document.<br>
+     *            - "main" for attaching the file as a main content of a document<br>
+     *               (attaches the file to the front of a document<br>     *
+     *            - "attachment" for attaching the file to the back of a document as attachment
+     * @return  <b>200 OK</b> if the upload has been successfully performed<br>
+     *          <b>400 BAD REQUEST</b> if the file upload request didn't match the required format<br>
+     *          <b>500 Internal Server Error</b> if there occured any other server side issue
+     */
     @RequestMapping(method = RequestMethod.POST, value = "/document/upload")
     public ResponseEntity uploadFile(@RequestParam MultipartFile file, @RequestParam String documentNodeId,
                                      @RequestParam String cmd, @JcrSession Session session) {
@@ -110,9 +155,25 @@ public class ContentController {
         }
     }
 
+    /**
+     * This resource allows downloading a file attachment.
+     *
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> GET /document/{documentNodeId}/download?attachment={attachmentNodeId}
+     * </pre>
+     *
+     * @param documentNodeId the node id of the document that contains the needed attachment node
+     * @param attachmentNodeId the node id of the attachment that is needed
+     * @param response <b>FILE DOWNLOAD</b> if the attachment could be found, and the download is starting
+     *                 <b>400 BAD REQUEST</b>
+     *                 <b>403 FORBIDDEN</b> if the access to this attachment has been denied
+     *                 <b>404</b> if no node has been found for a given document or attachment node id
+     *                 <b>500</b> if there occured any other server side issue
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/document/{documentNodeId}/download")
-    public void downloadFile(@PathVariable String documentNodeId, @RequestParam(required = false) String attachment,
+    public void downloadFile(@PathVariable String documentNodeId, @RequestParam(required = false) String attachmentNodeId,
                          @JcrSession Session session, HttpServletResponse response) {
         try {
             Node fileNode;
@@ -122,9 +183,9 @@ public class ContentController {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     return;
                 }
-                if (attachment != null) {
+                if (attachmentNodeId != null) {
                     Node attachmentsNode = documentNode.getNode(Content.LD_ATTACHMENTS_NODE);
-                    fileNode = attachmentsNode.getNode(attachment);
+                    fileNode = attachmentsNode.getNode(attachmentNodeId);
                 } else {
                     fileNode = documentNode.getNode(Content.LD_MAIN_FILE_NODE);
                 }
@@ -145,6 +206,19 @@ public class ContentController {
         }
     }
 
+    /**
+     * Adds a comment node to either a parent document or a parent comment.
+     *
+     * <pre>
+     *     <b>Roles required:</b> ROLE_USER
+     *     <b>Path</b> POST /{nodeId}/comment
+     * </pre>
+     *
+     * @param nodeId the node id of the parent to which the new comment should be added
+     * @param textDto the text content of the comment that shall be added
+     * @return  <b>200 OK</b> and the node data if everything went fine<br>
+     *          <b>404 NOT FOUND</b> if the parent node could not be found in the system
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/comment")
     public ResponseEntity<NodeDto> addCommentNode(@PathVariable String nodeId, @RequestBody TextDto textDto,
@@ -158,6 +232,18 @@ public class ContentController {
         }
     }
 
+    /**
+     * Updates an existing comment.
+     *
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> PUT /comment
+     * </pre>
+     *
+     * @param commentNodeDto the node content that contains the changes to this comment
+     * @return  <b>200 OK</b> if the changes have been successfully applied<br>
+     *          <b>404 NOT FOUND</b> if a comment with the given comment node id inside the node dto could not be found
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/comment")
     public ResponseEntity<NodeDto> updateCommentNode(@RequestBody NodeDto commentNodeDto, @JcrSession Session session) {
@@ -173,6 +259,20 @@ public class ContentController {
         }
     }
 
+    /**
+     * Adds a tag to any node.
+     *
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST /{nodeId}/tag
+     * </pre>
+     *
+     * @param nodeId the node id of a node that shall be tagged
+     * @param tagDto that tag contents
+     * @return  <b>200 OK</b> if the node has been successfully tagged with the given tag<br>
+     *          <b>404 NOT FOUND</b> if there is no node with the given nodeId within the system<br>
+     *          <b>409 CONFLICT</b> if the given tag has already been added to this node
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/tag")
     public ResponseEntity<TextDto> addTagNode(@PathVariable String nodeId, @RequestBody TagDto tagDto,
@@ -191,6 +291,22 @@ public class ContentController {
         }
     }
 
+    // TODO remove tags based on their unique id rather than their name
+    // TODO check whether the 409 explanation here is correct
+    /**
+     * Removes a tag from a node.
+     *
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> DELETE /tag/remove?tagName=<tagName>
+     * </pre>
+     *
+     * @param taggedNodeId the node id of the node the tag shall be removed from
+     * @param tagName the tag name of the tag that shall be removed
+     * @return  <b>200 OK</b> if the tag has been removed from the node<br>
+     *          <b>404 NOT FOUND</b> if there is no node with the given taggedNodeId present in the system<br>
+     *          <b>409 CONFLICT</b> if there has been no tag with the given tagName present on the node
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/tag/remove")
     public ResponseEntity removeTag(@RequestParam String taggedNodeId, @RequestParam String tagName,
@@ -208,6 +324,20 @@ public class ContentController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * This method allows it to add a subscription for tracking changes to a specific node.
+     *
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST /{nodeId}/subscribe
+     * </pre>
+     *
+     * @param nodeId the node id of the node that shall be tracked
+     * @param type the subscription type (e.g. DOCUMENT, ATTACHMENT, COMMENT, DISCUSSION, USER) depending on which
+     *             part of a node the user wants to receive notifications for.
+     * @return  <b>201 CREATED</b> if a subscription has been successfully applied to the node<br>
+     *          <b>404 NOT FOUND</b> if the node could not be found within the system
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/subscribe")
     public ResponseEntity subscribe(@PathVariable String nodeId, Subscription.Type type, @JcrSession Session session,
@@ -229,6 +359,19 @@ public class ContentController {
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
+    // TODO explain what we do understand as meta data
+    /**
+     * Fetch the meta data for a specific node.
+     *
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> GET /{nodeId}/meta
+     * </pre>
+     *
+     * @param nodeId the node id the meta data shall be fetched for
+     * @return  <b>200 OK</b> and the meta data<br>
+     *          <b>404 NOT FOUND</b> if a node with the given nodeId isn't present within the system
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/meta")
     public ResponseEntity<NodeDto> getNodeMetaData(@PathVariable String nodeId, @JcrSession Session session) {
@@ -241,6 +384,18 @@ public class ContentController {
         }
     }
 
+    /**
+     * Fetches the commment Nodes for a specifc node.
+     *
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> GET /{nodeId}/comments
+     * </pre>
+     *
+     * @param nodeId the node id of the node the comments shall be fetched for
+     * @return <b>200 OK</b> and a list of comments
+     *         <b>404 NOT FOUND</b> if there is no node present within the system that has the specified nodeId
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/comments")
     public ResponseEntity<List<CommentNodeDto>> getCommentNodes(@PathVariable String nodeId,
