@@ -22,7 +22,6 @@
 
 package de.hska.ld.core.controller;
 
-import de.hska.ld.core.dto.IdDto;
 import de.hska.ld.core.dto.UserDto;
 import de.hska.ld.core.dto.UserRoleDto;
 import de.hska.ld.core.persistence.domain.Role;
@@ -78,18 +77,18 @@ public class UserController {
 
     /**
      * <pre>
-     * Gets the current logged in user.
+     * Authenticates the current user.
      *
      * <b>Required roles:</b> ROLE_USER
      * <b>Path:</b> GET /api/users/authorization
      * </pre>
      *
      * @return  <b>200 OK</b> and the current logged in user or <br>
-     *          <b>403 Forbidden</b> if authorization failed
+     *          <b>403 Forbidden</b> if authentication failed
      */
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/authorization")
-    public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal User user) {
+    @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
+    public ResponseEntity<User> authenticate(@AuthenticationPrincipal User user) {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
@@ -102,8 +101,8 @@ public class UserController {
      * </pre>
      *
      * @param username the unique username as path variable
-     * @return <b>200 OK</b> and the current user or <br>
-     *         <b>404 Not Found</b> if no user with the given username has been found <br>
+     * @return <b>200 OK</b> and the user or <br>
+     *         <b>404 Not Found</b> if no user with the given username has been found or <br>
      *         <b>403 Forbidden</b> if authorization failed
      */
     @PreAuthorize("hasRole('" + Core.ROLE_ADMIN + "') or (isAuthenticated() and principal.username == #username)")
@@ -129,12 +128,12 @@ public class UserController {
      *                field for registration. Example:<br>
      *                {user: {username: 'jdoe', fullName: 'John Doe'}, password: 'PASSWORD_ONLY_REQUIRED_FOR_NEW_USER'}
      * @return <b>201 Created</b> and the user ID or <br>
-     *         <b>200 OK</b> and the ID of the updated subject or <br>
+     *         <b>200 OK</b> and the user or <br>
      *         <b>400 Bad Request</b> if at least one property was invalid or <br>
-     *         <b>403 Forbidden</b> if authorization failed.
+     *         <b>403 Forbidden</b> if authorization failed
      */
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<IdDto> saveUser(@RequestBody @Valid UserDto userDto) {
+    public ResponseEntity<User> saveUser(@RequestBody @Valid UserDto userDto) {
         User user = userDto.getUser();
         String password = userDto.getPassword();
         boolean isNew = userService.findByUsername(user.getUsername()) == null;
@@ -155,11 +154,10 @@ public class UserController {
             }
         }
         user = userService.save(user, password);
-        IdDto idDto = new IdDto(user.getId());
         if (isNew) {
-            return new ResponseEntity<>(idDto, HttpStatus.CREATED);
+            return new ResponseEntity<>(user, HttpStatus.CREATED);
         } else {
-            return new ResponseEntity<>(idDto, HttpStatus.OK);
+            return new ResponseEntity<>(user, HttpStatus.OK);
         }
     }
 
@@ -175,17 +173,16 @@ public class UserController {
      *                    Each role will be added to the user. Example <br>
      *                    <code>{username: 'jdoe', roleList: [{id: 1, name: 'ROLE_NAME'}]}</code>
      * @return <b>200 OK</b> or <br>
-     *         <b>400 Bad Request</b> if at least one property was invalid or <br>
-     *         <b>403 Forbidden</b>
-     * if authorization failed.
+     *         <b>404 Not Found</b> if no user with the given username has been found or <br>
+     *         <b>403 Forbidden</b> if authorization failed
      */
     @Secured(Core.ROLE_ADMIN)
-    @RequestMapping(method = RequestMethod.POST, value = "/{username}/roles")
+    @RequestMapping(method = RequestMethod.POST, value = "/add-roles")
     public ResponseEntity addRolesToUser(@RequestBody @Valid UserRoleDto userRoleDto) {
         User user = userService.findByUsername(userRoleDto.getUsername());
         List<Role> roleList = userRoleDto.getRoleList();
         if (user == null) {
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
         userService.addRoles(user, (Role[]) roleList.toArray());
         return new ResponseEntity(HttpStatus.OK);
@@ -193,7 +190,7 @@ public class UserController {
 
     /**
      * <pre>
-     * Deletes the user.
+     * Deletes a user.
      *
      * <b>Required roles:</b> ROLE_ADMIN
      * <b>Path:</b> DELETE /api/users/{id}
@@ -201,7 +198,8 @@ public class UserController {
      *
      * @param id the user ID as a path variable
      * @return <b>200 OK</b> if deletion was successful, <br>
-     *         <b>404 Not Found</b> or {@code 403 Forbidden} if authorization failed.
+     *         <b>404 Not Found</b> if no user with the given username has been found or <br>
+     *         <b>403 Forbidden</b> if authorization failed
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")

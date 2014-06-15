@@ -55,9 +55,9 @@ public class RoleController {
      *
      * @param role the role instance to be saved or modified as request body. Example: <br>
      *             {name: 'ROLE_SUBSCRIBER'}
-     * @return <b>201 Created</b> and the lecture ID or <br>
-     *         <b>200 OK</b> and the ID of the updated lecture instance or <br>
-     *         <b>403 Forbidden</b> if authorization failed
+     * @return <b>201 Created</b> and the role ID or <br>
+     * <b>200 OK</b> and the ID of the updated role instance or <br>
+     * <b>403 Forbidden</b> if authorization failed
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST)
@@ -86,8 +86,8 @@ public class RoleController {
      *
      * @param id
      * @return {@code 200 OK} if deletion was successful or
-     *         {@code 404 Not Found} or
-     *         {@code 403 Forbidden} if authorization failed.
+     * {@code 404 Not Found} if no role exists with the given ID
+     * {@code 403 Forbidden} if authorization failed.
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")

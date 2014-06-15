@@ -74,13 +74,13 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatDeleteSubjectUsesHttpOkOnSuccess() {
+    public void thatDeleteRoleUsesHttpOkOnSuccess() {
         Role role = roleService.save(newRole());
         exchange(ROLE_RESOURCES + "/" + role.getId(), HttpMethod.DELETE, createAdminHeader(), IdDto.class);
     }
 
     @Test
-    public void thatDeleteSubjectUsesHttpForbiddenOnAuthorizationFailure() {
+    public void thatDeleteRoleUsesHttpForbiddenOnAuthorizationFailure() {
         Role role = roleService.save(newRole());
         try {
             exchange(ROLE_RESOURCES + "/" + role.getId(), HttpMethod.DELETE, createUserHeader(), IdDto.class);
@@ -92,7 +92,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatDeleteSubjectUsesHttpNotFoundOnEntityLookupFailure() {
+    public void thatDeleteRoleUsesHttpNotFoundOnEntityLookupFailure() {
         try {
             exchange(ROLE_RESOURCES + "/" + -1, HttpMethod.DELETE, createAdminHeader(), IdDto.class);
         } catch (HttpStatusCodeException e) {
