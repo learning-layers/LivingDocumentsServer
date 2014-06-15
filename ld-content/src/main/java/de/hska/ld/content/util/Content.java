@@ -22,6 +22,8 @@
 
 package de.hska.ld.content.util;
 
+import de.hska.ld.core.util.Core;
+
 public class Content {
 
     public static final String LD_DOCUMENT = "ld:document";
@@ -38,4 +40,6 @@ public class Content {
     public static final String LD_NAME_PROPERTY = "name";
 
     public static final String JCR_LASTMODIFIED_BY = "jcr:lastModifiedBy";
+
+    public static final String CONTENT_RESOURCE = Core.API_RESOURCE + "/content";
 }

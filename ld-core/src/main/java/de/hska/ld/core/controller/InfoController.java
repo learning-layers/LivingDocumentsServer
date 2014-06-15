@@ -30,15 +30,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import de.hska.ld.core.util.Core;
 
 import java.io.IOException;
 import java.util.Properties;
 
 /**
- * <p><b>RESOURCE</b> {@code /api/info}
+ * <p><b>Resource:</b> {@value Core#INFO_RESOURCE}
  */
 @RestController
-@RequestMapping("/api/info")
+@RequestMapping(Core.INFO_RESOURCE)
 public class InfoController {
 
     private Info info;
@@ -58,7 +59,7 @@ public class InfoController {
      * <pre>
      * Gets information about the current application version etc.
      *
-     * <b>Path:</b> GET /api/info
+     * <b>Path:</b> GET {@value Core#INFO_RESOURCE}
      * </pre>
      *
      * @return the application information

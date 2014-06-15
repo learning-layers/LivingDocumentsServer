@@ -53,10 +53,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * <p><b>RESOURCE</b> {@code /api/content}
+ * <p><b>Resource:</b> {@value Content#CONTENT_RESOURCE}
  */
 @RestController
-@RequestMapping("/api/content")
+@RequestMapping(Content.CONTENT_RESOURCE)
 public class ContentController {
 
     @Autowired
@@ -70,22 +70,22 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST /api/content/document/{documentNodeId}
+     *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}
      * </pre>
      * @param documentDto Contains title and optional description of the new document. Example:
      *                    {title: 'New Document', description: '&lt;optional&gt;'}
      * @return  <b>200 OK</b> with the generated node contents<br>
-     *          <b>400 Bad Request</b> if no title exists
+     *          <b>400 Bad Request</b> if no title exists<br>
      *          <b>409 Conflict</b> if a node with the given id already exists<br>
      *          <b>500 Internal Server Error</b> if there occurred any other server side issue
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/document")
     public ResponseEntity<NodeDto> createDocumentNode(@JcrSession Session session, @RequestBody NodeDto documentDto) {
+        if (documentDto.getTitle() == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         try {
-            if (documentDto.getTitle() == null) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
             Node documentNode = jcrService.createDocumentNode(session, documentDto.getTitle(), documentDto.getDescription());
             return new ResponseEntity<>(new NodeDto(documentNode), HttpStatus.OK);
         } catch (ItemExistsException e) {
@@ -100,7 +100,7 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> DELETE /api/content/document/{documentNodeId}
+     *     <b>Path:</b> DELETE {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}
      * </pre>
      *
      * @param documentNodeId the node id of the node one wants to delete
@@ -126,15 +126,17 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST /api/content/document/upload
+     *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/document/upload
      * </pre>
      *
      * @param file the Multipart file that has been uploaded
      * @param documentNodeId the documentNodeId to which the file shall be attached
      * @param cmd the command which decides where this file shall be attached within the document.<br>
-     *            - "main" for attaching the file as a main content of a document<br>
-     *               (attaches the file to the front of a document<br>     *
-     *            - "attachment" for attaching the file to the back of a document as attachment
+     *            <ul>
+     *              <li><b>main</b> for attaching the file as a main content of a document<br>
+     *               (attaches the file to the front of a document)<br></li>
+     *              <li><b>attachment</b> for attaching the file to the back of a document as attachment</li>
+     *            </ul>
      * @return  <b>200 OK</b> if the upload has been successfully performed<br>
      *          <b>400 BAD REQUEST</b> if empty file parameter<br>
      *          <b>500 Internal Server Error</b> if there occurred any other server side issue
@@ -162,17 +164,17 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path - option 1 (downloading an attachment):</b> GET /api/content/document/{documentNodeId}/download?attachment={attachmentNodeId}
-     *     <b>Path - option 2 (download a main content):</b> GET /api/content/document/{documentNodeId}/download
+     *     <b>Path - option 1 (downloading an attachment):</b> GET {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}/download?attachment={attachmentNodeId}
+     *     <b>Path - option 2 (download a main content):</b> GET {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}/download
      * </pre>
      *
      * @param documentNodeId the node id of the document that contains the needed attachment node
      * @param attachmentNodeId the node id of the attachment that is needed
-     * @param response <b>FILE DOWNLOAD</b> if the attachment could be found, and the download is starting
-     *                 <b>400 BAD REQUEST</b>
-     *                 <b>403 FORBIDDEN</b> if the access to this attachment has been denied
-     *                 <b>404</b> if no node has been found for a given document or attachment node id
-     *                 <b>500</b> if there occured any other server side issue
+     * @param response <b>FILE DOWNLOAD INITIATED</b> if the attachment could be found, and the download is starting<br>
+     *                 <b>400 BAD REQUEST</b><br>
+     *                 <b>403 FORBIDDEN</b> if the access to this attachment has been denied<br>
+     *                 <b>404 NOT FOUND</b> if no node has been found for a given document or attachment node id<br>
+     *                 <b>500 Internal Server Error</b> if there occurred any other server side issue
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/document/{documentNodeId}/download")
@@ -214,7 +216,7 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path</b> POST /api/content/{nodeId}/comment
+     *     <b>Path</b> POST {@value Content#CONTENT_RESOURCE}/{nodeId}/comment
      * </pre>
      *
      * @param nodeId the node id of the parent to which the new comment should be added
@@ -240,10 +242,11 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> PUT /api/content/comment
+     *     <b>Path:</b> PUT {@value Content#CONTENT_RESOURCE}/comment
      * </pre>
      *
-     * @param commentNodeDto the node content that contains the changes to this comment
+     * @param commentNodeDto the node content that contains the changes to this comment. Example:<br>
+     *                       <tt>{id: 'nodeId', description: 'The comment description'}</tt>
      * @return  <b>200 OK</b> if the changes have been successfully applied<br>
      *          <b>404 NOT FOUND</b> if a comment with the given comment node id inside the node dto could not be found
      */
@@ -267,11 +270,12 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST /api/content/{nodeId}/tag
+     *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/{nodeId}/tag
      * </pre>
      *
      * @param nodeId the node id of a node that shall be tagged
-     * @param tagDto that tag contents
+     * @param tagDto the tag contents. Example:<br>
+     *          {tagName: '', description: ''}
      * @return  <b>200 OK</b> if the node has been successfully tagged with the given tag<br>
      *          <b>404 NOT FOUND</b> if there is no node with the given nodeId within the system<br>
      *          <b>409 CONFLICT</b> if the given tag has already been added to this node
@@ -285,7 +289,7 @@ public class ContentController {
             Node tagNode = jcrService.addTag(session, nodeToBeTagged, tagDto.getTagName(), tagDto.getDescription());
 
             TextDto nodeDto = new TextDto();
-            nodeDto.setText(tagNode.getIdentifier());
+            nodeDto.setText(tagNode.getName());
             return new ResponseEntity<>(nodeDto, HttpStatus.OK);
         } catch (ItemExistsException e) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
@@ -299,7 +303,7 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> DELETE /api/content/tag/remove?tagName=&lt;tagName&gt;
+     *     <b>Path:</b> DELETE {@value Content#CONTENT_RESOURCE}/tag/remove?tagName=&lt;tagName&gt;
      * </pre>
      *
      * @param taggedNodeId the node id of the node that contains the tag
@@ -330,7 +334,7 @@ public class ContentController {
      *
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST /api/content/{nodeId}/subscribe
+     *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/{nodeId}/subscribe
      * </pre>
      *
      * @param nodeId the node id of the node that shall be tracked

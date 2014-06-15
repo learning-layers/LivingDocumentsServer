@@ -38,7 +38,7 @@ import javax.validation.Valid;
  * <p><b>RESOURCE</b> {@code /api/roles}
  */
 @RestController
-@RequestMapping("/api/roles")
+@RequestMapping(Core.ROLE_RESOURCE)
 public class RoleController {
 
     @Autowired
@@ -46,18 +46,17 @@ public class RoleController {
 
     /**
      * <pre>
-     * Saves a role. This means a new role will be created if no ID is specified or a old role will be
-     * updated if ID is specified.
+     * Saves a role. If no ID is provided a new role will be created otherwise an existing role will be updated.
      *
      * <b>Required roles:</b> ROLE_ADMIN
-     * <b>Path:</b> POST /api/roles
+     * <b>Path:</b> POST {@value Core#ROLE_RESOURCE}
      * </pre>
      *
      * @param role the role instance to be saved or modified as request body. Example: <br>
      *             {name: 'ROLE_SUBSCRIBER'}
      * @return <b>201 Created</b> and the role ID or <br>
-     * <b>200 OK</b> and the ID of the updated role instance or <br>
-     * <b>403 Forbidden</b> if authorization failed
+     *         <b>200 OK</b> and the ID of the updated role instance or <br>
+     *         <b>403 Forbidden</b> if authorization failed
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST)
@@ -81,13 +80,13 @@ public class RoleController {
      * Deletes the role.
      *
      * <b>Required roles:</b> ROLE_ADMIN
-     * <b>Path:</b> DELETE /api/roles/{id}
+     * <b>Path:</b> DELETE {@value Core#ROLE_RESOURCE}/{id}
      * </pre>
      *
-     * @param id
-     * @return {@code 200 OK} if deletion was successful or
-     * {@code 404 Not Found} if no role exists with the given ID
-     * {@code 403 Forbidden} if authorization failed.
+     * @param id the role ID as a path variable
+     * @return <b>200 OK</b> if deletion was successful or <br>
+     *         <b>404 Not Found</b> if no role exists with the given ID or <br>
+     *         <b>403 Forbidden</b> if authorization failed
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")

@@ -31,4 +31,9 @@ public class Core {
 
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     public static final String ROLE_USER = "ROLE_USER";
+
+    public static final String API_RESOURCE = "/api";
+    public static final String USER_RESOURCE = API_RESOURCE + "/users";
+    public static final String ROLE_RESOURCE = API_RESOURCE + "/roles";
+    public static final String INFO_RESOURCE = API_RESOURCE + "/info";
 }
