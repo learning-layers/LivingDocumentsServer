@@ -31,7 +31,6 @@ import org.apache.commons.collections.IteratorUtils;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.core.security.principal.EveryonePrincipal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,16 +43,11 @@ import javax.jcr.nodetype.NodeType;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
-import javax.jcr.security.AccessControlEntry;
-import javax.jcr.security.AccessControlList;
-import javax.jcr.security.AccessControlManager;
-import javax.jcr.security.Privilege;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.Calendar;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 public class JackrabbitService implements JcrService {
@@ -134,7 +128,7 @@ public class JackrabbitService implements JcrService {
 
     @Override
     public void addAllPrivileges(Session session, Node node) throws RepositoryException {
-        String path = node.getPath();
+        /*String path = node.getPath();
         AccessControlManager aMgr = session.getAccessControlManager();
 
         // create a privilege set with jcr:all
@@ -155,7 +149,7 @@ public class JackrabbitService implements JcrService {
         acl.addAccessControlEntry(EveryonePrincipal.getInstance(), privileges);
 
         // the policy must be re-set
-        aMgr.setPolicy(path, acl);
+        aMgr.setPolicy(path, acl);*/
     }
 
     @Override

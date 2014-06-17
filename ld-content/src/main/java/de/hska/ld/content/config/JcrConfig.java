@@ -57,11 +57,11 @@ public class JcrConfig {
 
     @Bean
     public Repository repository() throws IOException {
-        String homePathCfg = env.getProperty("module.core.repository.home");
-        String homePath = resourceLoader.getResource("file:" + homePathCfg).getURL().getPath();
-        //String config = resourceLoader.getResource("classpath:/repository.xml").getURI().getPath();
-        System.setProperty("derby.stream.error.file", homePath + File.separator + "derby.log");
-        return new TransientRepository(resourceLoader.getResource("file:" + homePath).getFile());
+        String repositoryHome = env.getProperty("module.core.repository.home");
+        String config = resourceLoader.getResource("classpath:/repository.xml").getURI().getPath();
+        //return new TransientRepository(config, repositoryHome);
+        System.setProperty("derby.stream.error.file", repositoryHome + File.separator + "derby.log");
+        return new TransientRepository(resourceLoader.getResource("file:" + repositoryHome).getFile());
     }
 
     @Autowired
