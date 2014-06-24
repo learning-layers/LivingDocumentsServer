@@ -34,6 +34,7 @@ import de.hska.ld.core.dto.TextDto;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.commons.JcrUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,8 @@ import javax.jcr.nodetype.ConstraintViolationException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -64,6 +66,19 @@ public class ContentController {
 
     @Autowired
     private SubscriptionService subscriptionService;
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/search")
+    public ResponseEntity<List<NodeDto>> searchForDocumentNode(@JcrSession Session session,
+                                                         @RequestParam(value = "search-query") String searchQuery) {
+        try {
+            List<Node> nodeList = jcrService.searchDocumentNode(session, searchQuery);
+            List<NodeDto> nodeDtoList = nodeList.stream().map(NodeDto::new).collect(Collectors.toList());
+            return new ResponseEntity<>(nodeDtoList, HttpStatus.OK);
+        } catch (RepositoryException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     /**
      * This resource allows it to create a document node.

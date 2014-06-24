@@ -51,10 +51,7 @@ import javax.jcr.security.Privilege;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
-import java.util.Calendar;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 
 public class JackrabbitService implements JcrService {
     private static final Logger LOGGER = LoggerFactory.getLogger(JackrabbitService.class);
@@ -317,6 +314,26 @@ public class JackrabbitService implements JcrService {
         session.save();
 
         return fileNode;
+    }
+
+    @Override
+    public List<Node> searchDocumentNode(Session session, String title) throws RepositoryException {
+        // search for the tag node
+        QueryManager queryManager = session.getWorkspace().getQueryManager();
+        String expression = "//" +
+                Content.LD_DOCUMENTS + "/" +
+                "element(*," + Content.LD_DOCUMENT + ")" +
+                "[@" + Content.LD_TITLE_PROPERTY + "='" + title + "']";
+        Query query = queryManager.createQuery(expression, "xpath");
+        QueryResult result = query.execute();
+        NodeIterator nodeIt = result.getNodes();
+        Node documentsNodes = null;
+        List<Node> nodeList = new ArrayList<>();
+        while (nodeIt.hasNext()) {
+            documentsNodes = nodeIt.nextNode();
+            nodeList.add(documentsNodes);
+        }
+        return nodeList;
     }
 
     private Node searchDocumentsTagNode(Session session, String tagName) throws RepositoryException {
