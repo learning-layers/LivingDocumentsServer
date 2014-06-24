@@ -70,9 +70,9 @@ public class ContentController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/search")
     public ResponseEntity<List<NodeDto>> searchForDocumentNode(@JcrSession Session session,
-                                                         @RequestParam(value = "search-query") String searchQuery) {
+                                                         @RequestParam String query) {
         try {
-            List<Node> nodeList = jcrService.searchDocumentNode(session, searchQuery);
+            List<Node> nodeList = jcrService.searchDocumentNode(session, query);
             List<NodeDto> nodeDtoList = nodeList.stream().map(NodeDto::new).collect(Collectors.toList());
             return new ResponseEntity<>(nodeDtoList, HttpStatus.OK);
         } catch (RepositoryException e) {

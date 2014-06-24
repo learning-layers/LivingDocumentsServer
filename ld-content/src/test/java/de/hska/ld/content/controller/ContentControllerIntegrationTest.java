@@ -116,6 +116,17 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void thatSearchNodeUsesHttpOkAndRendersCorrectly() throws RepositoryException {
+        String term = "Testdocument";
+
+        Node node = jcrService.createDocumentNode(session, term, term);
+        ResponseEntity<List> response = exchange(CONTENT_RESOURCE + "/search?query=" + term,
+                HttpMethod.GET, createUserHeader(), List.class);
+
+        Assert.assertTrue(!response.getBody().isEmpty());
+    }
+
+    @Test
     public void thatAddTagNodeUsesHttpConflictOnNodeAlreadyExists() throws RepositoryException {
         String tagName = "TagName";
         String description = "The description";
