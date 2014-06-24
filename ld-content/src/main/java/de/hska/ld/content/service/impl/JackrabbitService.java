@@ -131,7 +131,7 @@ public class JackrabbitService implements JcrService {
 
     @Override
     public void addAllPrivileges(Session session, Node node) throws RepositoryException {
-        String path = node.getPath();
+        /*String path = node.getPath();
         AccessControlManager aMgr = session.getAccessControlManager();
 
         // create a privilege set with jcr:all
@@ -314,26 +314,6 @@ public class JackrabbitService implements JcrService {
         session.save();
 
         return fileNode;
-    }
-
-    @Override
-    public List<Node> searchDocumentNode(Session session, String title) throws RepositoryException {
-        // search for the tag node
-        QueryManager queryManager = session.getWorkspace().getQueryManager();
-        String expression = "//" +
-                Content.LD_DOCUMENTS + "/" +
-                "element(*," + Content.LD_DOCUMENT + ")" +
-                "[@" + Content.LD_TITLE_PROPERTY + "='" + title + "']";
-        Query query = queryManager.createQuery(expression, "xpath");
-        QueryResult result = query.execute();
-        NodeIterator nodeIt = result.getNodes();
-        Node documentsNodes = null;
-        List<Node> nodeList = new ArrayList<>();
-        while (nodeIt.hasNext()) {
-            documentsNodes = nodeIt.nextNode();
-            nodeList.add(documentsNodes);
-        }
-        return nodeList;
     }
 
     private Node searchDocumentsTagNode(Session session, String tagName) throws RepositoryException {
