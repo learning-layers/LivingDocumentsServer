@@ -317,6 +317,20 @@ public class JackrabbitService implements JcrService {
     }
 
     @Override
+    public List<Node> getDocumentNodeList(Session session) throws RepositoryException {
+        Node documentsNode = getDocumentsNode(session);
+        NodeIterator nodeIt = documentsNode.getNodes();
+        List<Node> nodeList = new ArrayList<>();
+        while (nodeIt.hasNext()) {
+            Node node = nodeIt.nextNode();
+            if (node.getPrimaryNodeType().getName().equals(Content.LD_DOCUMENT)) {
+                nodeList.add(node);
+            }
+        }
+        return nodeList;
+    }
+
+    @Override
     public List<Node> searchDocumentNode(Session session, String title) throws RepositoryException {
         // search for the tag node
         QueryManager queryManager = session.getWorkspace().getQueryManager();
@@ -327,10 +341,9 @@ public class JackrabbitService implements JcrService {
         Query query = queryManager.createQuery(expression, "xpath");
         QueryResult result = query.execute();
         NodeIterator nodeIt = result.getNodes();
-        Node documentsNodes = null;
         List<Node> nodeList = new ArrayList<>();
         while (nodeIt.hasNext()) {
-            documentsNodes = nodeIt.nextNode();
+            Node documentsNodes = nodeIt.nextNode();
             nodeList.add(documentsNodes);
         }
         return nodeList;

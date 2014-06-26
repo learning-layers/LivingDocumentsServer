@@ -124,6 +124,20 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
                 HttpMethod.GET, createUserHeader(), List.class);
 
         Assert.assertTrue(!response.getBody().isEmpty());
+        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void thatGetDocumentNodeListUsesHttpOk() throws RepositoryException {
+        jcrService.createDocumentNode(session, TITLE + 1, DESCRIPTION);
+        jcrService.createDocumentNode(session, TITLE + 2, DESCRIPTION);
+
+        ResponseEntity<List> response = exchange(CONTENT_RESOURCE + "/list", HttpMethod.GET,
+                createUserHeader(), List.class);
+
+        Assert.assertTrue(!response.getBody().isEmpty());
+        Assert.assertTrue(response.getBody().size() >= 2);
+        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test

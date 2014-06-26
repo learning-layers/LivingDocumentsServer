@@ -66,5 +66,7 @@ public interface JcrService {
     Node addFileNode(Session session, Node documentNode, InputStream inputStream, String fileName, String cmd)
             throws RepositoryException;
 
+    List<Node> getDocumentNodeList(Session session) throws RepositoryException;
+
     List<Node> searchDocumentNode(Session session, String title) throws RepositoryException;
 }
