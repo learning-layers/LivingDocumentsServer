@@ -20,24 +20,14 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.service;
+package de.hska.ld.core.exception;
 
-import de.hska.ld.core.persistence.domain.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.http.HttpStatus;
 
-import java.util.List;
+public class AlreadyExistsException extends ApplicationException {
 
-public interface UserService extends UserDetailsService, Service<User> {
-
-    User findByUsername(String username);
-
-    User save(User user, String newPassword);
-
-    User addRoles(String username, String... roleNames);
-
-    String encodePassword(String password);
-
-    Boolean hasRole(User user, String roleName);
-
-    List<User> findByRole(String roleName);
+    public AlreadyExistsException(String field) {
+        super(field, "ALREADY_EXISTS");
+        httpStatus = HttpStatus.CONFLICT;
+    }
 }

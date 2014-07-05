@@ -20,24 +20,30 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.service;
+package de.hska.ld.core.exception;
 
-import de.hska.ld.core.persistence.domain.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.http.HttpStatus;
 
-import java.util.List;
+public class ApplicationException extends RuntimeException {
 
-public interface UserService extends UserDetailsService, Service<User> {
+    protected ApplicationError applicationError;
+    protected HttpStatus httpStatus;
 
-    User findByUsername(String username);
+    public ApplicationException(String key) {
+        super();
+        this.applicationError = new ApplicationError(key);
+    }
 
-    User save(User user, String newPassword);
+    public ApplicationException(String field, String key) {
+        super();
+        this.applicationError = new ApplicationError(field, key);
+    }
 
-    User addRoles(String username, String... roleNames);
+    public ApplicationError getApplicationError() {
+        return applicationError;
+    }
 
-    String encodePassword(String password);
-
-    Boolean hasRole(User user, String roleName);
-
-    List<User> findByRole(String roleName);
+    public HttpStatus getHttpStatus() {
+        return httpStatus;
+    }
 }

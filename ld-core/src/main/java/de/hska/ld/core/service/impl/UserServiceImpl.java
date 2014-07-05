@@ -22,6 +22,7 @@
 
 package de.hska.ld.core.service.impl;
 
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.persistence.repository.UserRepository;
@@ -38,8 +39,6 @@ import java.util.Collection;
 import java.util.List;
 
 public class UserServiceImpl extends AbstractService<User> implements UserService {
-
-    private Role userRole;
 
     @Autowired
     private UserRepository repository;
@@ -85,13 +84,15 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     }
 
     @Override
-    public User addRoles(User user, Role... roles) {
-        List<Role> filteredRoleList = filterRolesFromClient(roles);
-        for (Role role : filteredRoleList) {
-            if (hasRole(user, role.getName())) {
-                user.getRoleList().add(role);
-            }
+    public User addRoles(String username, String... roleNames) {
+        User user = findByUsername(username);
+        if (user == null) {
+            throw new ValidationException("username");
         }
+        List<Role> filteredRoleList = filterRolesFromClient(roleNames);
+        filteredRoleList.stream().filter(role -> !hasRole(user, role.getName())).forEach(role -> {
+            user.getRoleList().add(role);
+        });
         return save(user);
     }
 
@@ -113,10 +114,10 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         return false;
     }
 
-    private List<Role> filterRolesFromClient(Role... roles) {
+    private List<Role> filterRolesFromClient(String... roleNames) {
         List<Role> dbRoleList = new ArrayList<>();
-        for (Role role : roles) {
-            Role dbRole = roleService.findByName(role.getName());
+        for (String roleName : roleNames) {
+            Role dbRole = roleService.findByName(roleName);
             if (dbRole != null) {
                 dbRoleList.add(dbRole);
             }

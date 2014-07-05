@@ -79,8 +79,7 @@ public class ContentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/search")
-    public ResponseEntity<List<NodeDto>> searchForDocumentNode(@JcrSession Session session,
-                                                         @RequestParam String query) {
+    public ResponseEntity<List<NodeDto>> searchForDocumentNode(@JcrSession Session session, @RequestParam String query) {
         try {
             List<Node> nodeList = jcrService.searchDocumentNode(session, query);
             if (nodeList == null || nodeList.isEmpty()) {
@@ -96,17 +95,18 @@ public class ContentController {
 
     /**
      * This resource allows it to create a document node.
-     *
+     * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}
      * </pre>
+     *
      * @param documentDto Contains title and optional description of the new document. Example:
      *                    {title: 'New Document', description: '&lt;optional&gt;'}
-     * @return  <b>200 OK</b> with the generated node contents<br>
-     *          <b>400 Bad Request</b> if no title exists<br>
-     *          <b>409 Conflict</b> if a node with the given id already exists<br>
-     *          <b>500 Internal Server Error</b> if there occurred any other server side issue
+     * @return <b>200 OK</b> with the generated node contents<br>
+     * <b>400 Bad Request</b> if no title exists<br>
+     * <b>409 Conflict</b> if a node with the given id already exists<br>
+     * <b>500 Internal Server Error</b> if there occurred any other server side issue
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/document")
@@ -126,16 +126,16 @@ public class ContentController {
 
     /**
      * Deletes a document.
-     *
+     * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> DELETE {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}
      * </pre>
      *
      * @param documentNodeId the node id of the node one wants to delete
-     * @return  <b>200 OK</b> if the removal of the document node has been successfully executed<br>
-     *          <b>404 NOT FOUND</b> if a document node with the given id isn't present in this application<br>
-     *          <b>500 Internal Server Error</b> if there occured any other server side issue
+     * @return <b>200 OK</b> if the removal of the document node has been successfully executed<br>
+     * <b>404 NOT FOUND</b> if a document node with the given id isn't present in this application<br>
+     * <b>500 Internal Server Error</b> if there occured any other server side issue
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/document/{documentNodeId}")
@@ -152,23 +152,23 @@ public class ContentController {
 
     /**
      * This resource allows uploading files.
-     *
+     * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/document/upload
      * </pre>
      *
-     * @param file the Multipart file that has been uploaded
+     * @param file           the Multipart file that has been uploaded
      * @param documentNodeId the documentNodeId to which the file shall be attached
-     * @param cmd the command which decides where this file shall be attached within the document.<br>
-     *            <ul>
-     *              <li><b>main</b> for attaching the file as a main content of a document<br>
-     *               (attaches the file to the front of a document)<br></li>
-     *              <li><b>attachment</b> for attaching the file to the back of a document as attachment</li>
-     *            </ul>
-     * @return  <b>200 OK</b> if the upload has been successfully performed<br>
-     *          <b>400 BAD REQUEST</b> if empty file parameter<br>
-     *          <b>500 Internal Server Error</b> if there occurred any other server side issue
+     * @param cmd            the command which decides where this file shall be attached within the document.<br>
+     *                       <ul>
+     *                       <li><b>main</b> for attaching the file as a main content of a document<br>
+     *                       (attaches the file to the front of a document)<br></li>
+     *                       <li><b>attachment</b> for attaching the file to the back of a document as attachment</li>
+     *                       </ul>
+     * @return <b>200 OK</b> if the upload has been successfully performed<br>
+     * <b>400 BAD REQUEST</b> if empty file parameter<br>
+     * <b>500 Internal Server Error</b> if there occurred any other server side issue
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/document/upload")
@@ -190,25 +190,25 @@ public class ContentController {
 
     /**
      * This resource allows downloading a file attachment.
-     *
+     * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path - option 1 (downloading an attachment):</b> GET {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}/download?attachment={attachmentNodeId}
      *     <b>Path - option 2 (download a main content):</b> GET {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}/download
      * </pre>
      *
-     * @param documentNodeId the node id of the document that contains the needed attachment node
+     * @param documentNodeId   the node id of the document that contains the needed attachment node
      * @param attachmentNodeId the node id of the attachment that is needed
-     * @param response <b>FILE DOWNLOAD INITIATED</b> if the attachment could be found, and the download is starting<br>
-     *                 <b>400 BAD REQUEST</b><br>
-     *                 <b>403 FORBIDDEN</b> if the access to this attachment has been denied<br>
-     *                 <b>404 NOT FOUND</b> if no node has been found for a given document or attachment node id<br>
-     *                 <b>500 Internal Server Error</b> if there occurred any other server side issue
+     * @param response         <b>FILE DOWNLOAD INITIATED</b> if the attachment could be found, and the download is starting<br>
+     *                         <b>400 BAD REQUEST</b><br>
+     *                         <b>403 FORBIDDEN</b> if the access to this attachment has been denied<br>
+     *                         <b>404 NOT FOUND</b> if no node has been found for a given document or attachment node id<br>
+     *                         <b>500 Internal Server Error</b> if there occurred any other server side issue
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/document/{documentNodeId}/download")
     public void downloadFile(@PathVariable String documentNodeId, @RequestParam(required = false) String attachmentNodeId,
-                         @JcrSession Session session, HttpServletResponse response) {
+                             @JcrSession Session session, HttpServletResponse response) {
         try {
             Node fileNode;
             try {
@@ -242,16 +242,16 @@ public class ContentController {
 
     /**
      * Adds a comment node to either a parent document or a parent comment.
-     *
+     * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path</b> POST {@value Content#CONTENT_RESOURCE}/{nodeId}/comment
      * </pre>
      *
-     * @param nodeId the node id of the parent to which the new comment should be added
+     * @param nodeId  the node id of the parent to which the new comment should be added
      * @param textDto the text content of the comment that shall be added
-     * @return  <b>200 OK</b> and the node data if everything went fine<br>
-     *          <b>404 NOT FOUND</b> if the parent node could not be found in the system
+     * @return <b>200 OK</b> and the node data if everything went fine<br>
+     * <b>404 NOT FOUND</b> if the parent node could not be found in the system
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/comment")
@@ -268,7 +268,7 @@ public class ContentController {
 
     /**
      * Updates an existing comment.
-     *
+     * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> PUT {@value Content#CONTENT_RESOURCE}/comment
@@ -276,8 +276,8 @@ public class ContentController {
      *
      * @param commentNodeDto the node content that contains the changes to this comment. Example:<br>
      *                       <tt>{id: 'nodeId', description: 'The comment description'}</tt>
-     * @return  <b>200 OK</b> if the changes have been successfully applied<br>
-     *          <b>404 NOT FOUND</b> if a comment with the given comment node id inside the node dto could not be found
+     * @return <b>200 OK</b> if the changes have been successfully applied<br>
+     * <b>404 NOT FOUND</b> if a comment with the given comment node id inside the node dto could not be found
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/comment")
@@ -296,7 +296,7 @@ public class ContentController {
 
     /**
      * Adds a tag to any node.
-     *
+     * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/{nodeId}/tag
@@ -304,15 +304,15 @@ public class ContentController {
      *
      * @param nodeId the node id of a node that shall be tagged
      * @param tagDto the tag contents. Example:<br>
-     *          {tagName: '', description: ''}
-     * @return  <b>200 OK</b> if the node has been successfully tagged with the given tag<br>
-     *          <b>404 NOT FOUND</b> if there is no node with the given nodeId within the system<br>
-     *          <b>409 CONFLICT</b> if the given tag has already been added to this node
+     *               {tagName: '', description: ''}
+     * @return <b>200 OK</b> if the node has been successfully tagged with the given tag<br>
+     * <b>404 NOT FOUND</b> if there is no node with the given nodeId within the system<br>
+     * <b>409 CONFLICT</b> if the given tag has already been added to this node
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/tag")
     public ResponseEntity<TextDto> addTagNode(@PathVariable String nodeId, @RequestBody TagDto tagDto,
-                                          @JcrSession Session session) {
+                                              @JcrSession Session session) {
         try {
             Node nodeToBeTagged = jcrService.getNode(session, nodeId);
             Node tagNode = jcrService.addTag(session, nodeToBeTagged, tagDto.getTagName(), tagDto.getDescription());
@@ -329,17 +329,17 @@ public class ContentController {
 
     /**
      * Removes a tag from a node.
-     *
+     * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> DELETE {@value Content#CONTENT_RESOURCE}/tag/remove?tagName=&lt;tagName&gt;
      * </pre>
      *
      * @param taggedNodeId the node id of the node that contains the tag
-     * @param tagId the tag ID of the tag that shall be removed from the node
-     * @return  <b>200 OK</b> if the tag has been removed from the node<br>
-     *          <b>404 NOT FOUND</b> if there is no node with the given taggedNodeId present in the system<br>
-     *          <b>409 CONFLICT</b> if there has been no tag with the given tagName present on the node
+     * @param tagId        the tag ID of the tag that shall be removed from the node
+     * @return <b>200 OK</b> if the tag has been removed from the node<br>
+     * <b>404 NOT FOUND</b> if there is no node with the given taggedNodeId present in the system<br>
+     * <b>409 CONFLICT</b> if there has been no tag with the given tagName present on the node
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/tag/remove")
@@ -360,17 +360,17 @@ public class ContentController {
 
     /**
      * This resource allows it to add a subscription for tracking changes to a specific node.
-     *
+     * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/{nodeId}/subscribe
      * </pre>
      *
      * @param nodeId the node id of the node that shall be tracked
-     * @param type the subscription type (e.g. DOCUMENT, ATTACHMENT, COMMENT, DISCUSSION, USER) depending on which
-     *             part of a node the user wants to receive notifications for.
-     * @return  <b>201 CREATED</b> if a subscription has been successfully applied to the node<br>
-     *          <b>404 NOT FOUND</b> if the node could not be found within the system
+     * @param type   the subscription type (e.g. DOCUMENT, ATTACHMENT, COMMENT, DISCUSSION, USER) depending on which
+     *               part of a node the user wants to receive notifications for.
+     * @return <b>201 CREATED</b> if a subscription has been successfully applied to the node<br>
+     * <b>404 NOT FOUND</b> if the node could not be found within the system
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/subscribe")
@@ -395,15 +395,15 @@ public class ContentController {
 
     /**
      * Fetch the meta data for a specific node.
-     *
+     * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> GET /api/content/{nodeId}/meta
      * </pre>
      *
      * @param nodeId the node id the meta data shall be fetched for
-     * @return  <b>200 OK</b> and the meta data<br>
-     *          <b>404 NOT FOUND</b> if a node with the given nodeId isn't present within the system
+     * @return <b>200 OK</b> and the meta data<br>
+     * <b>404 NOT FOUND</b> if a node with the given nodeId isn't present within the system
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/meta")
@@ -419,7 +419,7 @@ public class ContentController {
 
     /**
      * Fetches the commment Nodes for a specifc node.
-     *
+     * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> GET /api/content/{nodeId}/comments
@@ -427,7 +427,7 @@ public class ContentController {
      *
      * @param nodeId the node id of the node the comments shall be fetched for
      * @return <b>200 OK</b> and a list of comments
-     *         <b>404 NOT FOUND</b> if there is no node present within the system that has the specified nodeId
+     * <b>404 NOT FOUND</b> if there is no node present within the system that has the specified nodeId
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/comments")

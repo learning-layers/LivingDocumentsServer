@@ -24,7 +24,6 @@ package de.hska.ld.core.controller;
 
 import de.hska.ld.core.dto.UserDto;
 import de.hska.ld.core.dto.UserRoleDto;
-import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
@@ -177,13 +176,7 @@ public class UserController {
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST, value = "/roles/add")
     public ResponseEntity addRolesToUser(@RequestBody @Valid UserRoleDto userRoleDto) {
-        // TODO move to role controller
-        User user = userService.findByUsername(userRoleDto.getUsername());
-        List<Role> roleList = userRoleDto.getRoleList();
-        if (user == null) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
-        userService.addRoles(user, (Role[]) roleList.toArray());
+        userService.addRoles(userRoleDto.getUsername(), userRoleDto.getRoleNames());
         return new ResponseEntity(HttpStatus.OK);
     }
 

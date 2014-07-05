@@ -20,24 +20,11 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.service;
+package de.hska.ld.core.exception;
 
-import de.hska.ld.core.persistence.domain.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
+public class NotDeletedException extends ApplicationException {
 
-import java.util.List;
-
-public interface UserService extends UserDetailsService, Service<User> {
-
-    User findByUsername(String username);
-
-    User save(User user, String newPassword);
-
-    User addRoles(String username, String... roleNames);
-
-    String encodePassword(String password);
-
-    Boolean hasRole(User user, String roleName);
-
-    List<User> findByRole(String roleName);
+    public NotDeletedException(String field) {
+        super(field, "NOT_DELETED");
+    }
 }

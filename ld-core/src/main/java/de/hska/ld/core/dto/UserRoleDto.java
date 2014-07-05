@@ -22,27 +22,25 @@
 
 package de.hska.ld.core.dto;
 
-import de.hska.ld.core.persistence.domain.Role;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 public class UserRoleDto {
 
     public UserRoleDto() {
     }
 
-    private UserRoleDto(String username, List<Role> roleList) {
+    private UserRoleDto(String username, String[] roleNames) {
         this.username = username;
-        this.roleList = roleList;
+        this.roleNames = roleNames;
     }
 
     @NotBlank
     private String username;
 
     @NotNull
-    private List<Role> roleList;
+    private String[] roleNames;
 
     public String getUsername() {
         return username;
@@ -52,11 +50,11 @@ public class UserRoleDto {
         this.username = username;
     }
 
-    public List<Role> getRoleList() {
-        return roleList;
+    public String[] getRoleNames() {
+        return roleNames;
     }
 
-    public void setRoleList(List<Role> roleList) {
-        this.roleList = roleList;
+    public void setRoleNames(String[] roleNames) {
+        this.roleNames = roleNames;
     }
 }
