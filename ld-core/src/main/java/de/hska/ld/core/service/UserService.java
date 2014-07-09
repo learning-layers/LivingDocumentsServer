@@ -31,8 +31,6 @@ public interface UserService extends UserDetailsService, Service<User> {
 
     User findByUsername(String username);
 
-    User save(User user, String newPassword);
-
     User addRoles(String username, String... roleNames);
 
     String encodePassword(String password);

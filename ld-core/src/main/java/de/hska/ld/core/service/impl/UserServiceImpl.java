@@ -22,6 +22,9 @@
 
 package de.hska.ld.core.service.impl;
 
+import de.hska.ld.core.exception.AlreadyExistsException;
+import de.hska.ld.core.exception.NotFoundException;
+import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
@@ -36,6 +39,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 public class UserServiceImpl extends AbstractService<User> implements UserService {
@@ -65,22 +69,56 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     }
 
     @Override
-    public User save(User user, String newPassword) {
-        User dbUser = findByUsername(user.getUsername());
-        boolean isNew = dbUser == null;
+    public User save(User user) {
+        boolean isNew = user.getId() == null;
+        User userFoundByUsername = findByUsername(user.getUsername());
         if (isNew) {
+            // Check user input
+            if (user.getPassword() == null) {
+                throw new ValidationException("password");
+            }
+            if (userFoundByUsername != null) {
+                throw new AlreadyExistsException("username");
+            }
             user.setId(null);
-            user.setRoleList(createRoleListForNewUser());
+            user.setCreatedAt(new Date());
+            String hashedPwd = encodePassword(user.getPassword());
+            user.setPassword(hashedPwd);
+            createRoleListForUser(user);
         } else {
+            // Check if a the current user wants to update an account owned by somebody else
+            User currentUser = Core.currentUser();
+            if (currentUser == null) {
+                throw new UserNotAuthorizedException();
+            } else {
+                boolean isAdmin = hasRole(currentUser, Core.ROLE_ADMIN);
+                if (!isAdmin && !currentUser.getId().equals(user.getId())) {
+                    throw new UserNotAuthorizedException();
+                }
+            }
+            if (userFoundByUsername != null && user.getUsername().equals(userFoundByUsername.getUsername()) &&
+                    !user.getId().equals(userFoundByUsername.getId())) {
+                throw new AlreadyExistsException("username");
+            }
+            User dbUser = repository.findOne(user.getId());
             user.setId(dbUser.getId());
             user.setPassword(dbUser.getPassword());
             user.setRoleList(dbUser.getRoleList());
         }
-        if (newPassword != null) {
-            String hashedPwd = encodePassword(newPassword);
-            user.setPassword(hashedPwd);
+        return super.save(user);
+    }
+
+    @Override
+    public void delete(Long id) {
+        User currentUser = Core.currentUser();
+        if (!currentUser.getId().equals(id) && !hasRole(currentUser, Core.ROLE_ADMIN)) {
+            throw new UserNotAuthorizedException();
         }
-        return save(user);
+        User userToBeDeleted = findById(id);
+        if (userToBeDeleted == null) {
+            throw new NotFoundException("id");
+        }
+        super.save(userToBeDeleted);
     }
 
     @Override
@@ -112,6 +150,23 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             }
         }
         return false;
+    }
+
+    private void createRoleListForUser(User user) {
+        Collection<Role> roleList;
+        boolean adminAvailable = findByUsername(Core.BOOTSTRAP_ADMIN) != null;
+        // Trust role list if the current user is a admin
+        if (Core.isAdmin() || !adminAvailable) {
+            roleList = user.getRoleList();
+        } else {
+            roleList = new ArrayList<>();
+        }
+        // Add user role if not exists
+        if (!roleList.stream().anyMatch(r -> Core.ROLE_USER.equals(r.getName()))) {
+            Role userRole = roleService.findByName(Core.ROLE_USER);
+            roleList.add(userRole);
+        }
+        user.setRoleList(roleList);
     }
 
     private List<Role> filterRolesFromClient(String... roleNames) {

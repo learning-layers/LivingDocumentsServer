@@ -22,67 +22,64 @@
 
 package de.hska.ld.core.controller;
 
-import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.AbstractIntegrationTest2;
 import de.hska.ld.core.dto.IdDto;
-import de.hska.ld.core.dto.UserDto;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
+import de.hska.ld.core.util.Core;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 
-import static de.hska.ld.core.fixture.CoreFixture.*;
+import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
+import static de.hska.ld.core.fixture.CoreFixture.newUser;
 
-public class UserControllerIntegrationTest extends AbstractIntegrationTest {
+public class UserControllerIntegrationTest extends AbstractIntegrationTest2 {
 
-    private static final String USER_RESOURCE = "/users";
+    private static final String RESOURCE_USER = Core.RESOURCE_USER;
 
     @Autowired
     private UserService userService;
 
     @Test
     public void thatSaveUserUsesHttpCreatedOnPersist() {
-        ResponseEntity<IdDto> response = exchange(USER_RESOURCE, HttpMethod.POST,
-                createAdminHeader(newUserDto()), IdDto.class);
+        ResponseEntity<User> response = post().resource(RESOURCE_USER).body(newUser()).exec(User.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
     public void thatSaveUserUsesHttpOkOnUpdate() {
-        User user = userService.save(newUser(), PASSWORD);
+        User user = userService.save(newUser());
         user.setFullName(user.getFullName() + " (updated)");
 
         String auth = user.getUsername() + ":" + PASSWORD;
-        ResponseEntity<IdDto> response = exchange(USER_RESOURCE, HttpMethod.POST,
-                createHeader(new UserDto(user, null), auth.getBytes()), IdDto.class);
+        ResponseEntity<User> response = post().resource(RESOURCE_USER).as(auth.getBytes()).body(user).exec(User.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void thatSaveUserAsAdminUsesHttpOkOnUpdate() {
-        User user = userService.save(newUser(), PASSWORD);
+        User user = userService.save(newUser());
         user.setFullName(user.getFullName() + " (updated)");
 
-        ResponseEntity<IdDto> response = exchange(USER_RESOURCE, HttpMethod.POST,
-                createAdminHeader(new UserDto(user, null)), IdDto.class);
+        ResponseEntity<User> response = post().resource(RESOURCE_USER).asAdmin().body(user).exec(User.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void thatDeleteUserUsesHttpOkOnSuccess() {
-        User user = userService.save(newUser(), PASSWORD);
-        exchange(USER_RESOURCE + "/" + user.getId(), HttpMethod.DELETE, createAdminHeader(), IdDto.class);
+        User user = userService.save(newUser());
+        delete().resource(RESOURCE_USER + "/" + user.getId()).asAdmin().exec(IdDto.class);
     }
 
     @Test
     public void thatDeleteUserUsesHttpForbiddenOnAuthorizationFailure() {
-        User user = userService.save(newUser(), PASSWORD);
+        User user = userService.save(newUser());
         try {
-            exchange(USER_RESOURCE + "/" + user.getId(), HttpMethod.DELETE, createUserHeader(), IdDto.class);
+            delete().resource(RESOURCE_USER + "/" + user.getId()).asUser().exec(IdDto.class);
         } catch (HttpStatusCodeException e) {
             expectedClientException = e;
         }
@@ -93,7 +90,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void thatDeleteUserUsesHttpNotFoundOnEntityLookupFailure() {
         try {
-            exchange(USER_RESOURCE + "/" + -1, HttpMethod.DELETE, createAdminHeader(), IdDto.class);
+            delete().resource(RESOURCE_USER + "/" + -1).asAdmin().exec(IdDto.class);
         } catch (HttpStatusCodeException e) {
             expectedClientException = e;
         }

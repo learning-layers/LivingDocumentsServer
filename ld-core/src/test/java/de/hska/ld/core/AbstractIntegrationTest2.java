@@ -25,7 +25,6 @@ package de.hska.ld.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.core.util.Core;
 import org.junit.After;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.IntegrationTest;
@@ -40,6 +39,8 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
+
+import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = TestApplication.class)
@@ -66,6 +67,11 @@ public abstract class AbstractIntegrationTest2 {
         if (obj != null) {
             try {
                 json = objectMapper.writeValueAsString(obj);
+                if (obj instanceof User) {
+                    // Workaround to transfer password
+                    json = json.substring(0, json.length() - 1);
+                    json += ",\"password\":\"" + PASSWORD + "\"}";
+                }
             } catch (JsonProcessingException e) {
                 // do nothing
             }

@@ -39,7 +39,7 @@ import java.util.List;
 @Component
 public class CoreBootstrap {
 
-    private String adminPassword;
+    private String bootstrapPassword;
 
     @Autowired
     public void init(Environment env, UserService userService, RoleService roleService) {
@@ -48,7 +48,7 @@ public class CoreBootstrap {
             Role userRole = roleService.save(new Role(Core.ROLE_USER));
             Role adminRole = roleService.save(new Role(Core.ROLE_ADMIN));
 
-            adminPassword = userService.encodePassword(env.getProperty("module.core.bootstrap.admin.password"));
+            bootstrapPassword = env.getProperty("module.core.bootstrap.admin.password");
 
             userService.save(getUser("user", "user", userRole));
             userService.save(getUser("admin", "admin", userRole, adminRole));
@@ -67,7 +67,7 @@ public class CoreBootstrap {
         User user = new User();
         user.setUsername(username);
         user.setFullName(fullName);
-        user.setPassword(adminPassword);
+        user.setPassword(bootstrapPassword);
         user.setRoleList(convertToRoleList(roles));
         return user;
     }

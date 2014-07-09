@@ -22,6 +22,7 @@
 
 package de.hska.ld.core.controller;
 
+import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
@@ -30,16 +31,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import de.hska.ld.core.util.Core;
 
 import java.io.IOException;
 import java.util.Properties;
 
 /**
- * <p><b>Resource:</b> {@value Core#INFO_RESOURCE}
+ * <p><b>Resource:</b> {@value Core#RESOURCE_INFO}
  */
 @RestController
-@RequestMapping(Core.INFO_RESOURCE)
+@RequestMapping(Core.RESOURCE_INFO)
 public class InfoController {
 
     private Info info;
@@ -59,7 +59,7 @@ public class InfoController {
      * <pre>
      * Gets information about the current application version etc.
      *
-     * <b>Path:</b> GET {@value Core#INFO_RESOURCE}
+     * <b>Path:</b> GET {@value Core#RESOURCE_INFO}
      * </pre>
      *
      * @return the application information

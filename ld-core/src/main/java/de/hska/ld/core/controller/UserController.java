@@ -22,7 +22,6 @@
 
 package de.hska.ld.core.controller;
 
-import de.hska.ld.core.dto.UserDto;
 import de.hska.ld.core.dto.UserRoleDto;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
@@ -32,8 +31,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,10 +38,10 @@ import javax.validation.Valid;
 import java.util.List;
 
 /**
- * <p><b>Resource:</b> {@value Core#USER_RESOURCE}
+ * <p><b>Resource:</b> {@value Core#RESOURCE_USER}
  */
 @RestController
-@RequestMapping(Core.USER_RESOURCE)
+@RequestMapping(Core.RESOURCE_USER)
 public class UserController {
 
     @Autowired
@@ -55,7 +52,7 @@ public class UserController {
      * Gets a list with all users.
      *
      * <b>Required roles:</b> ROLE_ADMIN
-     * <b>Path:</b> GET {@value Core#USER_RESOURCE}
+     * <b>Path:</b> GET {@value Core#RESOURCE_USER}
      * </pre>
      *
      * @return <b>200 OK</b> and a list with all users or <br>
@@ -78,7 +75,7 @@ public class UserController {
      * Authenticates the current user.
      *
      * <b>Required roles:</b> ROLE_USER
-     * <b>Path:</b> GET {@value Core#USER_RESOURCE}/authenticate
+     * <b>Path:</b> GET {@value Core#RESOURCE_USER}/authenticate
      * </pre>
      *
      * @return  <b>200 OK</b> and the current logged in user or <br>
@@ -95,7 +92,7 @@ public class UserController {
      * Gets a user by its username.
      *
      * <b>Required roles:</b> authorized user
-     * <b>Path:</b> GET {@value Core#USER_RESOURCE}/{username}
+     * <b>Path:</b> GET {@value Core#RESOURCE_USER}/{username}
      * </pre>
      *
      * @param username the unique username as path variable
@@ -115,42 +112,24 @@ public class UserController {
 
     /**
      * <pre>
-     * Saves a user. If no ID is provided a new user will be created otherwise an existing user will be updated.
+     * Saves a user. This means a new user will be created if no ID is specified or an old user will be
+     * updated if ID is specified.
      *
      * <b>Required roles:</b> no role required
-     * <b>Path:</b> POST {@value Core#USER_RESOURCE}
+     * <b>Path:</b> POST {@value Core#RESOURCE_USER}
      * </pre>
      *
-     * @param userDto represents the user to be saved or updated. The transfer object also contains a password
-     *                field for registration. Example:<br>
-     *                {user: {username: 'jdoe', fullName: 'John Doe'}, password: '&lt;PASSWORD_(ONLY_REQUIRED_FOR_NEW_USER)&gt;'}
-     * @return <b>200 OK</b> and the user or <br>
-     *         <b>201 Created</b> and the user ID or <br>
+     * @param user includes the user to be saved or updated. Example:<br>
+     *             {username: 'jdoe', email: 'jdoe@jdoe.org', fullName: 'John Doe'}
+     * @return <b>201 Created</b> and the user or <br>
+     *             <b>200 OK</b> and the user or <br>
      *         <b>400 Bad Request</b> if at least one property was invalid or <br>
      *         <b>403 Forbidden</b> if authorization failed
      */
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<User> saveUser(@RequestBody @Valid UserDto userDto) {
-        User user = userDto.getUser();
-        String password = userDto.getPassword();
-        boolean isNew = userService.findByUsername(user.getUsername()) == null;
-        if (isNew) {
-            // User wants to create a new account without password
-            if (password == null) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
-        } else {
-            // User wants to update a different account
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth == null) {
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-            }
-            boolean isAdmin = userService.hasRole((User) auth.getPrincipal(), Core.ROLE_ADMIN);
-            if (!isAdmin && (!auth.getName().equals(user.getUsername()))) {
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-            }
-        }
-        user = userService.save(user, password);
+    public ResponseEntity<User> saveUser(@RequestBody @Valid User user) {
+        boolean isNew = user.getId() == null;
+        user = userService.save(user);
         if (isNew) {
             return new ResponseEntity<>(user, HttpStatus.CREATED);
         } else {
@@ -163,7 +142,7 @@ public class UserController {
      * Adds one or more roles to an existing user.
      *
      * <b>Required roles:</b> ROLE_ADMIN
-     * <b>Path:</b> POST {@value Core#USER_RESOURCE}/roles/add
+     * <b>Path:</b> POST {@value Core#RESOURCE_USER}/roles/add
      * </pre>
      *
      * @param userRoleDto includes the username of the user to be updated. The transfer object also contains a role list.
@@ -185,7 +164,7 @@ public class UserController {
      * Deletes a user.
      *
      * <b>Required roles:</b> ROLE_ADMIN
-     * <b>Path:</b> DELETE {@value Core#USER_RESOURCE}/{id}
+     * <b>Path:</b> DELETE {@value Core#RESOURCE_USER}/{id}
      * </pre>
      *
      * @param id the user ID as a path variable
@@ -193,15 +172,10 @@ public class UserController {
      *         <b>403 Forbidden</b> if authorization failed or <br>
      *         <b>404 Not Found</b> if no user with the given ID has been found
      */
-    @Secured(Core.ROLE_ADMIN)
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
     public ResponseEntity deleteUser(@PathVariable Long id) {
-        User user = userService.findById(id);
-        if (user != null) {
-            userService.delete(user);
-            return new ResponseEntity(HttpStatus.OK);
-        } else {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
+        userService.delete(id);
+        return new ResponseEntity(HttpStatus.OK);
     }
 }

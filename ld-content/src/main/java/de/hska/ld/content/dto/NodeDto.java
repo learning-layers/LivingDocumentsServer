@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import de.hska.ld.content.util.Content;
 import org.apache.jackrabbit.JcrConstants;
 import org.slf4j.Logger;
@@ -34,6 +35,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class NodeDto {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeDto.class);
 
@@ -52,7 +54,7 @@ public class NodeDto {
     public NodeDto(Node node) {
         try {
             this.nodeId = node.getName();
-            loadProperties(node, Content.LD_TITLE_PROPERTY, Content.LD_DESCRIPTION_PROPERTY);
+            loadProperties(node);
             loadTags(node);
             loadFileMetaData(node);
         } catch (RepositoryException e) {
@@ -87,11 +89,12 @@ public class NodeDto {
         }
     }
 
-    private void loadProperties(Node node, String... properties) throws RepositoryException {
-        for (String property : properties) {
-            if (node.hasProperty(property)) {
-                this.title = node.getProperty(property).getString();
-            }
+    private void loadProperties(Node node) throws RepositoryException {
+        if (node.hasProperty(Content.LD_TITLE_PROPERTY)) {
+            this.title = node.getProperty(Content.LD_TITLE_PROPERTY).getString();
+        }
+        if (node.hasProperty(Content.LD_DESCRIPTION_PROPERTY)) {
+            this.description = node.getProperty(Content.LD_DESCRIPTION_PROPERTY).getString();
         }
     }
 

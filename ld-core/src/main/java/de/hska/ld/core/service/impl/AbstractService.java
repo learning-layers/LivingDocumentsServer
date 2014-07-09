@@ -58,6 +58,11 @@ public abstract class AbstractService<T> implements Service<T> {
         repository.delete(t);
     }
 
+    @Override
+    public void delete(Long id) {
+        repository.delete(id);
+    }
+
     protected List<T> convertIterableToList(Iterable<T> iterable) {
         List<T> list = new ArrayList<>();
         for (T t : iterable) {

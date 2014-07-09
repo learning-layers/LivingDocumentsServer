@@ -33,4 +33,6 @@ public interface Service<T> {
     T save(T t);
 
     void delete(T t);
+
+    void delete(Long id);
 }

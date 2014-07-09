@@ -22,8 +22,6 @@
 
 package de.hska.ld.core.fixture;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.hska.ld.core.dto.UserDto;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
 
@@ -32,17 +30,13 @@ import java.util.UUID;
 public class CoreFixture {
 
     public static final String PASSWORD = "pass";
-    protected static ObjectMapper objectMapper = new ObjectMapper();
-
-    public static UserDto newUserDto() {
-        return new UserDto(newUser(), PASSWORD);
-    }
 
     public static User newUser() {
         String firstName = UUID.randomUUID().toString();
         String lastName = UUID.randomUUID().toString();
 
         User user = new User();
+        user.setPassword(PASSWORD);
         user.setUsername(firstName + "." + lastName);
         user.setFullName(firstName + " " + lastName);
 

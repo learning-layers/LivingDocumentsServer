@@ -22,6 +22,10 @@
 
 package de.hska.ld.core.util;
 
+import de.hska.ld.core.persistence.domain.User;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
 
@@ -33,7 +37,31 @@ public class Core {
     public static final String ROLE_USER = "ROLE_USER";
 
     public static final String API_RESOURCE = "/api";
-    public static final String USER_RESOURCE = API_RESOURCE + "/users";
-    public static final String ROLE_RESOURCE = API_RESOURCE + "/roles";
-    public static final String INFO_RESOURCE = API_RESOURCE + "/info";
+    public static final String RESOURCE_USER = API_RESOURCE + "/users";
+    public static final String RESOURCE_ROLE = API_RESOURCE + "/roles";
+    public static final String RESOURCE_INFO = API_RESOURCE + "/info";
+
+    public static final String BOOTSTRAP_USER = "user";
+    public static final String BOOTSTRAP_ADMIN = "admin";
+
+    public static boolean isAuthenticated() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        return securityContext != null && securityContext.getAuthentication() != null &&
+                securityContext.getAuthentication().isAuthenticated();
+    }
+
+    public static User currentUser() {
+        if (isAuthenticated()) {
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (principal instanceof User) {
+                return (User) principal;
+            }
+        }
+        return null;
+    }
+
+    public static boolean isAdmin() {
+        User currentUser = currentUser();
+        return currentUser != null && currentUser.getRoleList().stream().anyMatch(r -> r.getName().equals(ROLE_ADMIN));
+    }
 }
