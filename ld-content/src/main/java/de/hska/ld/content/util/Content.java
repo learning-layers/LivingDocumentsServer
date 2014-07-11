@@ -41,5 +41,5 @@ public class Content {
 
     public static final String JCR_LASTMODIFIED_BY = "jcr:lastModifiedBy";
 
-    public static final String CONTENT_RESOURCE = Core.API_RESOURCE + "/content";
+    public static final String RESOURCE_CONTENT = Core.API_RESOURCE + "/content";
 }

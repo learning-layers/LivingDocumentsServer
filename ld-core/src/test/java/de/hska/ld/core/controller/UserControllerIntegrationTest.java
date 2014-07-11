@@ -24,6 +24,7 @@ package de.hska.ld.core.controller;
 
 import de.hska.ld.core.AbstractIntegrationTest2;
 import de.hska.ld.core.dto.IdDto;
+import de.hska.ld.core.exception.ApplicationError;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
@@ -55,8 +56,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest2 {
         User user = userService.save(newUser());
         user.setFullName(user.getFullName() + " (updated)");
 
-        String auth = user.getUsername() + ":" + PASSWORD;
-        ResponseEntity<User> response = post().resource(RESOURCE_USER).as(auth.getBytes()).body(user).exec(User.class);
+        ResponseEntity<User> response = post().resource(RESOURCE_USER).as(user).body(user).exec(User.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -88,6 +88,27 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest2 {
     }
 
     @Test
+    public void thatUpdateUsernameUsesHttpConflictIfAlreadyExists() {
+        User user1 = userService.save(newUser());
+        User user2 = userService.save(newUser());
+
+        byte[] authUser2 = (user2.getUsername() + ":" + PASSWORD).getBytes();
+        user2.setUsername(user1.getUsername());
+        try {
+            post().resource(RESOURCE_USER).as(authUser2).body(user2).exec(ApplicationError.class);
+        } catch (HttpStatusCodeException e) {
+            parseApplicationError(e.getResponseBodyAsString());
+            expectedClientException = e;
+        }
+
+        Assert.assertNotNull(applicationError);
+        Assert.assertTrue(applicationError.getField().equals("username"));
+        Assert.assertTrue(applicationError.getKey().equals("ALREADY_EXISTS"));
+        Assert.assertNotNull(expectedClientException);
+        Assert.assertEquals(HttpStatus.CONFLICT, expectedClientException.getStatusCode());
+    }
+
+    @Test
     public void thatDeleteUserUsesHttpNotFoundOnEntityLookupFailure() {
         try {
             delete().resource(RESOURCE_USER + "/" + -1).asAdmin().exec(IdDto.class);
@@ -96,5 +117,12 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest2 {
         }
         Assert.assertNotNull(expectedClientException);
         Assert.assertEquals(HttpStatus.NOT_FOUND, expectedClientException.getStatusCode());
+    }
+
+    @Test
+    public void thatAuthenticateDoesNotContainPasswordHashInResponseBody() {
+        ResponseEntity<User> response = get().asUser().resource(RESOURCE_USER + "/authenticate").exec(User.class);
+        User user = response.getBody();
+        Assert.assertNull(user.getPassword());
     }
 }

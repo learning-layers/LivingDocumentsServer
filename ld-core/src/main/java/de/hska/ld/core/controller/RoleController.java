@@ -23,6 +23,7 @@
 package de.hska.ld.core.controller;
 
 import de.hska.ld.core.dto.IdDto;
+import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.util.Core;
@@ -96,7 +97,7 @@ public class RoleController {
             roleService.delete(role);
             return new ResponseEntity(HttpStatus.OK);
         } else {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
+            throw new NotFoundException("id");
         }
     }
 }

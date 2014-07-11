@@ -53,10 +53,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * <p><b>Resource:</b> {@value Content#CONTENT_RESOURCE}
+ * <p><b>Resource:</b> {@value Content#RESOURCE_CONTENT}
  */
 @RestController
-@RequestMapping(Content.CONTENT_RESOURCE)
+@RequestMapping(Content.RESOURCE_CONTENT)
 public class ContentController {
 
     @Autowired
@@ -98,7 +98,7 @@ public class ContentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}
+     *     <b>Path:</b> POST {@value Content#RESOURCE_CONTENT}/document/{documentNodeId}
      * </pre>
      *
      * @param documentDto Contains title and optional description of the new document. Example:
@@ -129,7 +129,7 @@ public class ContentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> DELETE {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}
+     *     <b>Path:</b> DELETE {@value Content#RESOURCE_CONTENT}/document/{documentNodeId}
      * </pre>
      *
      * @param documentNodeId the node id of the node one wants to delete
@@ -155,7 +155,7 @@ public class ContentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/document/upload
+     *     <b>Path:</b> POST {@value Content#RESOURCE_CONTENT}/document/upload
      * </pre>
      *
      * @param file           the Multipart file that has been uploaded
@@ -193,8 +193,8 @@ public class ContentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path - option 1 (downloading an attachment):</b> GET {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}/download?attachment={attachmentNodeId}
-     *     <b>Path - option 2 (download a main content):</b> GET {@value Content#CONTENT_RESOURCE}/document/{documentNodeId}/download
+     *     <b>Path - option 1 (downloading an attachment):</b> GET {@value Content#RESOURCE_CONTENT}/document/{documentNodeId}/download?attachment={attachmentNodeId}
+     *     <b>Path - option 2 (download a main content):</b> GET {@value Content#RESOURCE_CONTENT}/document/{documentNodeId}/download
      * </pre>
      *
      * @param documentNodeId   the node id of the document that contains the needed attachment node
@@ -245,7 +245,7 @@ public class ContentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path</b> POST {@value Content#CONTENT_RESOURCE}/{nodeId}/comment
+     *     <b>Path</b> POST {@value Content#RESOURCE_CONTENT}/{nodeId}/comment
      * </pre>
      *
      * @param nodeId  the node id of the parent to which the new comment should be added
@@ -271,7 +271,7 @@ public class ContentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> PUT {@value Content#CONTENT_RESOURCE}/comment
+     *     <b>Path:</b> PUT {@value Content#RESOURCE_CONTENT}/comment
      * </pre>
      *
      * @param commentNodeDto the node content that contains the changes to this comment. Example:<br>
@@ -299,7 +299,7 @@ public class ContentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/{nodeId}/tag
+     *     <b>Path:</b> POST {@value Content#RESOURCE_CONTENT}/{nodeId}/tag
      * </pre>
      *
      * @param nodeId the node id of a node that shall be tagged
@@ -332,7 +332,7 @@ public class ContentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> DELETE {@value Content#CONTENT_RESOURCE}/tag/remove?tagName=&lt;tagName&gt;
+     *     <b>Path:</b> DELETE {@value Content#RESOURCE_CONTENT}/tag/remove?tagName=&lt;tagName&gt;
      * </pre>
      *
      * @param taggedNodeId the node id of the node that contains the tag
@@ -363,7 +363,7 @@ public class ContentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#CONTENT_RESOURCE}/{nodeId}/subscribe
+     *     <b>Path:</b> POST {@value Content#RESOURCE_CONTENT}/{nodeId}/subscribe
      * </pre>
      *
      * @param nodeId the node id of the node that shall be tracked

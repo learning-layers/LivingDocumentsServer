@@ -40,7 +40,10 @@ public abstract class AbstractService<T> implements Service<T> {
 
     @Override
     public T findById(Long id) {
-        return repository.findOne(id);
+        if (id != null) {
+            return repository.findOne(id);
+        }
+        return null;
     }
 
     @Override

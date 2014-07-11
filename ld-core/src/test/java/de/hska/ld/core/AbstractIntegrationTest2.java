@@ -24,6 +24,7 @@ package de.hska.ld.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.hska.ld.core.exception.ApplicationError;
 import de.hska.ld.core.persistence.domain.User;
 import org.junit.After;
 import org.junit.runner.RunWith;
@@ -38,6 +39,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
@@ -56,10 +58,19 @@ public abstract class AbstractIntegrationTest2 {
     private final RestTemplate template = new RestTemplate();
 
     protected HttpStatusCodeException expectedClientException;
+    protected ApplicationError applicationError;
 
     @After
     public void tearDown() throws Exception {
         expectedClientException = null;
+    }
+
+    protected void parseApplicationError(String body) {
+        try {
+            applicationError = objectMapper.readValue(body, ApplicationError.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private HttpEntity<String> createHeaderAndBody(Object obj, byte[] auth) {
@@ -140,6 +151,12 @@ public abstract class AbstractIntegrationTest2 {
 
         public HttpRequest as(byte[] auth) {
             this.auth = auth;
+            return this;
+        }
+
+        public HttpRequest as(User user) {
+            String usernameAndPassword = user.getUsername() + ":" + PASSWORD;
+            this.auth = usernameAndPassword.getBytes();
             return this;
         }
 

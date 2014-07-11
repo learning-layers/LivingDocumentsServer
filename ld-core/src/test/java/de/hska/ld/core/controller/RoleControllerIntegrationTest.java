@@ -22,14 +22,14 @@
 
 package de.hska.ld.core.controller;
 
-import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.AbstractIntegrationTest2;
 import de.hska.ld.core.dto.IdDto;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.service.RoleService;
+import de.hska.ld.core.util.Core;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -38,34 +38,32 @@ import java.util.UUID;
 
 import static de.hska.ld.core.fixture.CoreFixture.newRole;
 
-public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
+public class RoleControllerIntegrationTest extends AbstractIntegrationTest2 {
 
-    private static final String ROLE_RESOURCES = "/roles";
+    private static final String RESOURCE_ROLE = Core.RESOURCE_ROLE;
 
     @Autowired
     RoleService roleService;
 
     @Test
     public void thatSaveRoleUsesHttpCreatedOnPersist() {
-        ResponseEntity<IdDto> response = exchange(ROLE_RESOURCES, HttpMethod.POST,
-                createAdminHeader(newRole()), IdDto.class);
+        ResponseEntity<IdDto> response = post().asAdmin().resource(RESOURCE_ROLE).body(newRole()).exec(IdDto.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
     public void thatSaveRoleUsesHttpOkOnUpdate() {
         Role role = roleService.save(newRole());
-
         role.setName(UUID.randomUUID().toString());
-        ResponseEntity<IdDto> response = exchange(ROLE_RESOURCES, HttpMethod.POST,
-                createAdminHeader(role), IdDto.class);
+
+        ResponseEntity<IdDto> response = post().asAdmin().resource(RESOURCE_ROLE).body(role).exec(IdDto.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void thatSaveRoleUsesHttpForbiddenOnAuthorizationFailure() {
         try {
-            exchange(ROLE_RESOURCES, HttpMethod.POST, createUserHeader(newRole()), IdDto.class);
+            post().asUser().resource(RESOURCE_ROLE).body(newRole()).exec(IdDto.class);
         } catch (HttpStatusCodeException e) {
             expectedClientException = e;
         }
@@ -76,14 +74,14 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void thatDeleteRoleUsesHttpOkOnSuccess() {
         Role role = roleService.save(newRole());
-        exchange(ROLE_RESOURCES + "/" + role.getId(), HttpMethod.DELETE, createAdminHeader(), IdDto.class);
+        delete().asAdmin().resource(RESOURCE_ROLE + "/" + role.getId()).exec(IdDto.class);
     }
 
     @Test
     public void thatDeleteRoleUsesHttpForbiddenOnAuthorizationFailure() {
         Role role = roleService.save(newRole());
         try {
-            exchange(ROLE_RESOURCES + "/" + role.getId(), HttpMethod.DELETE, createUserHeader(), IdDto.class);
+            delete().asUser().resource(RESOURCE_ROLE + "/" + role.getId()).exec(IdDto.class);
         } catch (HttpStatusCodeException e) {
             expectedClientException = e;
         }
@@ -94,10 +92,14 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void thatDeleteRoleUsesHttpNotFoundOnEntityLookupFailure() {
         try {
-            exchange(ROLE_RESOURCES + "/" + -1, HttpMethod.DELETE, createAdminHeader(), IdDto.class);
+            delete().asAdmin().resource(RESOURCE_ROLE + "/" + -1).exec(IdDto.class);
         } catch (HttpStatusCodeException e) {
             expectedClientException = e;
+            parseApplicationError(e.getResponseBodyAsString());
         }
+        Assert.assertNotNull(applicationError);
+        Assert.assertTrue(applicationError.getField().equals("id"));
+        Assert.assertTrue(applicationError.getKey().equals("NOT_FOUND"));
         Assert.assertNotNull(expectedClientException);
         Assert.assertEquals(HttpStatus.NOT_FOUND, expectedClientException.getStatusCode());
     }

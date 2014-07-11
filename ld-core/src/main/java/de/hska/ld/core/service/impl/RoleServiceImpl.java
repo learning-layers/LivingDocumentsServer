@@ -22,6 +22,7 @@
 
 package de.hska.ld.core.service.impl;
 
+import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.repository.RoleRepository;
 import de.hska.ld.core.service.RoleService;
@@ -31,6 +32,16 @@ public class RoleServiceImpl extends AbstractService<Role> implements RoleServic
 
     @Autowired
     private RoleRepository repository;
+
+    @Override
+    public void delete(Long id) {
+        Role role = findById(id);
+        if (role == null) {
+            throw new NotFoundException("id");
+        } else {
+            super.delete(id);
+        }
+    }
 
     @Override
     public Role findByName(String name) {

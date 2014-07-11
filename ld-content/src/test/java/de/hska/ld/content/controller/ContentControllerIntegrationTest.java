@@ -25,6 +25,7 @@ package de.hska.ld.content.controller;
 import de.hska.ld.content.dto.NodeDto;
 import de.hska.ld.content.dto.TagDto;
 import de.hska.ld.content.service.JcrService;
+import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.dto.TextDto;
 import de.hska.ld.core.persistence.domain.User;
@@ -45,7 +46,7 @@ import java.util.List;
 
 public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String CONTENT_RESOURCE = "/content";
+    private static final String RESOURCE_CONTENT = Content.RESOURCE_CONTENT;
     private static final String TITLE = "Title";
     private static final String DESCRIPTION = "Description";
 
@@ -69,7 +70,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void thatCreateDocumentNodeUsesHttpOkOnPersist() throws RepositoryException {
-        ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/document", HttpMethod.POST,
+        ResponseEntity<NodeDto> response = exchange(RESOURCE_CONTENT + "/document", HttpMethod.POST,
                 createUserHeader(documentDto), NodeDto.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -78,7 +79,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
     public void thatGetNodeMetaDataUsesHttpOkOnEntityLookupSuccess() throws RepositoryException {
         Node node = jcrService.createDocumentNode(session, TITLE, DESCRIPTION);
 
-        ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/meta", HttpMethod.GET,
+        ResponseEntity<NodeDto> response = exchange(RESOURCE_CONTENT + "/" + node.getName() + "/meta", HttpMethod.GET,
                 createUserHeader(), NodeDto.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -90,7 +91,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
         Node node = jcrService.createDocumentNode(session, TITLE, DESCRIPTION);
         jcrService.addComment(session, node, testComment);
 
-        ResponseEntity<List> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/comments",
+        ResponseEntity<List> response = exchange(RESOURCE_CONTENT + "/" + node.getName() + "/comments",
                 HttpMethod.GET, createUserHeader(), List.class);
 
         Assert.assertTrue(response.getBody().size() == 1);
@@ -101,7 +102,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
     public void thatAddCommentNodeUsesHttpOkOnPersist() throws RepositoryException {
         Node node = jcrService.createDocumentNode(session, TITLE, DESCRIPTION);
 
-        ResponseEntity<NodeDto> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/comment",
+        ResponseEntity<NodeDto> response = exchange(RESOURCE_CONTENT + "/" + node.getName() + "/comment",
                 HttpMethod.POST, createUserHeader(new TextDto("This is a test comment.")), NodeDto.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -110,7 +111,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
     public void thatAddTagNodeUsesHttpOkOnPersist() throws RepositoryException {
         Node node = jcrService.createDocumentNode(session, TITLE, DESCRIPTION);
 
-        ResponseEntity<TextDto> response = exchange(CONTENT_RESOURCE + "/" + node.getName() + "/tag",
+        ResponseEntity<TextDto> response = exchange(RESOURCE_CONTENT + "/" + node.getName() + "/tag",
                 HttpMethod.POST, createUserHeader(new TagDto("TagName", "The description")), TextDto.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -120,7 +121,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
         String term = "Testdocument";
 
         Node node = jcrService.createDocumentNode(session, term, term);
-        ResponseEntity<List> response = exchange(CONTENT_RESOURCE + "/search?query=" + term,
+        ResponseEntity<List> response = exchange(RESOURCE_CONTENT + "/search?query=" + term,
                 HttpMethod.GET, createUserHeader(), List.class);
 
         Assert.assertTrue(!response.getBody().isEmpty());
@@ -132,7 +133,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
         jcrService.createDocumentNode(session, TITLE + 1, DESCRIPTION);
         jcrService.createDocumentNode(session, TITLE + 2, DESCRIPTION);
 
-        ResponseEntity<List> response = exchange(CONTENT_RESOURCE + "/list", HttpMethod.GET,
+        ResponseEntity<List> response = exchange(RESOURCE_CONTENT + "/list", HttpMethod.GET,
                 createUserHeader(), List.class);
 
         Assert.assertTrue(!response.getBody().isEmpty());
@@ -148,7 +149,7 @@ public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
         jcrService.addTag(session, node, tagName, description);
 
         try {
-            exchange(CONTENT_RESOURCE + "/" + node.getName() + "/tag", HttpMethod.POST,
+            exchange(RESOURCE_CONTENT + "/" + node.getName() + "/tag", HttpMethod.POST,
                     createUserHeader(new TagDto(tagName, description)), List.class);
         } catch (HttpStatusCodeException e) {
             expectedClientException = e;

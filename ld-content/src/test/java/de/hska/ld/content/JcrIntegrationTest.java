@@ -189,7 +189,7 @@ public class JcrIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void thatUserHasNoAccessToNodesFromOtherUsers() throws RepositoryException {
-        User otherUser = userService.save(CoreFixture.newUser(), "pass");
+        User otherUser = userService.save(CoreFixture.newUser());
 
         Session session = jcrService.login(otherUser);
         Node testRoot = session.getNode("/" + TEST_ROOT);
