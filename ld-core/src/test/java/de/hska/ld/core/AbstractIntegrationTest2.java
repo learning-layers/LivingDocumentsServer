@@ -26,8 +26,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.exception.ApplicationError;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.*;
@@ -43,6 +46,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
+import static de.hska.ld.core.fixture.CoreFixture.newUser;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = TestApplication.class)
@@ -54,11 +58,21 @@ public abstract class AbstractIntegrationTest2 {
     private static final byte[] AUTH_USER = ("user" + ":pass").getBytes();
     private static final byte[] AUTH_ADMIN = ("admin" + ":pass").getBytes();
 
+    @Autowired
+    private UserService userService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate template = new RestTemplate();
 
     protected HttpStatusCodeException expectedClientException;
     protected ApplicationError applicationError;
+
+    protected User testUser;
+
+    @Before
+    public void setUp() throws Exception {
+        testUser = userService.save(newUser());
+    }
 
     @After
     public void tearDown() throws Exception {
@@ -105,7 +119,7 @@ public abstract class AbstractIntegrationTest2 {
 
     protected void setAuthentication(User user) {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user,
-                user.getPassword()));
+                user.getPassword(), user.getAuthorities()));
     }
 
     protected HttpRequest get() {

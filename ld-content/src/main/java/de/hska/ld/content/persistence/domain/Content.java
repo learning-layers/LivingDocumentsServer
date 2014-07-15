@@ -1,0 +1,138 @@
+/**
+ * Code contributed to the Learning Layers project
+ * http://www.learning-layers.eu
+ * Development is partly funded by the FP7 Programme of the European
+ * Commission under Grant Agreement FP7-ICT-318209.
+ * Copyright (c) 2014, Karlsruhe University of Applied Sciences.
+ * For a list of contributors see the AUTHORS file at the top-level directory
+ * of this distribution.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package de.hska.ld.content.persistence.domain;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import de.hska.ld.core.persistence.domain.User;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+@MappedSuperclass
+public abstract class Content {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at", nullable = false)
+    private Date createdAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "modified_at")
+    private Date modifiedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "creator_id")
+    private User creator;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "content_tag",
+            joinColumns = {@JoinColumn(name = "content_id")},
+            inverseJoinColumns = {@JoinColumn(name = "tag_id")})
+    private List<Tag> tagList;
+
+    @OneToMany
+    @JoinTable(name = "content_subscriber",
+            joinColumns = {@JoinColumn(name = "content_id")},
+            inverseJoinColumns = {@JoinColumn(name = "user_id")})
+    private List<User> subscriberList;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "content_comment",
+            joinColumns = {@JoinColumn(name = "content_id")},
+            inverseJoinColumns = {@JoinColumn(name = "comment_id")})
+    private List<Comment> commentList;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getModifiedAt() {
+        return modifiedAt;
+    }
+
+    public void setModifiedAt(Date modifiedAt) {
+        this.modifiedAt = modifiedAt;
+    }
+
+    public User getCreator() {
+        return creator;
+    }
+
+    public void setCreator(User creator) {
+        this.creator = creator;
+    }
+
+    @JsonProperty("tags")
+    public List<Tag> getTagList() {
+        if (tagList == null) {
+            tagList = new ArrayList<>();
+        }
+        return tagList;
+    }
+
+    public void setTagList(List<Tag> tagList) {
+        this.tagList = tagList;
+    }
+
+    @JsonProperty("subscribers")
+    public List<User> getSubscriberList() {
+        if (subscriberList == null) {
+            subscriberList = new ArrayList<>();
+        }
+        return subscriberList;
+    }
+
+    public void setSubscriberList(List<User> subscriberList) {
+        this.subscriberList = subscriberList;
+    }
+
+    @JsonProperty("comments")
+    public List<Comment> getCommentList() {
+        if (commentList == null) {
+            commentList = new ArrayList<>();
+        }
+        return commentList;
+    }
+
+    public void setCommentList(List<Comment> commentList) {
+        this.commentList = commentList;
+    }
+}
