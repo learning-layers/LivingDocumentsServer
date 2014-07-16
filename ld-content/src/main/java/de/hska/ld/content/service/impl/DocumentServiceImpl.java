@@ -51,6 +51,13 @@ public class DocumentServiceImpl extends AbstractService<Document> implements Do
         return super.save(document);
     }
 
+    @Override
+    public void markAsDeleted(Long id) {
+        Document document = findById(id);
+        document.setDeleted(true);
+        super.save(document);
+    }
+
     private <T extends Content> List<T> prepareContentList(List<T> contentList) {
         User currentUser = Core.currentUser();
         Date now = new Date();

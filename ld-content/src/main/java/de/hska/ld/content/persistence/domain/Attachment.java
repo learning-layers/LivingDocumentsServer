@@ -22,14 +22,35 @@
 
 package de.hska.ld.content.persistence.domain;
 
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.Table;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLConnection;
 
 @Entity
 @Table(name = "ld_attachment")
 public class Attachment extends Content {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Attachment.class);
+
+    public Attachment() {
+    }
+
+    public Attachment(InputStream inputStream, String name) {
+        try {
+            this.mimeType = URLConnection.guessContentTypeFromStream(inputStream);
+            this.source = IOUtils.toByteArray(inputStream);
+            this.name = name;
+        } catch (IOException e) {
+            LOGGER.warn("Unable to set source or mime type from input stream.", e);
+        }
+    }
 
     @Column(name = "name", nullable = false)
     private String name;

@@ -1,5 +1,28 @@
+/**
+ * Code contributed to the Learning Layers project
+ * http://www.learning-layers.eu
+ * Development is partly funded by the FP7 Programme of the European
+ * Commission under Grant Agreement FP7-ICT-318209.
+ * Copyright (c) 2014, Karlsruhe University of Applied Sciences.
+ * For a list of contributors see the AUTHORS file at the top-level directory
+ * of this distribution.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package de.hska.ld.content;
 
+import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
@@ -10,7 +33,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.InputStream;
+
+import static de.hska.ld.content.ContentFixture.newDocument;
+
 public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
+
+    static final String TEST_PDF = "test.pdf";
 
     @Autowired
     DocumentService documentService;
@@ -23,7 +52,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
     }
 
     @Test
-    public void testSaveDocument() {
+    public void testSaveDocumentWithContent() {
         Document document = new Document();
         document.setTitle("Title");
         document.setDescription("Description");
@@ -36,6 +65,10 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         Comment comment = new Comment();
         comment.setText("Text");
         document.getCommentList().add(comment);
+
+        InputStream in = JcrIntegrationTest.class.getResourceAsStream("/" + TEST_PDF);
+        Attachment attachment = new Attachment(in, TEST_PDF);
+        document.getAttachmentList().add(attachment);
 
         document = documentService.save(document);
 
@@ -50,5 +83,14 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
 
         Assert.assertNotNull(document.getCommentList().get(0).getText().contains("(updated)"));
         Assert.assertNotNull(document.getModifiedAt());
+    }
+
+    @Test
+    public void testMarkDocumentAsDeleted() {
+        Document document = documentService.save(newDocument());
+        Assert.assertFalse(document.isDeleted());
+        documentService.markAsDeleted(document.getId());
+        document = documentService.findById(document.getId());
+        Assert.assertTrue(document.isDeleted());
     }
 }

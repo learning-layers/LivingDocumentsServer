@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.persistence.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.hska.ld.core.persistence.domain.User;
 
@@ -49,6 +50,9 @@ public abstract class Content {
     @ManyToOne
     @JoinColumn(name = "creator_id")
     private User creator;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "content_tag",
@@ -98,6 +102,15 @@ public abstract class Content {
 
     public void setCreator(User creator) {
         this.creator = creator;
+    }
+
+    @JsonIgnore
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     @JsonProperty("tags")
