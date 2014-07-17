@@ -65,7 +65,8 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return repository.findByUsername(username);
+        User user = repository.findByUsername(username);
+        return user;
     }
 
     @Override

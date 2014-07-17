@@ -46,7 +46,7 @@ public class CrossOriginFilter implements Filter {
         String url = request.getRequestURL().toString();
         if (!url.contains("push")) {
             String origin = request.getHeader("Origin");
-            if (origin != null && origin.equals(allowedOrigin)) {
+            if (allowedOrigin == null || allowedOrigin.isEmpty() || allowedOrigin.equals(origin)) {
                 HttpServletResponse response = (HttpServletResponse) res;
                 response.setHeader("Access-Control-Allow-Credentials", "true");
                 response.setHeader("Access-Control-Allow-Origin", origin);
