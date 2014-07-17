@@ -22,12 +22,9 @@
 
 package de.hska.ld.content.config;
 
-import de.hska.ld.content.controller.aop.JcrSessionAspect;
 import de.hska.ld.content.service.DocumentService;
-import de.hska.ld.content.service.JcrService;
 import de.hska.ld.content.service.SubscriptionService;
 import de.hska.ld.content.service.impl.DocumentServiceImpl;
-import de.hska.ld.content.service.impl.JackrabbitService;
 import de.hska.ld.content.service.impl.SubscriptionServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,17 +38,7 @@ public class ContentConfig {
     }
 
     @Bean
-    public JcrService jcrService() {
-        return new JackrabbitService();
-    }
-
-    @Bean
     public SubscriptionService subscriptionService() {
         return new SubscriptionServiceImpl();
-    }
-
-    @Bean
-    public JcrSessionAspect jcrSessionAspect() {
-        return new JcrSessionAspect();
     }
 }

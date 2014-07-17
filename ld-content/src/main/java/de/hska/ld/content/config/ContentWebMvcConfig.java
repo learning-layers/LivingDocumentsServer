@@ -22,7 +22,6 @@
 
 package de.hska.ld.content.config;
 
-import de.hska.ld.content.controller.resolver.JcrSessionMethodArgumentResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -34,15 +33,4 @@ import java.util.List;
 @EnableWebMvc
 @Configuration
 public class ContentWebMvcConfig extends WebMvcConfigurerAdapter {
-
-    @Override
-    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-        argumentResolvers.add(jcrSessionMethodArgumentResolver());
-        super.addArgumentResolvers(argumentResolvers);
-    }
-
-    @Bean
-    public HandlerMethodArgumentResolver jcrSessionMethodArgumentResolver() {
-        return new JcrSessionMethodArgumentResolver();
-    }
 }

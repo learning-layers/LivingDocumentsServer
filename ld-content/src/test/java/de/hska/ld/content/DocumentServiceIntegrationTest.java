@@ -68,7 +68,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         comment.setText("Text");
         document.getCommentList().add(comment);
 
-        InputStream in = JcrIntegrationTest.class.getResourceAsStream("/" + TEST_PDF);
+        InputStream in = DocumentServiceIntegrationTest.class.getResourceAsStream("/" + TEST_PDF);
         Attachment attachment = new Attachment(in, TEST_PDF);
         document.getAttachmentList().add(attachment);
 

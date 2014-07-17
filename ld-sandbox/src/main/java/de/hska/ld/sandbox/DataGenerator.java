@@ -22,42 +22,42 @@
 
 package de.hska.ld.sandbox;
 
-import de.hska.ld.content.service.JcrService;
-import de.hska.ld.content.util.Content;
-import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.core.service.UserService;
+import de.hska.ld.content.persistence.domain.Attachment;
+import de.hska.ld.content.persistence.domain.Comment;
+import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.service.DocumentService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import java.io.InputStream;
 
 public class DataGenerator {
 
     @Autowired
-    private JcrService jcrService;
-
-    @Autowired
-    public void init(JcrService jcrService, UserService userService) throws RepositoryException {
+    public void init(DocumentService documentService) {
         InputStream in = null;
-        Session session = null;
         try {
-            User admin = userService.findByUsername("admin");
-            session = jcrService.login(admin);
-            Node sandboxDocument = jcrService.createDocumentNode(session, "Sandbox Document", "This is the sandbox document");
-            sandboxDocument.setProperty(Content.LD_DESCRIPTION_PROPERTY, "Sandbox Node with PDF-File");
             in = DataGenerator.class.getResourceAsStream("/" + "sandbox.pdf");
-            jcrService.addFileNode(session, sandboxDocument, in, null, "main");
-            in = DataGenerator.class.getResourceAsStream("/" + "sandbox.pdf");
-            jcrService.addFileNode(session, sandboxDocument, in, "sandboxAttachment", "attachment");
-            jcrService.addComment(session, sandboxDocument, "Hello World!");
-            session.save();
+
+            Document document = new Document();
+            document.setTitle("Sandbox Document");
+            document.setDescription("This is the sandbox document");
+
+            Tag tag = new Tag();
+            tag.setName("Tag");
+            tag.setDescription("Description");
+            document.getTagList().add(tag);
+
+            Comment comment = new Comment();
+            comment.setText("Text");
+            document.getCommentList().add(comment);
+
+            Attachment attachment = new Attachment(in, "sandbox.pdf");
+            document.getAttachmentList().add(attachment);
+
+            documentService.save(document);
         } finally {
-            if (session != null) {
-                session.logout();
-            }
             IOUtils.closeQuietly(in);
         }
     }

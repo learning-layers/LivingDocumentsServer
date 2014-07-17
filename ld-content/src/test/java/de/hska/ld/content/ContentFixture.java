@@ -26,6 +26,7 @@ import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.service.DocumentService;
 
 import java.io.InputStream;
 import java.util.UUID;
@@ -48,7 +49,7 @@ public class ContentFixture {
         comment.setText(UUID.randomUUID().toString());
         document.getCommentList().add(comment);
 
-        InputStream in = JcrIntegrationTest.class.getResourceAsStream("/" + TEST_PDF);
+        InputStream in = ContentFixture.class.getResourceAsStream("/" + TEST_PDF);
         Attachment attachment = new Attachment(in, TEST_PDF);
         document.getAttachmentList().add(attachment);
 
