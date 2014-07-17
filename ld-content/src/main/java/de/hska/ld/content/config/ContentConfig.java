@@ -23,9 +23,11 @@
 package de.hska.ld.content.config;
 
 import de.hska.ld.content.controller.aop.JcrSessionAspect;
+import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.JcrService;
 import de.hska.ld.content.service.SubscriptionService;
+import de.hska.ld.content.service.impl.CommentServiceImpl;
 import de.hska.ld.content.service.impl.DocumentServiceImpl;
 import de.hska.ld.content.service.impl.JackrabbitService;
 import de.hska.ld.content.service.impl.SubscriptionServiceImpl;
@@ -38,6 +40,11 @@ public class ContentConfig {
     @Bean
     public DocumentService documentService() {
         return new DocumentServiceImpl();
+    }
+
+    @Bean
+    public CommentService commentService() {
+        return new CommentServiceImpl();
     }
 
     @Bean

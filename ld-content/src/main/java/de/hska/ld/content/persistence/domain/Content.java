@@ -39,6 +39,12 @@ public abstract class Content {
     @Column(name = "id")
     private Long id;
 
+    @Column(name = "updated_at")
+    public Date updatedAt;
+
+    @Version
+    public int version;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
@@ -143,6 +149,16 @@ public abstract class Content {
             commentList = new ArrayList<>();
         }
         return commentList;
+    }
+
+    @PrePersist
+    void createdAt() {
+        this.createdAt = this.updatedAt = new Date();
+    }
+
+    @PreUpdate
+    void updatedAt() {
+        this.updatedAt = new Date();
     }
 
     public void setCommentList(List<Comment> commentList) {

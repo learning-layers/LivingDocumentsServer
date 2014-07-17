@@ -54,4 +54,20 @@ public class ContentFixture {
 
         return document;
     }
+
+    public static Comment newComment() {
+        Comment comment = new Comment();
+        comment.setText(UUID.randomUUID().toString());
+
+        Tag tag = new Tag();
+        tag.setName(UUID.randomUUID().toString());
+        tag.setDescription(UUID.randomUUID().toString());
+        comment.getTagList().add(tag);
+
+        Comment subComment = new Comment();
+        subComment.setText(UUID.randomUUID().toString());
+        comment.getCommentList().add(subComment);
+
+        return comment;
+    }
 }

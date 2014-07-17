@@ -26,6 +26,7 @@ import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.AbstractIntegrationTest2;
 import org.junit.Assert;
@@ -33,8 +34,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.transaction.Transactional;
 import java.io.InputStream;
 
+import static de.hska.ld.content.ContentFixture.newComment;
 import static de.hska.ld.content.ContentFixture.newDocument;
 
 public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
@@ -43,6 +46,9 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
 
     @Autowired
     DocumentService documentService;
+
+    @Autowired
+    CommentService commentService;
 
     @Override
     @Before
@@ -92,5 +98,21 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         documentService.markAsDeleted(document.getId());
         document = documentService.findById(document.getId());
         Assert.assertTrue(document.isDeleted());
+    }
+
+    @Test
+    @Transactional
+    public void addComment() {
+        Document document = documentService.save(newDocument());
+        Assert.assertNotNull(document);
+
+        Comment comment = documentService.addComment(document.getId(), newComment());
+
+        document = documentService.findById(document.getId());
+        Assert.assertNotNull(document);
+
+        comment = commentService.findById(comment.getId());
+        document.getCommentList().size();
+        Assert.assertTrue(document.getCommentList().contains(comment));
     }
 }
