@@ -96,8 +96,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         Assert.assertTrue(document.isDeleted());
     }
 
-    /*@Test
-    @Transactional
+    @Test
     public void testAddComment() {
         Document document = documentService.save(newDocument());
         Assert.assertNotNull(document);
@@ -107,6 +106,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         document = documentService.findById(document.getId());
         Assert.assertNotNull(document);
 
+        document = documentService.loadContentCollection(document, Comment.class);
         Assert.assertTrue(document.getCommentList().contains(comment));
-    }*/
+    }
 }

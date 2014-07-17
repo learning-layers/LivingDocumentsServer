@@ -8,15 +8,16 @@ import de.hska.ld.content.persistence.repository.DocumentRepository;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.core.service.impl.AbstractService;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
-public class DocumentServiceImpl extends AbstractService<Document> implements DocumentService {
+public class DocumentServiceImpl extends AbstractContentService<Document> implements DocumentService {
 
     @Autowired
     private DocumentRepository repository;
@@ -46,9 +47,9 @@ public class DocumentServiceImpl extends AbstractService<Document> implements Do
             dbDocument.setAccessList(document.getAccessList());
             document = dbDocument;
         }
-        document.setTagList(prepareContentList(document.getTagList()));
+        /*document.setTagList(prepareContentList(document.getTagList()));
         document.setCommentList(prepareContentList(document.getCommentList()));
-        document.setAttachmentList(prepareContentList(document.getAttachmentList()));
+        document.setAttachmentList(prepareContentList(document.getAttachmentList()));*/
         return super.save(document);
     }
 
@@ -59,7 +60,7 @@ public class DocumentServiceImpl extends AbstractService<Document> implements Do
         super.save(document);
     }
 
-    private <T extends Content> List<T> prepareContentList(List<T> contentList) {
+    /*private <T extends Content> List<T> prepareContentList(List<T> contentList) {
         User currentUser = Core.currentUser();
         Date now = new Date();
         contentList.stream().forEach(c -> {
@@ -71,15 +72,19 @@ public class DocumentServiceImpl extends AbstractService<Document> implements Do
             }
         });
         return contentList;
-    }
+    }*/
+
+    private Comparator<Content> byDateTime = (c1, c2) -> c2.getCreatedAt().compareTo(c1.getCreatedAt());
 
     @Override
     @Transactional
     public Comment addComment(Long id, Comment comment) {
         Document document = findById(id);
         document.getCommentList().add(comment);
-        super.save(document);
-        return comment;
+        document = super.save(document);
+
+        Optional<Comment> optional = document.getCommentList().stream().sorted(byDateTime).findFirst();
+        return optional.get();
     }
 
     @Override

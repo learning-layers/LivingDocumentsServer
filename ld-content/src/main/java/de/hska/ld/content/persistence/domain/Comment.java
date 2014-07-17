@@ -43,4 +43,6 @@ public class Comment extends Content {
     public void setText(String text) {
         this.text = text;
     }
+
+
 }
