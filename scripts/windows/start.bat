@@ -1,1 +1,2 @@
-java -jar out\livingdocuments-boot-1.0.0.jar --spring.config.location application.properties
+cd out
+java -jar ld-boot-1.0.0.jar --spring.config.location application.properties
