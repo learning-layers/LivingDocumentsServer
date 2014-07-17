@@ -5,7 +5,6 @@ import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Content;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
-import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.persistence.domain.User;
@@ -21,9 +20,6 @@ public class DocumentServiceImpl extends AbstractService<Document> implements Do
 
     @Autowired
     private DocumentRepository repository;
-
-    @Autowired
-    private CommentService commentService;
 
     @Override
     @Transactional
@@ -82,7 +78,8 @@ public class DocumentServiceImpl extends AbstractService<Document> implements Do
     public Comment addComment(Long id, Comment comment) {
         Document document = findById(id);
         document.getCommentList().add(comment);
-        return commentService.save(comment);
+        super.save(document);
+        return comment;
     }
 
     @Override
