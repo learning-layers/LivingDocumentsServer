@@ -1,9 +1,6 @@
 package de.hska.ld.content.service.impl;
 
-import de.hska.ld.content.persistence.domain.Access;
-import de.hska.ld.content.persistence.domain.Comment;
-import de.hska.ld.content.persistence.domain.Content;
-import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
@@ -85,6 +82,22 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
         Optional<Comment> optional = document.getCommentList().stream().sorted(byDateTime).findFirst();
         return optional.get();
+    }
+
+    @Override
+    @Transactional
+    public void addTag(Long id, Tag tag) {
+        Document document = findById(id);
+        document.getTagList().add(tag);
+        super.save(document);
+    }
+
+    @Override
+    @Transactional
+    public void removeTag(Long id, Tag tag) {
+        Document document = findById(id);
+        document.getTagList().remove(tag);
+        super.save(document);
     }
 
     @Override

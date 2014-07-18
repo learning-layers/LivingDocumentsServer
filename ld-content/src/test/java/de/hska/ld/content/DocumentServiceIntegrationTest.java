@@ -27,6 +27,7 @@ import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.content.service.TagService;
 import de.hska.ld.core.AbstractIntegrationTest2;
 import org.junit.Assert;
 import org.junit.Before;
@@ -45,6 +46,9 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
 
     @Autowired
     DocumentService documentService;
+
+    @Autowired
+    TagService tagService;
 
     @Override
     @Before
@@ -108,5 +112,21 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
 
         document = documentService.loadContentCollection(document, Comment.class);
         Assert.assertTrue(document.getCommentList().contains(comment));
+    }
+
+    @Test
+    public void testAddTag() {
+        Document document = documentService.save(newDocument());
+        Assert.assertNotNull(document);
+
+        Tag tag = tagService.createTag(TagServiceIntegrationTest.TAG_NAME1, TagServiceIntegrationTest.TAG_DESCRIPTION1);
+
+        documentService.addTag(document.getId(), tag);
+
+        document = documentService.findById(document.getId());
+        Assert.assertNotNull(document);
+
+        document = documentService.loadContentCollection(document, Tag.class);
+        Assert.assertTrue(document.getTagList().contains(tag));
     }
 }

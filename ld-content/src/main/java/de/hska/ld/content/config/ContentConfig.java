@@ -24,8 +24,10 @@ package de.hska.ld.content.config;
 
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.SubscriptionService;
+import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.service.impl.DocumentServiceImpl;
 import de.hska.ld.content.service.impl.SubscriptionServiceImpl;
+import de.hska.ld.content.service.impl.TagServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,6 +38,9 @@ public class ContentConfig {
     public DocumentService documentService() {
         return new DocumentServiceImpl();
     }
+
+    @Bean
+    public TagService tagService() { return new TagServiceImpl(); }
 
     @Bean
     public SubscriptionService subscriptionService() {

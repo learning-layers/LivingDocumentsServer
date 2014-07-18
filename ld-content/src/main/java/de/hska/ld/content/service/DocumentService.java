@@ -10,4 +10,8 @@ public interface DocumentService extends ContentService<Document> {
     void markAsDeleted(Long id);
 
     Comment addComment(Long id, Comment comment);
+
+    void addTag(Long id, Tag tag);
+
+    void removeTag(Long id, Tag tag);
 }
