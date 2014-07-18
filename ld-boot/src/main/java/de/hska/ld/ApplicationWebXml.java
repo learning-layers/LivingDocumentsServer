@@ -20,17 +20,19 @@
  * limitations under the License.
  */
 
-package de.hska.ld.boot;
+package de.hska.ld;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.web.SpringBootServletInitializer;
 
-@ComponentScan({"de.hska.ld.*.config", "de.hska.ld.*.persistence", "de.hska.ld.*.controller"})
-@EnableAutoConfiguration
-public class Application {
+/**
+ * Used to build a WAR file instead of a JAR. Even though @{de.hska.ld.Application} is
+ * no longer needed, you can leave it in place.
+ */
+public class ApplicationWebXml extends SpringBootServletInitializer {
 
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(Application.class);
     }
 }

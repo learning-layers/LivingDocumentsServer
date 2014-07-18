@@ -20,34 +20,17 @@
  * limitations under the License.
  */
 
-package de.hska.ld.content.dto;
+package de.hska.ld;
 
-import de.hska.ld.content.util.Content;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
+@ComponentScan
+@EnableAutoConfiguration
+public class Application {
 
-public class CommentNodeDto extends NodeDto {
-
-    String text;
-
-    public CommentNodeDto() {
-    }
-
-    public CommentNodeDto(Node node) {
-        super(node);
-        try {
-            this.text = node.getProperty(Content.LD_MESSAGE_PROPERTY).getString();
-        } catch (RepositoryException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
     }
 }

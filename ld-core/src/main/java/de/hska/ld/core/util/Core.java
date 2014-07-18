@@ -26,20 +26,15 @@ import de.hska.ld.core.persistence.domain.User;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import javax.jcr.Credentials;
-import javax.jcr.SimpleCredentials;
-
 public class Core {
-
-    public static final Credentials ADMIN_CREDENTIALS = new SimpleCredentials("admin", "admin".toCharArray());
 
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     public static final String ROLE_USER = "ROLE_USER";
 
-    public static final String API_RESOURCE = "/api";
-    public static final String RESOURCE_USER = API_RESOURCE + "/users";
-    public static final String RESOURCE_ROLE = API_RESOURCE + "/roles";
-    public static final String RESOURCE_INFO = API_RESOURCE + "/info";
+    public static final String RESOURCE_API = "/api";
+    public static final String RESOURCE_USER = RESOURCE_API + "/users";
+    public static final String RESOURCE_ROLE = RESOURCE_API + "/roles";
+    public static final String RESOURCE_INFO = RESOURCE_API + "/info";
 
     public static final String BOOTSTRAP_USER = "user";
     public static final String BOOTSTRAP_ADMIN = "admin";

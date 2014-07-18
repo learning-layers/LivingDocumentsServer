@@ -34,11 +34,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.transaction.Transactional;
 import java.io.InputStream;
 
-import static de.hska.ld.content.ContentFixture.newComment;
-import static de.hska.ld.content.ContentFixture.newDocument;
+import static de.hska.ld.content.ContentFixture.*;
 
 public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
 
@@ -119,7 +117,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         Document document = documentService.save(newDocument());
         Assert.assertNotNull(document);
 
-        Tag tag = tagService.createTag(TagServiceIntegrationTest.TAG_NAME1, TagServiceIntegrationTest.TAG_DESCRIPTION1);
+        Tag tag = tagService.save(newTag());
 
         documentService.addTag(document.getId(), tag);
 

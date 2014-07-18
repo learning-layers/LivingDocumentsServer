@@ -25,14 +25,15 @@ package de.hska.ld.content.controller;
 import de.hska.ld.content.service.SubscriptionService;
 import de.hska.ld.content.util.Content;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * <p><b>Resource:</b> {@value Content#RESOURCE_CONTENT}
+ * <p><b>Resource:</b> {@value Content#RESOURCE_DOCUMENT}
  */
 @RestController
-@RequestMapping(Content.RESOURCE_CONTENT)
-public class ContentController {
+@RequestMapping(Content.RESOURCE_DOCUMENT)
+public class DocumentController {
 
     @Autowired
     private SubscriptionService subscriptionService;
@@ -70,7 +71,7 @@ public class ContentController {
 //     * <p>
 //     * <pre>
 //     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> POST {@value Content#RESOURCE_CONTENT}/document/{documentNodeId}
+//     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document/{documentNodeId}
 //     * </pre>
 //     *
 //     * @param documentDto Contains title and optional description of the new document. Example:
@@ -101,7 +102,7 @@ public class ContentController {
 //     * <p>
 //     * <pre>
 //     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> DELETE {@value Content#RESOURCE_CONTENT}/document/{documentNodeId}
+//     *     <b>Path:</b> DELETE {@value Content#RESOURCE_DOCUMENT}/document/{documentNodeId}
 //     * </pre>
 //     *
 //     * @param documentNodeId the node id of the node one wants to delete
@@ -127,7 +128,7 @@ public class ContentController {
 //     * <p>
 //     * <pre>
 //     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> POST {@value Content#RESOURCE_CONTENT}/document/upload
+//     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document/upload
 //     * </pre>
 //     *
 //     * @param file           the Multipart file that has been uploaded
@@ -165,8 +166,8 @@ public class ContentController {
 //     * <p>
 //     * <pre>
 //     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path - option 1 (downloading an attachment):</b> GET {@value Content#RESOURCE_CONTENT}/document/{documentNodeId}/download?attachment={attachmentNodeId}
-//     *     <b>Path - option 2 (download a main content):</b> GET {@value Content#RESOURCE_CONTENT}/document/{documentNodeId}/download
+//     *     <b>Path - option 1 (downloading an attachment):</b> GET {@value Content#RESOURCE_DOCUMENT}/document/{documentNodeId}/download?attachment={attachmentNodeId}
+//     *     <b>Path - option 2 (download a main content):</b> GET {@value Content#RESOURCE_DOCUMENT}/document/{documentNodeId}/download
 //     * </pre>
 //     *
 //     * @param documentNodeId   the node id of the document that contains the needed attachment node
@@ -217,7 +218,7 @@ public class ContentController {
 //     * <p>
 //     * <pre>
 //     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path</b> POST {@value Content#RESOURCE_CONTENT}/{nodeId}/comment
+//     *     <b>Path</b> POST {@value Content#RESOURCE_DOCUMENT}/{nodeId}/comment
 //     * </pre>
 //     *
 //     * @param nodeId  the node id of the parent to which the new comment should be added
@@ -243,7 +244,7 @@ public class ContentController {
 //     * <p>
 //     * <pre>
 //     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> PUT {@value Content#RESOURCE_CONTENT}/comment
+//     *     <b>Path:</b> PUT {@value Content#RESOURCE_DOCUMENT}/comment
 //     * </pre>
 //     *
 //     * @param commentNodeDto the node content that contains the changes to this comment. Example:<br>
@@ -271,7 +272,7 @@ public class ContentController {
 //     * <p>
 //     * <pre>
 //     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> POST {@value Content#RESOURCE_CONTENT}/{nodeId}/tag
+//     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/{nodeId}/tag
 //     * </pre>
 //     *
 //     * @param nodeId the node id of a node that shall be tagged
@@ -304,7 +305,7 @@ public class ContentController {
 //     * <p>
 //     * <pre>
 //     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> DELETE {@value Content#RESOURCE_CONTENT}/tag/remove?tagName=&lt;tagName&gt;
+//     *     <b>Path:</b> DELETE {@value Content#RESOURCE_DOCUMENT}/tag/remove?tagName=&lt;tagName&gt;
 //     * </pre>
 //     *
 //     * @param taggedNodeId the node id of the node that contains the tag
@@ -335,7 +336,7 @@ public class ContentController {
 //     * <p>
 //     * <pre>
 //     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> POST {@value Content#RESOURCE_CONTENT}/{nodeId}/subscribe
+//     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/{nodeId}/subscribe
 //     * </pre>
 //     *
 //     * @param nodeId the node id of the node that shall be tracked

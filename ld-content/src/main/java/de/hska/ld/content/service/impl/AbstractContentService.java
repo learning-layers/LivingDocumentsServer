@@ -12,6 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class AbstractContentService<T extends Content> extends AbstractService<T> implements ContentService<T> {
 
     @Override
+    public void markAsDeleted(Long id) {
+        T t = findById(id);
+        t.setDeleted(true);
+        super.save(t);
+    }
+
+    @Override
     @Transactional
     public T loadContentCollection(T t, Class... clazzArray) {
         t = findById(t.getId());

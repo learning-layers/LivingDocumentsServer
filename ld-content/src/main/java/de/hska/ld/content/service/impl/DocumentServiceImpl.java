@@ -11,13 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 public class DocumentServiceImpl extends AbstractContentService<Document> implements DocumentService {
 
     @Autowired
     private DocumentRepository repository;
+
+    private Comparator<Content> byDateTime = (c1, c2) -> c2.getCreatedAt().compareTo(c1.getCreatedAt());
 
     @Override
     @Transactional
@@ -44,37 +45,10 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             dbDocument.setAccessList(document.getAccessList());
             document = dbDocument;
         }
-        /*document.setTagList(prepareContentList(document.getTagList()));
-        document.setCommentList(prepareContentList(document.getCommentList()));
-        document.setAttachmentList(prepareContentList(document.getAttachmentList()));*/
         return super.save(document);
     }
 
     @Override
-    public void markAsDeleted(Long id) {
-        Document document = findById(id);
-        document.setDeleted(true);
-        super.save(document);
-    }
-
-    /*private <T extends Content> List<T> prepareContentList(List<T> contentList) {
-        User currentUser = Core.currentUser();
-        Date now = new Date();
-        contentList.stream().forEach(c -> {
-            if (c.getId() == null) {
-                c.setCreator(currentUser);
-                c.setCreatedAt(now);
-            } else {
-                c.setModifiedAt(now);
-            }
-        });
-        return contentList;
-    }*/
-
-    private Comparator<Content> byDateTime = (c1, c2) -> c2.getCreatedAt().compareTo(c1.getCreatedAt());
-
-    @Override
-    @Transactional
     public Comment addComment(Long id, Comment comment) {
         Document document = findById(id);
         document.getCommentList().add(comment);
@@ -85,7 +59,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    @Transactional
     public void addTag(Long id, Tag tag) {
         Document document = findById(id);
         document.getTagList().add(tag);
@@ -93,7 +66,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    @Transactional
     public void removeTag(Long id, Tag tag) {
         Document document = findById(id);
         document.getTagList().remove(tag);

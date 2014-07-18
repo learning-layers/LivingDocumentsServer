@@ -58,7 +58,7 @@ public abstract class Content {
     @Column(name = "deleted", nullable = false)
     private boolean deleted;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "content_tag",
             joinColumns = {@JoinColumn(name = "content_id")},
             inverseJoinColumns = {@JoinColumn(name = "tag_id")})

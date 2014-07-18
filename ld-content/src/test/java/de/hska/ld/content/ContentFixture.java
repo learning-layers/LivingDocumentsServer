@@ -26,7 +26,6 @@ import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
-import de.hska.ld.content.service.DocumentService;
 
 import java.io.InputStream;
 import java.util.UUID;
@@ -34,6 +33,9 @@ import java.util.UUID;
 public class ContentFixture {
 
     static final String TEST_PDF = "test.pdf";
+
+    public static String TAG_NAME1 = "tagName1";
+    public static String TAG_DESCRIPTION1 = "tagDescription1";
 
     public static Document newDocument() {
         Document document = new Document();
@@ -70,5 +72,16 @@ public class ContentFixture {
         comment.getCommentList().add(subComment);
 
         return comment;
+    }
+
+    public static Tag newTag() {
+        return newTag(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+    }
+
+    public static Tag newTag(String name, String description) {
+        Tag tag = new Tag();
+        tag.setName(name);
+        tag.setDescription(description);
+        return tag;
     }
 }

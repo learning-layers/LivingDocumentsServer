@@ -26,20 +26,6 @@ import de.hska.ld.core.util.Core;
 
 public class Content {
 
-    public static final String LD_DOCUMENT = "ld:document";
-    public static final String LD_DOCUMENTS = "ld:documents";
-
-    public static final String LD_MAIN_FILE_NODE = "file";
-    public static final String LD_COMMENTS_NODE = "comments";
-    public static final String LD_TAGS_NODE = "tags";
-    public static final String LD_ATTACHMENTS_NODE = "attachments";
-    public static final String LD_TITLE_PROPERTY = "title";
-    public static final String LD_DESCRIPTION_PROPERTY = "description";
-
-    public static final String LD_MESSAGE_PROPERTY = "message";
-    public static final String LD_NAME_PROPERTY = "name";
-
-    public static final String JCR_LASTMODIFIED_BY = "jcr:lastModifiedBy";
-
-    public static final String RESOURCE_CONTENT = Core.API_RESOURCE + "/content";
+    public static final String RESOURCE_DOCUMENT = Core.RESOURCE_API + "/document";
+    public static final String RESOURCE_TAG = Core.RESOURCE_API + "/tags";
 }
