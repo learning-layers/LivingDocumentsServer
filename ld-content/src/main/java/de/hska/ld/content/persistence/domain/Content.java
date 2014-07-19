@@ -149,19 +149,19 @@ public abstract class Content {
         return commentList;
     }
 
+    public void setCommentList(List<Comment> commentList) {
+        this.commentList = commentList;
+    }
+
     @PrePersist
     void prePersist() {
-        this.createdAt = this.modifiedAt = new Date();
+        this.createdAt = new Date();
         this.creator = Core.currentUser();
     }
 
     @PreUpdate
     void modifiedAt() {
         this.modifiedAt = new Date();
-    }
-
-    public void setCommentList(List<Comment> commentList) {
-        this.commentList = commentList;
     }
 
     @Override

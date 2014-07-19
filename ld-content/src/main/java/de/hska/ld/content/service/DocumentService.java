@@ -22,11 +22,16 @@
 
 package de.hska.ld.content.service;
 
+import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.core.persistence.domain.User;
+import org.springframework.data.domain.Page;
 
 public interface DocumentService extends ContentService<Document> {
+
+    Page<Document> getDocumentPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
     void markAsDeleted(Long id);
 
@@ -35,4 +40,6 @@ public interface DocumentService extends ContentService<Document> {
     void addTag(Long id, Tag tag);
 
     void removeTag(Long id, Tag tag);
+
+    Document addAccess(Document document, User user, Access.Permission... permission);
 }

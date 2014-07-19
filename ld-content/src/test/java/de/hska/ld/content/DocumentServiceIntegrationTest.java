@@ -22,21 +22,23 @@
 
 package de.hska.ld.content;
 
-import de.hska.ld.content.persistence.domain.Attachment;
-import de.hska.ld.content.persistence.domain.Comment;
-import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
 import de.hska.ld.core.AbstractIntegrationTest2;
+import de.hska.ld.core.exception.UserNotAuthorizedException;
+import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 
 import java.io.InputStream;
 
 import static de.hska.ld.content.ContentFixture.*;
+import static de.hska.ld.core.fixture.CoreFixture.newUser;
 
 public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
 
@@ -47,6 +49,9 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
 
     @Autowired
     TagService tagService;
+
+    @Autowired
+    UserService userService;
 
     @Override
     @Before
@@ -61,15 +66,6 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         document.setTitle("Title");
         document.setDescription("Description");
 
-        Tag tag = new Tag();
-        tag.setName("Tag");
-        tag.setDescription("Description");
-        document.getTagList().add(tag);
-
-        Comment comment = new Comment();
-        comment.setText("Text");
-        document.getCommentList().add(comment);
-
         InputStream in = DocumentServiceIntegrationTest.class.getResourceAsStream("/" + TEST_PDF);
         Attachment attachment = new Attachment(in, TEST_PDF);
         document.getAttachmentList().add(attachment);
@@ -81,11 +77,9 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         Assert.assertNotNull(document.getCreator());
         Assert.assertNotNull(document.getCreatedAt());
 
-        document.getCommentList().get(0).setText("Text (updated)");
-
+        document.setTitle(document.getTitle() + " (updated)");
         document = documentService.save(document);
 
-        Assert.assertNotNull(document.getCommentList().get(0).getText().contains("(updated)"));
         Assert.assertNotNull(document.getModifiedAt());
     }
 
@@ -119,6 +113,17 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
 
         Tag tag = tagService.save(newTag());
 
+        User userWithoutAccess = userService.save(newUser());
+        setAuthentication(userWithoutAccess);
+        UserNotAuthorizedException userNotAuthorizedException = null;
+        try {
+            documentService.addTag(document.getId(), tag);
+        } catch (UserNotAuthorizedException e) {
+            userNotAuthorizedException = e;
+        }
+        Assert.assertNotNull(userNotAuthorizedException);
+
+        setAuthentication(testUser);
         documentService.addTag(document.getId(), tag);
 
         document = documentService.findById(document.getId());
@@ -126,5 +131,29 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
 
         document = documentService.loadContentCollection(document, Tag.class);
         Assert.assertTrue(document.getTagList().contains(tag));
+    }
+
+    @Test
+    public void testDocumentPageAccessControl() {
+        User userWithAccess = userService.save(newUser());
+        User userWithoutAccess = userService.save(newUser());
+
+        Document document = newDocument();
+        documentService.save(document);
+
+        document = documentService.addAccess(document, userWithAccess, Access.Permission.READ);
+        documentService.addAccess(document, userWithAccess, Access.Permission.WRITE);
+
+        setAuthentication(userWithAccess);
+        Page<Document> documentPage = documentService.getDocumentPage(0, 10, "DESC", "createdAt");
+
+        Assert.assertNotNull(documentPage);
+        Assert.assertTrue(documentPage.getNumberOfElements() == 1);
+
+        setAuthentication(userWithoutAccess);
+        documentPage = documentService.getDocumentPage(0, 10, "DESC", "createdAt");
+
+        Assert.assertNotNull(documentPage);
+        Assert.assertTrue(documentPage.getNumberOfElements() == 0);
     }
 }
