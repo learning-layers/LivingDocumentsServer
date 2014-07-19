@@ -22,7 +22,7 @@
 
 package de.hska.ld.content.controller;
 
-import de.hska.ld.content.service.SubscriptionService;
+import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DocumentController {
 
     @Autowired
-    private SubscriptionService subscriptionService;
+    private DocumentService documentService;
 
 //    @Secured(Core.ROLE_USER)
 //    @RequestMapping(method = RequestMethod.GET, value = "/list")

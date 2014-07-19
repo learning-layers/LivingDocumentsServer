@@ -32,6 +32,7 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLConnection;
 
 @Entity
 @Table(name = "ld_attachment")
@@ -43,7 +44,7 @@ public class Attachment extends Content {
 
     public Attachment(InputStream inputStream, String name) {
         try {
-            //this.mimeType = URLConection.guessContentTypeFromStream(inputStream); TODO
+            this.mimeType = URLConnection.guessContentTypeFromName(name);
             this.source = IOUtils.toByteArray(inputStream);
             this.name = name;
         } catch (IOException e) {

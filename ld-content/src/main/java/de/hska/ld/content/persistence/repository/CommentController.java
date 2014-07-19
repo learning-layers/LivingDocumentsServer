@@ -20,13 +20,10 @@
  * limitations under the License.
  */
 
-package de.hska.ld.content.service;
+package de.hska.ld.content.persistence.repository;
 
-import de.hska.ld.core.service.Service;
+import de.hska.ld.content.persistence.domain.Comment;
+import org.springframework.data.repository.CrudRepository;
 
-public interface ContentService<T> extends Service<T> {
-
-    void markAsDeleted(Long id);
-
-    T loadContentCollection(T t, Class... clazz);
+public interface CommentController extends CrudRepository<Comment, Long> {
 }
