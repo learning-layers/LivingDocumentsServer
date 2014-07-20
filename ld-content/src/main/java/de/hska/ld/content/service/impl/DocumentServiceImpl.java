@@ -47,7 +47,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             document.setAccessList(null);
             document.setAttachmentList(null);
             document.setCommentList(null);
-            document.setSubscriberList(null);
+            document.setSubscriptionList(null);
             document.setTagList(null);
         } else {
             boolean isCreator = dbDocument.getCreator().getId().equals(currentUser.getId());

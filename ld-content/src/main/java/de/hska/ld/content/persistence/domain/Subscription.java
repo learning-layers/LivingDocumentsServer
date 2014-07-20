@@ -20,64 +20,69 @@
  * limitations under the License.
  */
 
-
 package de.hska.ld.content.persistence.domain;
 
 import de.hska.ld.core.persistence.domain.User;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 @Entity
-@Table(name = "subscription", uniqueConstraints = @UniqueConstraint(columnNames = {"subscriber_id", "ref_id"}))
+@Table(name = "subscription")
 public class Subscription {
+
+    public Subscription() {
+    }
+
+    public Subscription(User user, Type... types) {
+        this.typeList = new ArrayList<>(Arrays.asList(types));
+        this.user = user;
+        this.createdAt = new Date();
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "subscription_id")
     private Long id;
 
-    @Column(name = "subscriber_id")
-    private User subscriber;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    @Column(name = "ref_id")
-    private String refId;
-
-    @Column(name = "type")
-    private Type type;
+    @ElementCollection(targetClass = Type.class)
+    @CollectionTable(name = "type", joinColumns = @JoinColumn(name = "id"))
+    @Column(name = "type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private List<Type> typeList;
 
     @Column(name = "created_at")
     private Date createdAt;
 
-    public Subscription(String refId, Type type, User subscriber) {
-        this.refId = refId;
-        this.type = type;
-        this.subscriber = subscriber;
-        this.createdAt = new Date();
+    public Long getId() {
+        return id;
     }
 
-    public User getSubscriber() {
-        return subscriber;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public void setSubscriber(User subscriber) {
-        this.subscriber = subscriber;
+    public User getUser() {
+        return user;
     }
 
-    public String getRefId() {
-        return refId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public void setRefId(String refId) {
-        this.refId = refId;
+    public List<Type> getTypeList() {
+        return typeList;
     }
 
-    public Type getType() {
-        return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
+    public void setTypeList(List<Type> typeList) {
+        this.typeList = typeList;
     }
 
     public Date getCreatedAt() {
@@ -89,6 +94,6 @@ public class Subscription {
     }
 
     public enum Type {
-        DOCUMENT, ATTACHMENT, COMMENT, DISCUSSION, USER
+        MAIN_CONTENT, ATTACHMENT, COMMENT, DISCUSSION
     }
 }

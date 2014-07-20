@@ -22,6 +22,8 @@
 
 package de.hska.ld.content.service;
 
+import de.hska.ld.content.persistence.domain.Subscription;
+import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.Service;
 
 public interface ContentService<T> extends Service<T> {
@@ -29,4 +31,8 @@ public interface ContentService<T> extends Service<T> {
     void markAsDeleted(Long id);
 
     T loadContentCollection(T t, Class... clazz);
+
+    T addSubscription(Long id, User user, Subscription.Type... type);
+
+    T removeSubscription(Long id, User user, Subscription.Type... type);
 }
