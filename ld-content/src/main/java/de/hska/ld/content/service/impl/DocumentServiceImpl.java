@@ -102,6 +102,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         super.save(document);
     }
 
+    @Override
     public Document addAccess(Document document, User user, Access.Permission... permissions) {
         Access access;
         try {
@@ -117,6 +118,26 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             document.getAccessList().add(access);
             access.setUser(user);
             access.getPermissionList().addAll(Arrays.asList(permissions));
+        }
+        return super.save(document);
+    }
+
+    @Override
+    public Document removeAccess(Document document, User user, Access.Permission... permissions) {
+        Access access;
+        try {
+            access = document.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
+            List<Access.Permission> pl = access.getPermissionList();
+            for (Access.Permission p : permissions) {
+                if (pl.contains(p)) {
+                    pl.remove(p);
+                }
+            }
+            if (pl.size() == 0) {
+                document.getAccessList().remove(access);
+            }
+        } catch (NoSuchElementException e) {
+            // do nothing
         }
         return super.save(document);
     }

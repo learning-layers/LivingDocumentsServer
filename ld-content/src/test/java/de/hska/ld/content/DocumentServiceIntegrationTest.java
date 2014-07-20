@@ -61,7 +61,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
     }
 
     @Test
-    public void testSaveDocumentWithContent() {
+    public void testSaveDocument() {
         Document document = new Document();
         document.setTitle("Title");
         document.setDescription("Description");
@@ -76,6 +76,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         Assert.assertNotNull(document.getId());
         Assert.assertNotNull(document.getCreator());
         Assert.assertNotNull(document.getCreatedAt());
+        Assert.assertNull(document.getModifiedAt());
 
         document.setTitle(document.getTitle() + " (updated)");
         document = documentService.save(document);
@@ -138,11 +139,9 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         User userWithAccess = userService.save(newUser());
         User userWithoutAccess = userService.save(newUser());
 
-        Document document = newDocument();
-        documentService.save(document);
+        Document document = documentService.save(newDocument());
 
-        document = documentService.addAccess(document, userWithAccess, Access.Permission.READ);
-        documentService.addAccess(document, userWithAccess, Access.Permission.WRITE);
+        documentService.addAccess(document, userWithAccess, Access.Permission.READ);
 
         setAuthentication(userWithAccess);
         Page<Document> documentPage = documentService.getDocumentPage(0, 10, "DESC", "createdAt");
@@ -155,5 +154,48 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
 
         Assert.assertNotNull(documentPage);
         Assert.assertTrue(documentPage.getNumberOfElements() == 0);
+    }
+
+    @Test
+    public void testAddAndRemoveAccessFromDocument() {
+        Document document = documentService.save(newDocument());
+
+        User user = userService.save(newUser());
+        setAuthentication(user);
+
+        Page<Document> documentPage = documentService.getDocumentPage(0, 10, "DESC", "createdAt");
+        Assert.assertTrue(documentPage.getNumberOfElements() == 0);
+
+        setAuthentication(testUser);
+        document = documentService.addAccess(document, user, Access.Permission.READ);
+
+        setAuthentication(user);
+        documentPage = documentService.getDocumentPage(0, 10, "DESC", "createdAt");
+        Assert.assertTrue(documentPage.getNumberOfElements() == 1);
+
+        setAuthentication(testUser);
+        document = documentService.removeAccess(document, user, Access.Permission.READ);
+
+        setAuthentication(user);
+        documentPage = documentService.getDocumentPage(0, 10, "DESC", "createdAt");
+        Assert.assertTrue(documentPage.getNumberOfElements() == 0);
+
+        document.setTitle(document.getTitle() + "(updated)");
+        UserNotAuthorizedException userNotAuthorizedException = null;
+        try {
+            documentService.save(document);
+        } catch (UserNotAuthorizedException e) {
+            userNotAuthorizedException = e;
+        }
+        Assert.assertNotNull(userNotAuthorizedException);
+
+        setAuthentication(testUser);
+        document = documentService.addAccess(document, user, Access.Permission.READ, Access.Permission.WRITE);
+
+        setAuthentication(user);
+        document.setTitle(document.getTitle() + "(updated)");
+        document = documentService.save(document);
+
+        Assert.assertTrue(document.getTitle().contains("(updated)"));
     }
 }
