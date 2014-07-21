@@ -1,6 +1,7 @@
 package de.hska.ld.content.service.impl;
 
 import de.hska.ld.content.persistence.domain.Comment;
+import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.repository.CommentRepository;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
 import de.hska.ld.content.service.CommentService;
@@ -9,6 +10,10 @@ import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import javax.transaction.Transactional;
 import java.util.Date;
@@ -17,6 +22,19 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
 
     @Autowired
     private CommentRepository repository;
+
+    @Override
+    public Page<Comment> getDocumentCommentPage(Document document, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        User user = Core.currentUser();
+        return repository.findAll(document.getId(), user, pageable);
+    }
 
     @Override
     @Transactional
