@@ -26,6 +26,8 @@ public class TagServiceImpl extends AbstractContentService<Tag> implements TagSe
         return repository.findAll(pageable);
     }
 
+
+
     @Override
     public TagRepository getRepository() {
         return repository;

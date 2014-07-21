@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.config;
 
+import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.SubscriptionService;
 import de.hska.ld.content.service.TagService;

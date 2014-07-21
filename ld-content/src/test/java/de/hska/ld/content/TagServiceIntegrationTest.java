@@ -33,6 +33,8 @@ import org.springframework.data.domain.Page;
 
 import javax.validation.ConstraintViolationException;
 
+import java.util.List;
+
 import static de.hska.ld.content.ContentFixture.*;
 
 public class TagServiceIntegrationTest  extends AbstractIntegrationTest2 {
@@ -45,6 +47,10 @@ public class TagServiceIntegrationTest  extends AbstractIntegrationTest2 {
     public void setUp() throws Exception {
         super.setUp();
         setAuthentication(testUser);
+        List<Tag> tagList = tagService.findAll();
+        for (Tag tag: tagList) {
+            tagService.delete(tag);
+        }
     }
 
     @Test
@@ -66,7 +72,7 @@ public class TagServiceIntegrationTest  extends AbstractIntegrationTest2 {
         Assert.assertNotNull(tag.getId());
     }
 
-    @Test(expected = ConstraintViolationException.class)
+    @Test (expected = ConstraintViolationException.class)
     public void testCreateTagWithoutName() {
         Tag tag = tagService.save(newTag(TAG_NAME1, TAG_DESCRIPTION1));
         Assert.assertEquals(TAG_NAME1, tag.getName());

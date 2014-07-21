@@ -91,6 +91,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Transactional
     public void addTag(Long id, Tag tag) {
         Document document = findById(id);
         User user = Core.currentUser();
@@ -103,6 +104,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Transactional
     public void removeTag(Long id, Tag tag) {
         Document document = findById(id);
         document.getTagList().remove(tag);
@@ -110,6 +112,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Transactional
     public Document addAccess(Document document, User user, Access.Permission... permissions) {
         Access access;
         try {
@@ -130,6 +133,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Transactional
     public Document removeAccess(Document document, User user, Access.Permission... permissions) {
         Access access;
         try {
