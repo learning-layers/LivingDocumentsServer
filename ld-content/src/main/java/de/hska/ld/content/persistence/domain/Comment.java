@@ -22,9 +22,13 @@
 
 package de.hska.ld.content.persistence.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "ld_comment")
@@ -33,6 +37,14 @@ public class Comment extends Content {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parentId")
     private Content parent;
+
+    @JsonProperty("parentId")
+    public Long getParentId() {
+        if (parent == null) {
+            return null;
+        }
+        return parent.getId();
+    }
 
     @NotBlank
     @Column(name = "text", nullable = false)
@@ -46,6 +58,7 @@ public class Comment extends Content {
         this.text = text;
     }
 
+    @JsonIgnore
     public Content getParent() {
         return parent;
     }
