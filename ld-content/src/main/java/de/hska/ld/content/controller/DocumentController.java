@@ -32,10 +32,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p><b>Resource:</b> {@value Content#RESOURCE_DOCUMENT}
@@ -78,18 +75,18 @@ public class DocumentController {
     }
 
     /**
-      * This resource allows it to create a document.
-      * <p>
-      * <pre>
-      *     <b>Required roles:</b> ROLE_USER
-      *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
-      * </pre>
-      *
-      * @param document Contains title and optional description of the new document. Example:
-      *                    {title: 'New Document', description: '&lt;optional&gt;'}
-      * @return <b>200 OK</b> with the generated document<br>
-      * <b>400 Bad Request</b> if no title exists<br>
-      */
+     * This resource allows it to create a document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     * </pre>
+     *
+     * @param document Contains title and optional description of the new document. Example:
+     *                    {title: 'New Document', description: '&lt;optional&gt;'}
+     * @return <b>200 OK</b> with the generated document<br>
+     * <b>400 Bad Request</b> if no title exists<br>
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/document")
     public ResponseEntity<Document> createDocument(Document document) {
@@ -100,32 +97,26 @@ public class DocumentController {
         return new ResponseEntity<>(document, HttpStatus.OK);
     }
 
-//    /**
-//     * Deletes a document.
-//     * <p>
-//     * <pre>
-//     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> DELETE {@value Content#RESOURCE_DOCUMENT}/document/{documentNodeId}
-//     * </pre>
-//     *
-//     * @param documentNodeId the node id of the node one wants to delete
-//     * @return <b>200 OK</b> if the removal of the document node has been successfully executed<br>
-//     * <b>404 NOT FOUND</b> if a document node with the given id isn't present in this application<br>
-//     * <b>500 Internal Server Error</b> if there occured any other server side issue
-//     */
-//    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.DELETE, value = "/document/{documentNodeId}")
-//    public ResponseEntity removeDocumentNode(@PathVariable String documentNodeId, @JcrSession Session session) {
-//        try {
-//            jcrService.removeDocumentNode(session, documentNodeId);
-//        } catch (ConstraintViolationException e) {
-//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        } catch (RepositoryException e) {
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        }
-//        return new ResponseEntity<>(HttpStatus.OK);
-//    }
-//
+    /**
+     * Deletes a document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> DELETE {@value Content#RESOURCE_DOCUMENT}/document/{documentId}
+     * </pre>
+     *
+     * @param documentId the document id of the document one wants to delete
+     * @return <b>200 OK</b> if the removal of the document node has been successfully executed<br>
+     * <b>404 NOT FOUND</b> if a document node with the given id isn't present in this application<br>
+     * <b>500 Internal Server Error</b> if there occured any other server side issue
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.DELETE, value = "/document/{documentId}")
+    public ResponseEntity removeDocumentNode(@PathVariable Long documentId) {
+         documentService.markAsDeleted(documentId);
+         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 //    @Secured(Core.ROLE_USER)
 //    @RequestMapping(method = RequestMethod.GET, value = "/search")
 //    public ResponseEntity<List<NodeDto>> searchForDocumentNode(@JcrSession Session session, @RequestParam String query) {
@@ -140,33 +131,6 @@ public class DocumentController {
 //        } catch (RepositoryException e) {
 //            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 //        }
-//    }
-//
-//
-//    /**
-//     * Deletes a document.
-//     * <p>
-//     * <pre>
-//     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> DELETE {@value Content#RESOURCE_DOCUMENT}/document/{documentNodeId}
-//     * </pre>
-//     *
-//     * @param documentNodeId the node id of the node one wants to delete
-//     * @return <b>200 OK</b> if the removal of the document node has been successfully executed<br>
-//     * <b>404 NOT FOUND</b> if a document node with the given id isn't present in this application<br>
-//     * <b>500 Internal Server Error</b> if there occured any other server side issue
-//     */
-//    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.DELETE, value = "/document/{documentNodeId}")
-//    public ResponseEntity removeDocumentNode(@PathVariable String documentNodeId, @JcrSession Session session) {
-//        try {
-//            jcrService.removeDocumentNode(session, documentNodeId);
-//        } catch (ConstraintViolationException e) {
-//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        } catch (RepositoryException e) {
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        }
-//        return new ResponseEntity<>(HttpStatus.OK);
 //    }
 //
 //    /**
