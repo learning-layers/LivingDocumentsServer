@@ -42,15 +42,6 @@ public class ContentFixture {
         document.setTitle(UUID.randomUUID().toString());
         document.setDescription(UUID.randomUUID().toString());
 
-        Tag tag = new Tag();
-        tag.setName(UUID.randomUUID().toString());
-        tag.setDescription(UUID.randomUUID().toString());
-        document.getTagList().add(tag);
-
-        Comment comment = new Comment();
-        comment.setText(UUID.randomUUID().toString());
-        document.getCommentList().add(comment);
-
         InputStream in = ContentFixture.class.getResourceAsStream("/" + TEST_PDF);
         Attachment attachment = new Attachment(in, TEST_PDF);
         document.getAttachmentList().add(attachment);

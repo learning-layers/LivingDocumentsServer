@@ -32,11 +32,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@MappedSuperclass
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class Content {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "id")
     private Long id;
 
@@ -64,11 +65,11 @@ public abstract class Content {
             inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private List<Tag> tagList;
 
-    @OneToMany
-    @JoinTable(name = "content_subscriber",
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "content_subscription",
             joinColumns = {@JoinColumn(name = "content_id")},
-            inverseJoinColumns = {@JoinColumn(name = "user_id")})
-    private List<User> subscriberList;
+            inverseJoinColumns = {@JoinColumn(name = "subscription_id")})
+    private List<Subscription> subscriptionList;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "content_comment",
@@ -129,16 +130,16 @@ public abstract class Content {
         this.tagList = tagList;
     }
 
-    @JsonProperty("subscribers")
-    public List<User> getSubscriberList() {
-        if (subscriberList == null) {
-            subscriberList = new ArrayList<>();
+    @JsonProperty("subscriptions")
+    public List<Subscription> getSubscriptionList() {
+        if (subscriptionList == null) {
+            subscriptionList = new ArrayList<>();
         }
-        return subscriberList;
+        return subscriptionList;
     }
 
-    public void setSubscriberList(List<User> subscriberList) {
-        this.subscriberList = subscriberList;
+    public void setSubscriptionList(List<Subscription> subscriptionList) {
+        this.subscriptionList = subscriptionList;
     }
 
     @JsonProperty("comments")
@@ -149,19 +150,19 @@ public abstract class Content {
         return commentList;
     }
 
+    public void setCommentList(List<Comment> commentList) {
+        this.commentList = commentList;
+    }
+
     @PrePersist
     void prePersist() {
-        this.createdAt = this.modifiedAt = new Date();
+        this.createdAt = new Date();
         this.creator = Core.currentUser();
     }
 
     @PreUpdate
     void modifiedAt() {
         this.modifiedAt = new Date();
-    }
-
-    public void setCommentList(List<Comment> commentList) {
-        this.commentList = commentList;
     }
 
     @Override

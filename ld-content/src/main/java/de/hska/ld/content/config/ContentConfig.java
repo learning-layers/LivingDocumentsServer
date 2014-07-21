@@ -22,7 +22,6 @@
 
 package de.hska.ld.content.config;
 
-import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.SubscriptionService;
 import de.hska.ld.content.service.TagService;
@@ -42,10 +41,14 @@ public class ContentConfig {
     }
 
     @Bean
-    public CommentService commentService() { return new CommentServiceImpl(); }
+    public TagService tagService() {
+        return new TagServiceImpl();
+    }
 
     @Bean
-    public TagService tagService() { return new TagServiceImpl(); }
+    public CommentService commentService() {
+        return new CommentServiceImpl();
+    }
 
     @Bean
     public SubscriptionService subscriptionService() {

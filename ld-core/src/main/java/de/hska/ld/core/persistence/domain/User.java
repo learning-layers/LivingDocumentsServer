@@ -166,9 +166,7 @@ public class User implements UserDetails {
 
         User user = (User) o;
 
-        if (!username.equals(user.username)) return false;
-
-        return true;
+        return username.equals(user.username);
     }
 
     @Override

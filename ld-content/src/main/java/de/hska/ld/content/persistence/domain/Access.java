@@ -25,6 +25,8 @@ package de.hska.ld.content.persistence.domain;
 import de.hska.ld.core.persistence.domain.User;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "ld_access")
@@ -39,8 +41,11 @@ public class Access {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ElementCollection(targetClass = Permission.class)
+    @CollectionTable(name = "permission", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "permission", nullable = false)
-    private Permission permission;
+    @Enumerated(EnumType.STRING)
+    private List<Permission> permissionList;
 
     public Long getId() {
         return id;
@@ -58,12 +63,15 @@ public class Access {
         this.user = user;
     }
 
-    public Permission getPermission() {
-        return permission;
+    public List<Permission> getPermissionList() {
+        if (permissionList == null) {
+            permissionList = new ArrayList<>();
+        }
+        return permissionList;
     }
 
-    public void setPermission(Permission permission) {
-        this.permission = permission;
+    public void setPermissionList(List<Permission> permissionList) {
+        this.permissionList = permissionList;
     }
 
     public enum Permission {

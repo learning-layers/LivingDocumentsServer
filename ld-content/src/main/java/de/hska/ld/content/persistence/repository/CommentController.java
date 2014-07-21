@@ -20,19 +20,10 @@
  * limitations under the License.
  */
 
-package de.hska.ld.content.service;
+package de.hska.ld.content.persistence.repository;
 
-import de.hska.ld.content.persistence.domain.Subscription;
-import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.core.service.Service;
+import de.hska.ld.content.persistence.domain.Comment;
+import org.springframework.data.repository.CrudRepository;
 
-public interface ContentService<T> extends Service<T> {
-
-    void markAsDeleted(Long id);
-
-    T loadContentCollection(T t, Class... clazz);
-
-    T addSubscription(Long id, User user, Subscription.Type... type);
-
-    T removeSubscription(Long id, User user, Subscription.Type... type);
+public interface CommentController extends CrudRepository<Comment, Long> {
 }

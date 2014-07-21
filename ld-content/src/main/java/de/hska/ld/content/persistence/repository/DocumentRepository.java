@@ -23,7 +23,15 @@
 package de.hska.ld.content.persistence.repository;
 
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.core.persistence.domain.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 public interface DocumentRepository extends CrudRepository<Document, Long> {
+
+    @Query("SELECT d FROM Document d LEFT JOIN d.accessList al WHERE al.user = :user OR d.creator = :user")
+    Page<Document> findAll(@Param("user") User user, Pageable pageable);
 }
