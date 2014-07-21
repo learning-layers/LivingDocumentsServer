@@ -40,7 +40,31 @@ public class CommentServiceIntegrationTest extends AbstractIntegrationTest2 {
         savedComment.setText("NewTestText");
         Comment modifiedComment = commentService.save(savedComment);
 
-        Assert.assertNotNull("NewTestText".equals(modifiedComment.getText()));
+        Assert.assertEquals("NewTestText", modifiedComment.getText());
         Assert.assertNotNull(modifiedComment.getModifiedAt());
+    }
+
+    @Test
+    public void testReplyToComment() {
+        Comment comment = new Comment();
+        comment.setText("TestText");
+
+        Comment savedComment = commentService.save(comment);
+
+        Comment reply = new Comment();
+        reply.setText("TestReplyText");
+
+        reply = commentService.replyToComment(savedComment.getId(), reply);
+
+        Assert.assertNotNull(reply);
+        Assert.assertNotNull(reply.getId());
+        Assert.assertNotNull(reply.getCreator());
+        Assert.assertNotNull(reply.getCreatedAt());
+
+        reply.setText("NewReplyTestText");
+        Comment modifiedReply = commentService.save(reply);
+
+        Assert.assertEquals("NewReplyTestText", modifiedReply.getText());
+        Assert.assertNotNull(modifiedReply.getModifiedAt());
     }
 }
