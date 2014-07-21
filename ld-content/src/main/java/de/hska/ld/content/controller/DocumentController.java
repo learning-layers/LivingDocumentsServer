@@ -22,10 +22,19 @@
 
 package de.hska.ld.content.controller;
 
+import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
+import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -38,34 +47,36 @@ public class DocumentController {
     @Autowired
     private DocumentService documentService;
 
-//    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.GET, value = "/list")
-//    public ResponseEntity<List<NodeDto>> getDocumentNodeList(@JcrSession Session session) {
-//        try {
-//            List<Node> nodeList = jcrService.getDocumentNodeList(session);
-//            List<NodeDto> nodeDtoList = nodeList.stream().map(NodeDto::new).collect(Collectors.toList());
-//            return new ResponseEntity<>(nodeDtoList, HttpStatus.OK);
-//        } catch (RepositoryException e) {
-//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
-//
-//    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.GET, value = "/search")
-//    public ResponseEntity<List<NodeDto>> searchForDocumentNode(@JcrSession Session session, @RequestParam String query) {
-//        try {
-//            List<Node> nodeList = jcrService.searchDocumentNode(session, query);
-//            if (nodeList == null || nodeList.isEmpty()) {
-//                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//            } else {
-//                List<NodeDto> nodeDtoList = nodeList.stream().map(NodeDto::new).collect(Collectors.toList());
-//                return new ResponseEntity<>(nodeDtoList, HttpStatus.OK);
-//            }
-//        } catch (RepositoryException e) {
-//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
-//
+    /**
+     * <pre>
+     * Gets a page of documents.
+     *
+     * <b>Required roles:</b> ROLE_USER
+     * <b>Path:</b> GET {@value de.hska.ld.content.util.Content#RESOURCE_DOCUMENT}
+     * </pre>
+     *
+     * @param pageNumber    the page number as a request parameter (default: 0)
+     * @param pageSize      the page size as a request parameter (default: 10)
+     * @param sortDirection the sort direction as a request parameter (default: 'DESC')
+     * @param sortProperty  the sort property as a request parameter (default: 'createdAt')
+     * @return <b>200 OK</b> and a document page or <br>
+     * <b>404 Not Found</b> if no documents exists or <br>
+     * <b>403 Forbidden</b> if authorization failed
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<Page<Document>> getDocumentsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                 @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                 @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                 @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        Page<Document> documentsPage = documentService.getDocumentPage(pageNumber, pageSize, sortDirection, sortProperty);
+        if (documentsPage != null) {
+            return new ResponseEntity<>(documentsPage, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
 //    /**
 //     * This resource allows it to create a document node.
 //     * <p>
@@ -96,6 +107,23 @@ public class DocumentController {
 //            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 //        }
 //    }
+//
+//    @Secured(Core.ROLE_USER)
+//    @RequestMapping(method = RequestMethod.GET, value = "/search")
+//    public ResponseEntity<List<NodeDto>> searchForDocumentNode(@JcrSession Session session, @RequestParam String query) {
+//        try {
+//            List<Node> nodeList = jcrService.searchDocumentNode(session, query);
+//            if (nodeList == null || nodeList.isEmpty()) {
+//                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//            } else {
+//                List<NodeDto> nodeDtoList = nodeList.stream().map(NodeDto::new).collect(Collectors.toList());
+//                return new ResponseEntity<>(nodeDtoList, HttpStatus.OK);
+//            }
+//        } catch (RepositoryException e) {
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+//
 //
 //    /**
 //     * Deletes a document.

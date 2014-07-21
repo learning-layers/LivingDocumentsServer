@@ -48,9 +48,9 @@ public class TagController {
                                                  @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                  @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                  @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<Tag> lecturePage = tagService.getTagsPage(pageNumber, pageSize, sortDirection, sortProperty);
-        if (lecturePage != null) {
-            return new ResponseEntity<>(lecturePage, HttpStatus.OK);
+        Page<Tag> tagsPage = tagService.getTagsPage(pageNumber, pageSize, sortDirection, sortProperty);
+        if (tagsPage != null) {
+            return new ResponseEntity<>(tagsPage, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
