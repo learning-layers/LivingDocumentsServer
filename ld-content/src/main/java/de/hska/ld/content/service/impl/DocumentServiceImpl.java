@@ -59,6 +59,13 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    public Document removeComment(Long id, Comment comment) {
+        Document document = findById(id);
+        document.getCommentList().remove(comment);
+        return super.save(document);
+    }
+
+    @Override
     public void addTag(Long id, Tag tag) {
         Document document = findById(id);
         document.getTagList().add(tag);

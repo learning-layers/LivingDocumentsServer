@@ -1,0 +1,46 @@
+package de.hska.ld.content;
+
+import de.hska.ld.content.persistence.domain.Attachment;
+import de.hska.ld.content.persistence.domain.Comment;
+import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.service.CommentService;
+import de.hska.ld.core.AbstractIntegrationTest2;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.InputStream;
+
+public class CommentServiceIntegrationTest extends AbstractIntegrationTest2 {
+
+    @Autowired
+    CommentService commentService;
+
+    @Override
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        setAuthentication(testUser);
+    }
+
+    @Test
+    public void testSaveCommentWithContent() {
+        Comment comment = new Comment();
+        comment.setText("TestText");
+
+        Comment savedComment = commentService.save(comment);
+
+        Assert.assertNotNull(savedComment);
+        Assert.assertNotNull(savedComment.getId());
+        Assert.assertNotNull(savedComment.getCreator());
+        Assert.assertNotNull(savedComment.getCreatedAt());
+
+        savedComment.setText("NewTestText");
+        Comment modifiedComment = commentService.save(savedComment);
+
+        Assert.assertNotNull("NewTestText".equals(modifiedComment.getText()));
+        Assert.assertNotNull(modifiedComment.getModifiedAt());
+    }
+}
