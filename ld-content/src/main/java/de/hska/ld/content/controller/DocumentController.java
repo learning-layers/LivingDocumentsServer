@@ -77,35 +77,53 @@ public class DocumentController {
         }
     }
 
+    /**
+      * This resource allows it to create a document.
+      * <p>
+      * <pre>
+      *     <b>Required roles:</b> ROLE_USER
+      *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+      * </pre>
+      *
+      * @param document Contains title and optional description of the new document. Example:
+      *                    {title: 'New Document', description: '&lt;optional&gt;'}
+      * @return <b>200 OK</b> with the generated document<br>
+      * <b>400 Bad Request</b> if no title exists<br>
+      */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/document")
+    public ResponseEntity<Document> createDocument(Document document) {
+        if (document.getTitle() == null) {
+           return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        document = documentService.save(document);
+        return new ResponseEntity<>(document, HttpStatus.OK);
+    }
+
 //    /**
-//     * This resource allows it to create a document node.
+//     * Deletes a document.
 //     * <p>
 //     * <pre>
 //     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document/{documentNodeId}
+//     *     <b>Path:</b> DELETE {@value Content#RESOURCE_DOCUMENT}/document/{documentNodeId}
 //     * </pre>
 //     *
-//     * @param documentDto Contains title and optional description of the new document. Example:
-//     *                    {title: 'New Document', description: '&lt;optional&gt;'}
-//     * @return <b>200 OK</b> with the generated node contents<br>
-//     * <b>400 Bad Request</b> if no title exists<br>
-//     * <b>409 Conflict</b> if a node with the given id already exists<br>
-//     * <b>500 Internal Server Error</b> if there occurred any other server side issue
+//     * @param documentNodeId the node id of the node one wants to delete
+//     * @return <b>200 OK</b> if the removal of the document node has been successfully executed<br>
+//     * <b>404 NOT FOUND</b> if a document node with the given id isn't present in this application<br>
+//     * <b>500 Internal Server Error</b> if there occured any other server side issue
 //     */
 //    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.POST, value = "/document")
-//    public ResponseEntity<NodeDto> createDocumentNode(@JcrSession Session session, @RequestBody NodeDto documentDto) {
-//        if (documentDto.getTitle() == null) {
-//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//        }
+//    @RequestMapping(method = RequestMethod.DELETE, value = "/document/{documentNodeId}")
+//    public ResponseEntity removeDocumentNode(@PathVariable String documentNodeId, @JcrSession Session session) {
 //        try {
-//            Node documentNode = jcrService.createDocumentNode(session, documentDto.getTitle(), documentDto.getDescription());
-//            return new ResponseEntity<>(new NodeDto(documentNode), HttpStatus.OK);
-//        } catch (ItemExistsException e) {
-//            return new ResponseEntity<>(HttpStatus.CONFLICT);
-//        } catch (RepositoryException e) {
+//            jcrService.removeDocumentNode(session, documentNodeId);
+//        } catch (ConstraintViolationException e) {
 //            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        } catch (RepositoryException e) {
+//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 //        }
+//        return new ResponseEntity<>(HttpStatus.OK);
 //    }
 //
 //    @Secured(Core.ROLE_USER)
