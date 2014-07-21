@@ -146,7 +146,11 @@ public class DocumentController {
                                                                 @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
         Document document = documentService.findById(documentId);
         Page<Comment> commentsPage = commentService.getDocumentCommentPage(document, pageNumber, pageSize, sortDirection, sortProperty);
-        return new ResponseEntity<>(commentsPage, HttpStatus.OK);
+        if (commentsPage != null) {
+            return new ResponseEntity<>(commentsPage, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
 //    /**
