@@ -74,7 +74,7 @@ public class TagServiceIntegrationTest  extends AbstractIntegrationTest2 {
 
     @Test (expected = ConstraintViolationException.class)
     public void testCreateTagWithoutName() {
-        Tag tag = tagService.save(newTag(TAG_NAME1, TAG_DESCRIPTION1));
+        Tag tag = tagService.save(newTag(null, TAG_DESCRIPTION1));
         Assert.assertEquals(TAG_NAME1, tag.getName());
         Assert.assertEquals(TAG_DESCRIPTION1, tag.getDescription());
         Assert.assertNotNull(tag.getId());

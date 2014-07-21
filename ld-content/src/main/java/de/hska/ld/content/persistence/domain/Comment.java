@@ -24,13 +24,15 @@ package de.hska.ld.content.persistence.domain;
 
 import org.hibernate.validator.constraints.NotBlank;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "ld_comment")
 public class Comment extends Content {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parentId")
+    private Content parent;
 
     @NotBlank
     @Column(name = "text", nullable = false)

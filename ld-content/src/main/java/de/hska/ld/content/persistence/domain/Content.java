@@ -71,10 +71,10 @@ public abstract class Content {
             inverseJoinColumns = {@JoinColumn(name = "subscription_id")})
     private List<Subscription> subscriptionList;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "content_comment",
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "parent")
+    /*@JoinTable(name = "content_comment",
             joinColumns = {@JoinColumn(name = "content_id")},
-            inverseJoinColumns = {@JoinColumn(name = "comment_id")})
+            inverseJoinColumns = {@JoinColumn(name = "comment_id")})*/
     private List<Comment> commentList;
 
     public Long getId() {
