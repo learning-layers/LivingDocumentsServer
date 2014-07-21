@@ -45,4 +45,12 @@ public class Comment extends Content {
     public void setText(String text) {
         this.text = text;
     }
+
+    public Content getParent() {
+        return parent;
+    }
+
+    public void setParent(Content parent) {
+        this.parent = parent;
+    }
 }

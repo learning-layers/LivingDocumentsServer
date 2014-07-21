@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.TransactionSystemException;
 
 import javax.validation.ConstraintViolationException;
 
@@ -72,7 +73,7 @@ public class TagServiceIntegrationTest  extends AbstractIntegrationTest2 {
         Assert.assertNotNull(tag.getId());
     }
 
-    @Test (expected = ConstraintViolationException.class)
+    @Test(expected = TransactionSystemException.class)
     public void testCreateTagWithoutName() {
         Tag tag = tagService.save(newTag(null, TAG_DESCRIPTION1));
         Assert.assertEquals(TAG_NAME1, tag.getName());
