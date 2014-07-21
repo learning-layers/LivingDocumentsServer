@@ -138,12 +138,12 @@ public class DocumentController {
     * <b>404 NOT FOUND</b> if there is no node present within the system that has the specified nodeId
     */
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/{nodeId}/comments")
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/comments")
     public ResponseEntity<Page<Comment>> getCommentNodes(@PathVariable Long documentId,
-                                                                @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
-                                                                @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
-                                                                @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                                @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+                                                         @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                         @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                         @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                         @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
         Document document = documentService.findById(documentId);
         Page<Comment> commentsPage = commentService.getDocumentCommentPage(document, pageNumber, pageSize, sortDirection, sortProperty);
         if (commentsPage != null) {
