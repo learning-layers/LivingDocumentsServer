@@ -96,7 +96,7 @@ public class DocumentController {
      * <b>400 Bad Request</b> if no title exists<br>
      */
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.POST, value = "/document")
+    @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Document> createDocument(Document document) {
         if (document.getTitle() == null) {
            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -120,7 +120,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/document/{documentId}")
-    public ResponseEntity removeDocumentNode(@PathVariable Long documentId) {
+    public ResponseEntity removeDocument(@PathVariable Long documentId) {
          documentService.markAsDeleted(documentId);
          return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -139,7 +139,7 @@ public class DocumentController {
     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/comments")
-    public ResponseEntity<Page<Comment>> getCommentNodes(@PathVariable Long documentId,
+    public ResponseEntity<Page<Comment>> getCommentPage(@PathVariable Long documentId,
                                                          @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                          @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                          @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
