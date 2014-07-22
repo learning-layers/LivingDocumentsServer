@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.print.Doc;
@@ -55,7 +56,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
     }
 
     @Test
-    public void thatGETDocumentPageHttpOk() {
+    public void testGETDocumentPageHttpOk() {
         ResponseEntity<Document> response = post().resource(RESOURCE_API + RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
@@ -89,5 +90,25 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
         Assert.assertTrue(listSize > 0);
     }
 
+    @Test
+    public void testRemoveDocumentHttpOk() {
+        ResponseEntity<Document> response = post().resource(RESOURCE_API + RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
+        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Assert.assertNotNull(response.getBody().getId());
+
+        String URI = RESOURCE_API + RESOURCE_DOCUMENT + "/" + response.getBody().getId();
+        ResponseEntity response2 = delete().resource(URI).asUser().exec();
+        Assert.assertEquals(HttpStatus.OK, response2.getStatusCode());
+        boolean exceptionOccured = false;
+        try {
+            ResponseEntity<Document> response3 = get().resource(URI).asUser().exec(Document.class);
+        } catch (HttpClientErrorException e) {
+            Assert.assertTrue(e.toString().contains("404 Not Found"));
+            exceptionOccured = true;
+        }
+        if (!exceptionOccured) {
+            Assert.fail();
+        }
+    }
 
 }

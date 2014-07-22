@@ -107,6 +107,29 @@ public class DocumentController {
     }
 
     /**
+     * This resource allows it to create a document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     * </pre>
+     *
+     * @param document Contains title and optional description of the new document. Example:
+     *                    {title: 'New Document', description: '&lt;optional&gt;'}
+     * @return <b>200 OK</b> with the generated document<br>
+     * <b>400 Bad Request</b> if no title exists<br>
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
+    public ResponseEntity<Document> createDocument(@PathVariable Long documentId) {
+        Document document = documentService.findById(documentId);
+        if (document.isDeleted()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(document, HttpStatus.OK);
+    }
+
+    /**
      * Deletes a document.
      * <p>
      * <pre>
@@ -120,7 +143,7 @@ public class DocumentController {
      * <b>500 Internal Server Error</b> if there occured any other server side issue
      */
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.DELETE, value = "/document/{documentId}")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}")
     public ResponseEntity removeDocument(@PathVariable Long documentId) {
          documentService.markAsDeleted(documentId);
          return new ResponseEntity<>(HttpStatus.OK);
