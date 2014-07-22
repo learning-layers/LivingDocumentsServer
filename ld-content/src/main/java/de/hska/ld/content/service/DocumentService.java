@@ -31,7 +31,7 @@ import org.springframework.data.domain.Page;
 
 public interface DocumentService extends ContentService<Document> {
 
-    Page<Document> getDocumentPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+    Page<Document> getDocumentsPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
     void markAsDeleted(Long id);
 

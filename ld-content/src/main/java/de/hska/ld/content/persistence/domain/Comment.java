@@ -36,6 +36,7 @@ public class Comment extends Content {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parentId")
+    @JsonIgnore
     private Content parent;
 
     @JsonProperty("parentId")

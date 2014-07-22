@@ -23,7 +23,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     private Comparator<Content> byDateTime = (c1, c2) -> c2.getCreatedAt().compareTo(c1.getCreatedAt());
 
     @Override
-    public Page<Document> getDocumentPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+    public Page<Document> getDocumentsPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
         Sort.Direction direction;
         if (Sort.Direction.ASC.toString().equals(sortDirection)) {
             direction = Sort.Direction.ASC;

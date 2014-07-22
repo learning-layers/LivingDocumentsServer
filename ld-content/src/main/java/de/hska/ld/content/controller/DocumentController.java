@@ -24,7 +24,6 @@ package de.hska.ld.content.controller;
 
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
@@ -70,13 +69,13 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<Page<Document>> getDocumentsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+    public ResponseEntity<List<Document>> getDocumentsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                  @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                  @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                  @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<Document> documentsPage = documentService.getDocumentPage(pageNumber, pageSize, sortDirection, sortProperty);
+        Page<Document> documentsPage = documentService.getDocumentsPage(pageNumber, pageSize, sortDirection, sortProperty);
         if (documentsPage != null) {
-            return new ResponseEntity<>(documentsPage, HttpStatus.OK);
+            return new ResponseEntity<>(documentsPage.getContent(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

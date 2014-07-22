@@ -144,13 +144,13 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         documentService.addAccess(document, userWithAccess, Access.Permission.READ);
 
         setAuthentication(userWithAccess);
-        Page<Document> documentPage = documentService.getDocumentPage(0, 10, "DESC", "createdAt");
+        Page<Document> documentPage = documentService.getDocumentsPage(0, 10, "DESC", "createdAt");
 
         Assert.assertNotNull(documentPage);
         Assert.assertTrue(documentPage.getNumberOfElements() == 1);
 
         setAuthentication(userWithoutAccess);
-        documentPage = documentService.getDocumentPage(0, 10, "DESC", "createdAt");
+        documentPage = documentService.getDocumentsPage(0, 10, "DESC", "createdAt");
 
         Assert.assertNotNull(documentPage);
         Assert.assertTrue(documentPage.getNumberOfElements() == 0);
@@ -163,21 +163,21 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
         User user = userService.save(newUser());
         setAuthentication(user);
 
-        Page<Document> documentPage = documentService.getDocumentPage(0, 10, "DESC", "createdAt");
+        Page<Document> documentPage = documentService.getDocumentsPage(0, 10, "DESC", "createdAt");
         Assert.assertTrue(documentPage.getNumberOfElements() == 0);
 
         setAuthentication(testUser);
         document = documentService.addAccess(document, user, Access.Permission.READ);
 
         setAuthentication(user);
-        documentPage = documentService.getDocumentPage(0, 10, "DESC", "createdAt");
+        documentPage = documentService.getDocumentsPage(0, 10, "DESC", "createdAt");
         Assert.assertTrue(documentPage.getNumberOfElements() == 1);
 
         setAuthentication(testUser);
         document = documentService.removeAccess(document, user, Access.Permission.READ);
 
         setAuthentication(user);
-        documentPage = documentService.getDocumentPage(0, 10, "DESC", "createdAt");
+        documentPage = documentService.getDocumentsPage(0, 10, "DESC", "createdAt");
         Assert.assertTrue(documentPage.getNumberOfElements() == 0);
 
         document.setTitle(document.getTitle() + "(updated)");
