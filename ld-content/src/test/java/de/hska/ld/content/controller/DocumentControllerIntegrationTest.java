@@ -80,6 +80,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
         }*/
         Assert.assertEquals(HttpStatus.OK, response2.getStatusCode());
         Assert.assertTrue(listSize > 0);
+        Assert.assertTrue(response2.getBody().get(0).size() > Content.class.getDeclaredFields().length);
     }
 
     @Test

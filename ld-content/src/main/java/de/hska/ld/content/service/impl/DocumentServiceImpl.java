@@ -4,6 +4,7 @@ import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     @Override
     @Transactional
     public Document save(Document document) {
+        if (document.getTitle() == null) {
+            throw new ValidationException("title");
+        }
         Document dbDocument = findById(document.getId());
         User currentUser = Core.currentUser();
         if (dbDocument == null) {
