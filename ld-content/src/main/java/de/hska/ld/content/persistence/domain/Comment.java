@@ -27,8 +27,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "ld_comment")
@@ -38,14 +36,6 @@ public class Comment extends Content {
     @JoinColumn(name = "parentId")
     @JsonIgnore
     private Content parent;
-
-    @JsonProperty("parentId")
-    public Long getParentId() {
-        if (parent == null) {
-            return null;
-        }
-        return parent.getId();
-    }
 
     @NotBlank
     @Column(name = "text", nullable = false)
@@ -66,5 +56,17 @@ public class Comment extends Content {
 
     public void setParent(Content parent) {
         this.parent = parent;
+    }
+
+    @JsonProperty("parentId")
+    public Long getJsonParentId() {
+        if (parent == null) {
+            return null;
+        }
+        return parent.getId();
+    }
+
+    @JsonProperty("parentId")
+    public void setJsonParentId(Long id) {
     }
 }

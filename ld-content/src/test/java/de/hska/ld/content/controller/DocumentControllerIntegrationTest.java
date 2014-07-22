@@ -1,10 +1,9 @@
 package de.hska.ld.content.controller;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.util.Content;
 import de.hska.ld.content.util.RequestBuilder;
-import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.AbstractIntegrationTest2;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
@@ -12,26 +11,19 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
-import javax.print.Doc;
-
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.*;
-
-import static de.hska.ld.core.fixture.CoreFixture.newUser;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 {
 
     private static final String RESOURCE_API = "/api";
-    private static final String RESOURCE_DOCUMENT = "/document";
+    private static final String RESOURCE_DOCUMENT = Content.RESOURCE_DOCUMENT;
+    private static final String RESOURCE_COMMENT = "/comment";
     private static final String TITLE = "Title";
     private static final String DESCRIPTION = "Description";
 
@@ -50,14 +42,14 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
 
     @Test
     public void thatCreateDocumentUsesHttpOkOnPersist() {
-        ResponseEntity<Document> response = post().resource(RESOURCE_API + RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
+        ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
     }
 
     @Test
     public void testGETDocumentPageHttpOk() {
-        ResponseEntity<Document> response = post().resource(RESOURCE_API + RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
+        ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
 
@@ -69,7 +61,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
                 RequestBuilder.buildCombinedRequestParams(
                     requestParamPageNumber, requestParamPageSize, requestParamSortDirection, requestParamSortProperty
                 );
-        HttpRequest request = get().resource(RESOURCE_API + RESOURCE_DOCUMENT + combinedRequestParams).asUser();
+        HttpRequest request = get().resource(RESOURCE_DOCUMENT + combinedRequestParams).asUser();
 
         ResponseEntity<List<LinkedHashMap>> response2 = request.exec((Class<List<LinkedHashMap>>) (Class) ArrayList.class);
         long listSize = response2.getBody().size();
@@ -92,13 +84,17 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
 
     @Test
     public void testRemoveDocumentHttpOk() {
-        ResponseEntity<Document> response = post().resource(RESOURCE_API + RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
+        // Add document
+        ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
 
-        String URI = RESOURCE_API + RESOURCE_DOCUMENT + "/" + response.getBody().getId();
+        // Remove document
+        String URI = RESOURCE_DOCUMENT + "/" + response.getBody().getId();
         ResponseEntity response2 = delete().resource(URI).asUser().exec();
         Assert.assertEquals(HttpStatus.OK, response2.getStatusCode());
+
+
         boolean exceptionOccured = false;
         try {
             ResponseEntity<Document> response3 = get().resource(URI).asUser().exec(Document.class);
@@ -109,6 +105,24 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
         if (!exceptionOccured) {
             Assert.fail();
         }
+    }
+
+    @Test
+    public void testAddCommentHttpOk() {
+        // Add document
+        ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
+        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Assert.assertNotNull(response.getBody().getId());
+
+        // Add comment to the document
+        String URI = RESOURCE_DOCUMENT + "/" + response.getBody().getId() + RESOURCE_COMMENT;
+        Comment comment = new Comment();
+        comment.setText("Text");
+        HttpRequest request = post().resource(URI).asUser().body(comment);
+        ResponseEntity<Comment> response2 = request.exec(Comment.class);
+        Assert.assertEquals(HttpStatus.CREATED, response2.getStatusCode());
+
+        // read document comments
     }
 
 }

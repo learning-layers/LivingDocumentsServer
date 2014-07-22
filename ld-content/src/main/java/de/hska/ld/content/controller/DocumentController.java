@@ -107,7 +107,7 @@ public class DocumentController {
     }
 
     /**
-     * This resource allows it to create a document.
+     * This resource allows it to read a document.
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
@@ -121,7 +121,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
-    public ResponseEntity<Document> createDocument(@PathVariable Long documentId) {
+    public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
         Document document = documentService.findById(documentId);
         if (document.isDeleted()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -162,7 +162,7 @@ public class DocumentController {
     * <b>404 NOT FOUND</b> if there is no node present within the system that has the specified nodeId
     */
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/comments")
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/comment")
     public ResponseEntity<Page<Comment>> getCommentPage(@PathVariable Long documentId,
                                                          @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                          @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
@@ -175,6 +175,26 @@ public class DocumentController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    /**
+     * This resource allows it to create a document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     * </pre>
+     *
+     * @param document Contains title and optional description of the new document. Example:
+     *                 {title: 'New Document', description: '&lt;optional&gt;'}
+     * @return <b>200 OK</b> with the generated document<br>
+     * <b>400 Bad Request</b> if no title exists<br>
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/comment")
+    public ResponseEntity<Comment> addComment(@PathVariable Long documentId, @RequestBody Comment comment) {
+        comment = documentService.addComment(documentId, comment);
+        return new ResponseEntity<>(comment, HttpStatus.CREATED);
     }
 
 //    /**

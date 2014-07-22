@@ -26,6 +26,6 @@ import de.hska.ld.core.util.Core;
 
 public class Content {
 
-    public static final String RESOURCE_DOCUMENT = Core.RESOURCE_API + "/document";
+    public static final String RESOURCE_DOCUMENT = Core.RESOURCE_API + "/documents";
     public static final String RESOURCE_TAG = Core.RESOURCE_API + "/tags";
 }
