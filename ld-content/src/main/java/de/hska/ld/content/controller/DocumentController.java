@@ -97,12 +97,12 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<Document> createDocument(Document document) {
+    public ResponseEntity<Document> createDocument(@RequestBody Document document) {
         if (document.getTitle() == null) {
            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         document = documentService.save(document);
-        return new ResponseEntity<>(document, HttpStatus.OK);
+        return new ResponseEntity<>(document, HttpStatus.CREATED);
     }
 
     /**
