@@ -1,5 +1,7 @@
 package de.hska.ld.content.controller;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.util.RequestBuilder;
 import de.hska.ld.core.AbstractIntegrationTest;
@@ -15,11 +17,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import javax.print.Doc;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.*;
 
 import static de.hska.ld.core.fixture.CoreFixture.newUser;
 
@@ -56,7 +60,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
 
-        String requestParamPageNumber = "page-number=1";
+        String requestParamPageNumber = "page-number=0";
         String requestParamPageSize = "page-size=10";
         String requestParamSortDirection = "sort-direction=DESC";
         String requestParamSortProperty = "sort-property=createdAt";
@@ -65,10 +69,24 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
                     requestParamPageNumber, requestParamPageSize, requestParamSortDirection, requestParamSortProperty
                 );
         HttpRequest request = get().resource(RESOURCE_API + RESOURCE_DOCUMENT + combinedRequestParams).asUser();
-        ResponseEntity<List<Document>> response2 = request.exec((Class<List<Document>>) (Class) ArrayList.class);
+
+        ResponseEntity<List<LinkedHashMap>> response2 = request.exec((Class<List<LinkedHashMap>>) (Class) ArrayList.class);
         long listSize = response2.getBody().size();
+        /*Map<String, ArrayList> responseMap = response2.getBody().get(0);
+        ObjectMapper mapper = new ObjectMapper();
+        String responseString = response2.getBody().toString().replaceFirst("\\[", "");
+        responseString = responseString.substring(0, responseString.length()-1);
+        responseString = responseString.replace("=",":");
+        Document responseDocument = null;
+        try {
+            mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+            mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
+            responseDocument = mapper.readValue(responseString, Document.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
         Assert.assertEquals(HttpStatus.OK, response2.getStatusCode());
-        //Assert.assertEquals(10, response.getBody().getTotalElements());
+        Assert.assertTrue(listSize > 0);
     }
 
 

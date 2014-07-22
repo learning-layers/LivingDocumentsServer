@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.controller;
 
+import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.CommentService;
@@ -101,6 +102,7 @@ public class DocumentController {
            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         document = documentService.save(document);
+        documentService.addAccess(document, Core.currentUser(), Access.Permission.READ);
         return new ResponseEntity<>(document, HttpStatus.CREATED);
     }
 
