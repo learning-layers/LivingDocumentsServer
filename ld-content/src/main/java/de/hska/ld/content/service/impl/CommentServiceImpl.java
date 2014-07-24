@@ -82,8 +82,10 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
             dbParentComment.getCommentList().add(comment);
             comment.setModifiedAt(new Date());
             comment.setText(comment.getText());
+            comment.setParent(dbParentComment);
         }
-        return super.save(dbParentComment);
+        super.save(dbParentComment);
+        return comment;
     }
 
     @Override

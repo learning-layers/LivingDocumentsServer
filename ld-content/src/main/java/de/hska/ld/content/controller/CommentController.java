@@ -40,12 +40,13 @@ public class CommentController {
      * <b>403 Forbidden</b> if authorization failed
      */
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<Comment>> getCommentsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+    @RequestMapping(method = RequestMethod.GET, value = "/{commentId}/comment")
+    public ResponseEntity<List<Comment>> getCommentsPage(@PathVariable Long commentId,
+                                                         @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                          @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                          @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                          @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Comment comment = commentService.findById(13L);
+        Comment comment = commentService.findById(commentId);
         Page<Comment> commentsPage = commentService.getCommentCommentsPage(comment, pageNumber, pageSize, sortDirection, sortProperty);
         if (commentsPage != null) {
             return new ResponseEntity<>(commentsPage.getContent(), HttpStatus.OK);

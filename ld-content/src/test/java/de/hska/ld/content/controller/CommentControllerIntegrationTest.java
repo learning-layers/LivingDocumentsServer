@@ -81,6 +81,7 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest2 {
         HttpRequest requestAddCommentToComment = post().resource(URIAddCommentToComment).asUser().body(subComment);
         ResponseEntity<Comment> responseAddCommentToComment = requestAddCommentToComment.exec(Comment.class);
         Assert.assertEquals(HttpStatus.CREATED, responseAddCommentToComment.getStatusCode());
+        Assert.assertNotNull(responseAddCommentToComment.getBody().getJsonParentId());
     }
 
 }
