@@ -78,6 +78,8 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         Document document = findById(id);
         if (hasPermission(document, user, Access.Permission.WRITE) || document.getCreator().equals(user)) {
             document.getCommentList().add(comment);
+            comment.setCreator(user);
+            comment.setCreatedAt(new Date());
             comment.setParent(document);
             document = super.save(document);
             Optional<Comment> optional = document.getCommentList().stream().sorted(byDateTime).findFirst();

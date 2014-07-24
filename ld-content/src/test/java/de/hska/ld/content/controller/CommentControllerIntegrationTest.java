@@ -2,6 +2,7 @@ package de.hska.ld.content.controller;
 
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.dto.CommentDto;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.content.util.RequestBuilder;
@@ -79,7 +80,7 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest2 {
         Comment subComment = new Comment();
         subComment.setText("Text");
         HttpRequest requestAddCommentToComment = post().resource(URIAddCommentToComment).asUser().body(subComment);
-        ResponseEntity<Comment> responseAddCommentToComment = requestAddCommentToComment.exec(Comment.class);
+        ResponseEntity<CommentDto> responseAddCommentToComment = requestAddCommentToComment.exec(CommentDto.class);
         Assert.assertEquals(HttpStatus.CREATED, responseAddCommentToComment.getStatusCode());
         Assert.assertNotNull(responseAddCommentToComment.getBody().getJsonParentId());
     }

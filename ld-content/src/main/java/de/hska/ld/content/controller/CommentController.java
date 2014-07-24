@@ -1,6 +1,7 @@
 package de.hska.ld.content.controller;
 
 import de.hska.ld.content.persistence.domain.Comment;
+import de.hska.ld.content.persistence.dto.CommentDto;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.util.Core;
@@ -70,9 +71,9 @@ public class CommentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{commentId}/comment")
-    public ResponseEntity<Comment> addComment(@PathVariable Long commentId, @RequestBody Comment comment) {
+    public ResponseEntity<CommentDto> addComment(@PathVariable Long commentId, @RequestBody Comment comment) {
         comment = commentService.replyToComment(commentId, comment);
-        return new ResponseEntity<>(comment, HttpStatus.CREATED);
+        return new ResponseEntity<>(new CommentDto(comment), HttpStatus.CREATED);
     }
 
 }
