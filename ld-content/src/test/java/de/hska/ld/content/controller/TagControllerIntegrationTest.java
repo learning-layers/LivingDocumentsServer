@@ -5,7 +5,7 @@ import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.util.Content;
-import de.hska.ld.core.AbstractIntegrationTest2;
+import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.junit.Assert;
@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-public class TagControllerIntegrationTest extends AbstractIntegrationTest2 {
+public class TagControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String RESOURCE_DOCUMENT = Content.RESOURCE_DOCUMENT;
     private static final String RESOURCE_TAG = Content.RESOURCE_TAG;

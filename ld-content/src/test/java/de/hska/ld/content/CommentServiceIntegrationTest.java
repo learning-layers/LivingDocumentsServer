@@ -1,19 +1,14 @@
 package de.hska.ld.content;
 
-import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Comment;
-import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.CommentService;
-import de.hska.ld.core.AbstractIntegrationTest2;
+import de.hska.ld.core.AbstractIntegrationTest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.InputStream;
-
-public class CommentServiceIntegrationTest extends AbstractIntegrationTest2 {
+public class CommentServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     CommentService commentService;

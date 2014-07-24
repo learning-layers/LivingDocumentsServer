@@ -4,8 +4,10 @@ import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.repository.CommentRepository;
 import de.hska.ld.content.service.CommentService;
+import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +24,15 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
     @Autowired
     private CommentRepository repository;
 
+    @Autowired
+    private DocumentService documentService;
+
     @Override
-    public Page<Comment> getDocumentCommentsPage(Document document, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+    public Page<Comment> getDocumentCommentsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Document document = documentService.findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("id");
+        }
         Sort.Direction direction;
         if (Sort.Direction.ASC.toString().equals(sortDirection)) {
             direction = Sort.Direction.ASC;
@@ -37,7 +46,11 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
     }
 
     @Override
-    public Page<Comment> getCommentCommentsPage(Comment comment, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+    public Page<Comment> getCommentCommentsPage(Long commentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Comment comment = findById(commentId);
+        if (comment == null) {
+            throw new ValidationException("id");
+        }
         Sort.Direction direction;
         if (Sort.Direction.ASC.toString().equals(sortDirection)) {
             direction = Sort.Direction.ASC;
@@ -45,7 +58,6 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
             direction = Sort.Direction.DESC;
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
-        User user = Core.currentUser();
         Page<Comment> commentPage = repository.findAllForComment(comment.getId(), pageable);
         return commentPage;
     }

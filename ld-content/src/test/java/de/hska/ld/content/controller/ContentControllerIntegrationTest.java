@@ -24,13 +24,13 @@ package de.hska.ld.content.controller;
 
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.util.Content;
-import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.AbstractIntegrationTestOld;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ContentControllerIntegrationTest extends AbstractIntegrationTest {
+public class ContentControllerIntegrationTest extends AbstractIntegrationTestOld {
 
     private static final String RESOURCE_CONTENT = Content.RESOURCE_DOCUMENT;
     private static final String TITLE = "Title";

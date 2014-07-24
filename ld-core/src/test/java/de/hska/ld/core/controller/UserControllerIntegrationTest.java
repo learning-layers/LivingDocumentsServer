@@ -22,7 +22,7 @@
 
 package de.hska.ld.core.controller;
 
-import de.hska.ld.core.AbstractIntegrationTest2;
+import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.dto.IdDto;
 import de.hska.ld.core.exception.ApplicationError;
 import de.hska.ld.core.persistence.domain.User;
@@ -38,7 +38,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
 import static de.hska.ld.core.fixture.CoreFixture.newUser;
 
-public class UserControllerIntegrationTest extends AbstractIntegrationTest2 {
+public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String RESOURCE_USER = Core.RESOURCE_USER;
 

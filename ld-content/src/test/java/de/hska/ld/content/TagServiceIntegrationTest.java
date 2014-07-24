@@ -24,7 +24,7 @@ package de.hska.ld.content;
 
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.TagService;
-import de.hska.ld.core.AbstractIntegrationTest2;
+import de.hska.ld.core.AbstractIntegrationTest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,13 +32,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.TransactionSystemException;
 
-import javax.validation.ConstraintViolationException;
-
 import java.util.List;
 
 import static de.hska.ld.content.ContentFixture.*;
 
-public class TagServiceIntegrationTest  extends AbstractIntegrationTest2 {
+public class TagServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     TagService tagService;
@@ -49,7 +47,7 @@ public class TagServiceIntegrationTest  extends AbstractIntegrationTest2 {
         super.setUp();
         setAuthentication(testUser);
         List<Tag> tagList = tagService.findAll();
-        for (Tag tag: tagList) {
+        for (Tag tag : tagList) {
             tagService.delete(tag);
         }
     }

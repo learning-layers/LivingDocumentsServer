@@ -6,7 +6,7 @@ import de.hska.ld.content.persistence.dto.CommentDto;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.content.util.RequestBuilder;
-import de.hska.ld.core.AbstractIntegrationTest2;
+import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.junit.Assert;
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class CommentControllerIntegrationTest extends AbstractIntegrationTest2 {
+public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String RESOURCE_DOCUMENT = Content.RESOURCE_DOCUMENT;
     private static final String RESOURCE_COMMENT = Content.RESOURCE_COMMENT;

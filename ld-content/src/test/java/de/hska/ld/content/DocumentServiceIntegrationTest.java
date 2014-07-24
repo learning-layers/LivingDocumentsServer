@@ -25,7 +25,7 @@ package de.hska.ld.content;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
-import de.hska.ld.core.AbstractIntegrationTest2;
+import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
@@ -40,7 +40,7 @@ import java.io.InputStream;
 import static de.hska.ld.content.ContentFixture.*;
 import static de.hska.ld.core.fixture.CoreFixture.newUser;
 
-public class DocumentServiceIntegrationTest extends AbstractIntegrationTest2 {
+public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
 
     static final String TEST_PDF = "test.pdf";
 

@@ -22,7 +22,7 @@
 
 package de.hska.ld.core.controller;
 
-import de.hska.ld.core.AbstractIntegrationTest2;
+import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.dto.IdDto;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.service.RoleService;
@@ -38,7 +38,7 @@ import java.util.UUID;
 
 import static de.hska.ld.core.fixture.CoreFixture.newRole;
 
-public class RoleControllerIntegrationTest extends AbstractIntegrationTest2 {
+public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String RESOURCE_ROLE = Core.RESOURCE_ROLE;
 

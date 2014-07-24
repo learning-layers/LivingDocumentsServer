@@ -26,12 +26,13 @@ public class CommentController {
 
     /**
      * <pre>
-     * Gets a page of documents.
+     * Gets a page of comments.
      *
      * <b>Required roles:</b> ROLE_USER
      * <b>Path:</b> GET {@value de.hska.ld.content.util.Content#RESOURCE_DOCUMENT}
      * </pre>
      *
+     * @param commentId     the comment ID
      * @param pageNumber    the page number as a request parameter (default: 0)
      * @param pageSize      the page size as a request parameter (default: 10)
      * @param sortDirection the sort direction as a request parameter (default: 'DESC')
@@ -47,8 +48,7 @@ public class CommentController {
                                                          @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                          @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                          @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Comment comment = commentService.findById(commentId);
-        Page<Comment> commentsPage = commentService.getCommentCommentsPage(comment, pageNumber, pageSize, sortDirection, sortProperty);
+        Page<Comment> commentsPage = commentService.getCommentCommentsPage(commentId, pageNumber, pageSize, sortDirection, sortProperty);
         if (commentsPage != null) {
             return new ResponseEntity<>(commentsPage.getContent(), HttpStatus.OK);
         } else {

@@ -27,6 +27,7 @@ import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
+import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -109,7 +110,7 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId Contains title and optional description of the new document. Example:
-     *                 {title: 'New Document', description: '&lt;optional&gt;'}
+     *                   {title: 'New Document', description: '&lt;optional&gt;'}
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
@@ -118,7 +119,7 @@ public class DocumentController {
     public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
         Document document = documentService.findById(documentId);
         if (document.isDeleted()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            throw new NotFoundException("id");
         }
         return new ResponseEntity<>(document, HttpStatus.OK);
     }
@@ -157,17 +158,16 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/comment")
-    public ResponseEntity<List<Comment>> getCommentsPage(@PathVariable Long documentId,
+    public ResponseEntity<Page<Comment>> getCommentsPage(@PathVariable Long documentId,
                                                          @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                          @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                          @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                          @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Document document = documentService.findById(documentId);
-        Page<Comment> commentsPage = commentService.getDocumentCommentsPage(document, pageNumber, pageSize, sortDirection, sortProperty);
-        if (commentsPage != null) {
-            return new ResponseEntity<>(commentsPage.getContent(), HttpStatus.OK);
+        Page<Comment> commentsPage = commentService.getDocumentCommentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
+        if (commentsPage != null && commentsPage.getNumberOfElements() > 0) {
+            return new ResponseEntity<>(commentsPage, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            throw new NotFoundException();
         }
     }
 
@@ -180,7 +180,7 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId Contains title and optional description of the new document. Example:
-     *                 {title: 'New Document', description: '&lt;optional&gt;'}
+     *                   {title: 'New Document', description: '&lt;optional&gt;'}
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
