@@ -33,17 +33,16 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.codec.Base64;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.web.client.*;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 
 import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
@@ -129,6 +128,10 @@ public abstract class AbstractIntegrationTest2 {
 
     protected HttpRequest post() {
         return new HttpRequest(HttpMethod.POST);
+    }
+
+    protected HttpRequest put() {
+        return new HttpRequest(HttpMethod.PUT);
     }
 
     protected HttpRequest delete() {

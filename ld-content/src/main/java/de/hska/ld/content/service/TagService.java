@@ -29,4 +29,6 @@ import org.springframework.data.domain.Page;
 public interface TagService extends Service<Tag> {
 
     Page<Tag> getTagsPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+
+    Tag updateTag(Long tagId, Tag tag);
 }

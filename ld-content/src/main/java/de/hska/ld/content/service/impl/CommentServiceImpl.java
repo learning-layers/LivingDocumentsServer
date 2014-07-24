@@ -56,8 +56,8 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         Comment dbComment = findById(comment.getId());
         User currentUser = Core.currentUser();
         if (dbComment == null) {
-            comment.setCreator(currentUser);
-            comment.setCreatedAt(new Date());
+            //comment.setCreator(currentUser);
+            //comment.setCreatedAt(new Date());
         } else {
             boolean isCreator = dbComment.getCreator().getId().equals(currentUser.getId());
             if (!isCreator) {

@@ -27,6 +27,14 @@ public class TagServiceImpl extends AbstractContentService<Tag> implements TagSe
     }
 
     @Override
+    public Tag updateTag(Long tagId, Tag tag) {
+        Tag dbTag = super.findById(tagId);
+        dbTag.setName(tag.getName());
+        dbTag.setDescription(tag.getDescription());
+        return super.save(tag);
+    }
+
+    @Override
     public TagRepository getRepository() {
         return repository;
     }
