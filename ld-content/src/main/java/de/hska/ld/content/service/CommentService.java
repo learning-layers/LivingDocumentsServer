@@ -6,8 +6,10 @@ import org.springframework.data.domain.Page;
 
 public interface CommentService extends ContentService<Comment> {
 
-    Page<Comment> getDocumentCommentPage(Document document, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+    Page<Comment> getDocumentCommentsPage(Document document, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
     Comment replyToComment(Long id, Comment comment);
+
+    Page<Comment> getCommentCommentsPage(Comment comment, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
 }

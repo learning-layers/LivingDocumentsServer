@@ -23,7 +23,7 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
     private CommentRepository repository;
 
     @Override
-    public Page<Comment> getDocumentCommentPage(Document document, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+    public Page<Comment> getDocumentCommentsPage(Document document, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
         Sort.Direction direction;
         if (Sort.Direction.ASC.toString().equals(sortDirection)) {
             direction = Sort.Direction.ASC;
@@ -32,7 +32,21 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         User user = Core.currentUser();
-        Page<Comment> commentPage = repository.findAll(document.getId(), pageable);
+        Page<Comment> commentPage = repository.findAllForDocument(document.getId(), pageable);
+        return commentPage;
+    }
+
+    @Override
+    public Page<Comment> getCommentCommentsPage(Comment comment, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        User user = Core.currentUser();
+        Page<Comment> commentPage = repository.findAllForComment(comment.getId(), pageable);
         return commentPage;
     }
 

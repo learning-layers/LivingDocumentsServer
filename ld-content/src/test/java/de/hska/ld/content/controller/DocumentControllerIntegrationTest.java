@@ -22,7 +22,6 @@ import java.util.List;
 
 public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 {
 
-    private static final String RESOURCE_API = "/api";
     private static final String RESOURCE_DOCUMENT = Content.RESOURCE_DOCUMENT;
     private static final String RESOURCE_COMMENT = "/comment";
     private static final String TITLE = "Title";
@@ -63,7 +62,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
         String requestParamSortProperty = "sort-property=createdAt";
         String combinedRequestParams =
                 RequestBuilder.buildCombinedRequestParams(
-                    requestParamPageNumber, requestParamPageSize, requestParamSortDirection, requestParamSortProperty
+                        requestParamPageNumber, requestParamPageSize, requestParamSortDirection, requestParamSortProperty
                 );
         HttpRequest request = get().resource(RESOURCE_DOCUMENT + combinedRequestParams).asUser();
 

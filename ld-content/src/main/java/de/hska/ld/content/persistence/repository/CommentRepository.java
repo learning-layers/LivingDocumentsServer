@@ -33,9 +33,12 @@ public interface CommentRepository extends CrudRepository<Comment, Long> {
 
     // LEFT JOIN c.parent.accessList al WHERE al.user = :user AND c.parent.id = :documentId
     /*@Query("SELECT c FROM Comment c WHERE c.parent.id = :documentId")
-    Page<Comment> findAll(@Param("documentId") Long documentId, @Param("user") User user, Pageable pageable);*/
+    Page<Comment> findAllForDocument(@Param("documentId") Long documentId, @Param("user") User user, Pageable pageable);*/
 
 
     @Query("SELECT c FROM Comment c WHERE c.parent.id = :documentId")
-    Page<Comment> findAll(@Param("documentId") Long documentId, Pageable pageable);
+    Page<Comment> findAllForDocument(@Param("documentId") Long documentId, Pageable pageable);
+
+    @Query("SELECT c FROM Comment c WHERE c.parent.id = :commentId")
+    Page<Comment> findAllForComment(@Param("commentId") Long commentId, Pageable pageable);
 }

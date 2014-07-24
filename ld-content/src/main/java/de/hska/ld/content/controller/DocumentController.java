@@ -47,7 +47,6 @@ public class DocumentController {
     @Autowired
     private DocumentService documentService;
 
-
     @Autowired
     private CommentService commentService;
 
@@ -109,7 +108,7 @@ public class DocumentController {
      *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
      * </pre>
      *
-     * @param document Contains title and optional description of the new document. Example:
+     * @param documentId Contains title and optional description of the new document. Example:
      *                 {title: 'New Document', description: '&lt;optional&gt;'}
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
@@ -158,13 +157,13 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/comment")
-    public ResponseEntity<List<Comment>> getCommentPage(@PathVariable Long documentId,
-                                                        @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
-                                                        @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
-                                                        @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                        @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+    public ResponseEntity<List<Comment>> getCommentsPage(@PathVariable Long documentId,
+                                                         @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                         @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                         @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                         @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
         Document document = documentService.findById(documentId);
-        Page<Comment> commentsPage = commentService.getDocumentCommentPage(document, pageNumber, pageSize, sortDirection, sortProperty);
+        Page<Comment> commentsPage = commentService.getDocumentCommentsPage(document, pageNumber, pageSize, sortDirection, sortProperty);
         if (commentsPage != null) {
             return new ResponseEntity<>(commentsPage.getContent(), HttpStatus.OK);
         } else {
@@ -180,7 +179,7 @@ public class DocumentController {
      *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
      * </pre>
      *
-     * @param document Contains title and optional description of the new document. Example:
+     * @param documentId Contains title and optional description of the new document. Example:
      *                 {title: 'New Document', description: '&lt;optional&gt;'}
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
