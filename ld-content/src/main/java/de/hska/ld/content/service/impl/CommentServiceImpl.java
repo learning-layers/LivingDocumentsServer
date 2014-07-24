@@ -3,7 +3,6 @@ package de.hska.ld.content.service.impl;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.repository.CommentRepository;
-import de.hska.ld.content.persistence.repository.DocumentRepository;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
@@ -33,7 +32,8 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         User user = Core.currentUser();
-        return repository.findAll(document.getId(), user, pageable);
+        Page<Comment> commentPage = repository.findAll(document.getId(), pageable);
+        return commentPage;
     }
 
     @Override

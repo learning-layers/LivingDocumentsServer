@@ -23,9 +23,6 @@
 package de.hska.ld.content.persistence.repository;
 
 import de.hska.ld.content.persistence.domain.Comment;
-import de.hska.ld.content.persistence.domain.Content;
-import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.core.persistence.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -34,6 +31,11 @@ import org.springframework.data.repository.query.Param;
 
 public interface CommentRepository extends CrudRepository<Comment, Long> {
 
-    @Query("SELECT c FROM Comment c LEFT JOIN c.parent.accessList al WHERE al.user = :user AND c.parent.id = :documentId")
-    Page<Comment> findAll(@Param("documentId") Long documentId, @Param("user") User user, Pageable pageable);
+    // LEFT JOIN c.parent.accessList al WHERE al.user = :user AND c.parent.id = :documentId
+    /*@Query("SELECT c FROM Comment c WHERE c.parent.id = :documentId")
+    Page<Comment> findAll(@Param("documentId") Long documentId, @Param("user") User user, Pageable pageable);*/
+
+
+    @Query("SELECT c FROM Comment c WHERE c.parent.id = :documentId")
+    Page<Comment> findAll(@Param("documentId") Long documentId, Pageable pageable);
 }

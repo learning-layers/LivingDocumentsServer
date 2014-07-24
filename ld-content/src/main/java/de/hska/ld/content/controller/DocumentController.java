@@ -158,7 +158,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/comment")
-    public ResponseEntity<Page<Comment>> getCommentPage(@PathVariable Long documentId,
+    public ResponseEntity<List<Comment>> getCommentPage(@PathVariable Long documentId,
                                                         @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                         @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                         @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
@@ -166,7 +166,7 @@ public class DocumentController {
         Document document = documentService.findById(documentId);
         Page<Comment> commentsPage = commentService.getDocumentCommentPage(document, pageNumber, pageSize, sortDirection, sortProperty);
         if (commentsPage != null) {
-            return new ResponseEntity<>(commentsPage, HttpStatus.OK);
+            return new ResponseEntity<>(commentsPage.getContent(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

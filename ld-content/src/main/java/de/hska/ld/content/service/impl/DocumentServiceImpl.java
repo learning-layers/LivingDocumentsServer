@@ -76,7 +76,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     public Comment addComment(Long id, Comment comment) {
         User user = Core.currentUser();
         Document document = findById(id);
-        if (hasPermission(document, user, Access.Permission.WRITE)) {
+        if (hasPermission(document, user, Access.Permission.WRITE) || document.getCreator().equals(user)) {
             document.getCommentList().add(comment);
             comment.setParent(document);
             document = super.save(document);

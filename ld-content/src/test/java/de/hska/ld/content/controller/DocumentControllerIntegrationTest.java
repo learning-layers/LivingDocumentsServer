@@ -2,6 +2,7 @@ package de.hska.ld.content.controller;
 
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.content.util.RequestBuilder;
 import de.hska.ld.core.AbstractIntegrationTest2;
@@ -29,6 +30,9 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    DocumentService documentService;
 
     Document document;
 
@@ -124,6 +128,20 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
         Assert.assertEquals(HttpStatus.CREATED, response2.getStatusCode());
 
         // read document comments
+        String requestParamPageNumber = "page-number=0";
+        String requestParamPageSize = "page-size=10";
+        String requestParamSortDirection = "sort-direction=DESC";
+        String requestParamSortProperty = "sort-property=createdAt";
+        String combinedRequestParams =
+                RequestBuilder.buildCombinedRequestParams(
+                        requestParamPageNumber, requestParamPageSize, requestParamSortDirection, requestParamSortProperty
+                );
+        HttpRequest request3 = get().resource(URI + combinedRequestParams).asUser();
+        ResponseEntity<List<LinkedHashMap>> response3 = request3.exec((Class<List<LinkedHashMap>>) (Class) ArrayList.class);
+        Assert.assertEquals(HttpStatus.OK, response3.getStatusCode());
+        long listSize = response3.getBody().size();
+        Assert.assertTrue(listSize > 0);
+        Assert.assertTrue(response3.getBody().get(0).size() > Content.class.getDeclaredFields().length);
     }
 
 }
