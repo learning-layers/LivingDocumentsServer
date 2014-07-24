@@ -39,6 +39,8 @@ public interface DocumentService extends ContentService<Document> {
 
     Document removeComment(Long id, Comment comment);
 
+    void addTag(Long id, Long tagId);
+
     void addTag(Long id, Tag tag);
 
     void removeTag(Long id, Tag tag);

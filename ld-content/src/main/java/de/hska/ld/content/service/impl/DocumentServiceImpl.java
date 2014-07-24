@@ -3,6 +3,7 @@ package de.hska.ld.content.service.impl;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.content.service.TagService;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
@@ -20,6 +21,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Autowired
     private DocumentRepository repository;
+
+    @Autowired
+    private TagService tagService;
 
     private Comparator<Content> byDateTime = (c1, c2) -> c2.getCreatedAt().compareTo(c1.getCreatedAt());
 
@@ -95,6 +99,20 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         Document document = findById(id);
         document.getCommentList().remove(comment);
         return super.save(document);
+    }
+
+    @Override
+    @Transactional
+    public void addTag(Long id, Long tagId) {
+        Document document = findById(id);
+        Tag tag = tagService.findById(tagId);
+        User user = Core.currentUser();
+        if (hasPermission(document, user, Access.Permission.WRITE)) {
+            document.getTagList().add(tag);
+            super.save(document);
+        } else {
+            throw new UserNotAuthorizedException();
+        }
     }
 
     @Override

@@ -143,4 +143,18 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest2 
         Assert.assertTrue(response3.getBody().get(0).size() > Content.class.getDeclaredFields().length);
     }
 
+    @Test
+    public void testAddTagHttpOk() {
+        // Add document
+        ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
+        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Assert.assertNotNull(response.getBody().getId());
+
+        // Add Tag
+
+
+        // Add Tag to document
+
+    }
+
 }

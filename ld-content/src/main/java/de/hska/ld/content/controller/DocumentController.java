@@ -191,6 +191,26 @@ public class DocumentController {
         return new ResponseEntity<>(comment, HttpStatus.CREATED);
     }
 
+    /**
+     * This resource allows it to create a document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     * </pre>
+     *
+     * @param documentId Contains title and optional description of the new document. Example:
+     *                   {title: 'New Document', description: '&lt;optional&gt;'}
+     * @return <b>200 OK</b> with the generated document<br>
+     * <b>400 Bad Request</b> if no title exists<br>
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/tag/{tagId}")
+    public ResponseEntity<Document> addTag(@PathVariable Long documentId, @PathVariable Long tagId) {
+        documentService.addTag(documentId, tagId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 //    /**
 //     * Removes a tag from a node.
 //     * <p>

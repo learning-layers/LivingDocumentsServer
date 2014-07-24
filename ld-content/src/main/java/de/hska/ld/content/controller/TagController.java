@@ -3,18 +3,14 @@ package de.hska.ld.content.controller;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.util.Content;
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p><b>Resource:</b> {@value de.hska.ld.content.util.Content#RESOURCE_TAG}
@@ -57,9 +53,33 @@ public class TagController {
     }
 
     /**
-     * @return
+     * This resource allows it to create a document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     * </pre>
+     *
+     * @param documentId Contains title and optional description of the new document. Example:
+     *                 {title: 'New Document', description: '&lt;optional&gt;'}
+     * @return <b>200 OK</b> with the generated document<br>
+     * <b>400 Bad Request</b> if no title exists<br>
      */
     @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST)
+    public ResponseEntity<Tag> createTag(@RequestBody Tag tag) {
+        if (tag != null) {
+            tag = tagService.save(tag);
+            return new ResponseEntity<>(tag, HttpStatus.CREATED);
+        } else {
+            throw new ValidationException("No tag provided.");
+        }
+    }
+
+    /**
+     * @return
+     */
+    /*@Secured(Core.ROLE_USER)
     @RequestMapping(value = "tags", method = RequestMethod.GET)
     public ResponseEntity<List<Tag>> getTags() {
         List<Tag> tagList = tagService.findAll();
@@ -68,5 +88,5 @@ public class TagController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-    }
+    }*/
 }
