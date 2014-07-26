@@ -8,6 +8,7 @@ import de.hska.ld.content.util.RequestBuilder;
 import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
+import de.hska.ld.core.util.Core;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,9 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -37,7 +36,6 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
-        User user = userService.findByUsername("user");
         document = new Document();
         document.setTitle(TITLE);
         document.setDescription(DESCRIPTION);
@@ -56,34 +54,17 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
 
-        String requestParamPageNumber = "page-number=0";
-        String requestParamPageSize = "page-size=10";
-        String requestParamSortDirection = "sort-direction=DESC";
-        String requestParamSortProperty = "sort-property=createdAt";
-        String combinedRequestParams =
-                RequestBuilder.buildCombinedRequestParams(
-                        requestParamPageNumber, requestParamPageSize, requestParamSortDirection, requestParamSortProperty
-                );
-        HttpRequestWrapper request = get().resource(RESOURCE_DOCUMENT + combinedRequestParams).asUser();
+        User admin = userService.findByUsername(Core.BOOTSTRAP_ADMIN);
 
-        ResponseEntity<List<LinkedHashMap>> response2 = request.exec((Class<List<LinkedHashMap>>) (Class) ArrayList.class);
-        long listSize = response2.getBody().size();
-        /*Map<String, ArrayList> responseMap = response2.getBody().get(0);
-        ObjectMapper mapper = new ObjectMapper();
-        String responseString = response2.getBody().toString().replaceFirst("\\[", "");
-        responseString = responseString.substring(0, responseString.length()-1);
-        responseString = responseString.replace("=",":");
-        Document responseDocument = null;
-        try {
-            mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
-            mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
-            responseDocument = mapper.readValue(responseString, Document.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
-        Assert.assertEquals(HttpStatus.OK, response2.getStatusCode());
-        Assert.assertTrue(listSize > 0);
-        Assert.assertTrue(response2.getBody().get(0).size() > Content.class.getDeclaredFields().length);
+        Map varMap = new HashMap<>();
+        varMap.put("page-number", 0);
+        varMap.put("page-size", 10);
+        varMap.put("sort-direction", "DESC");
+        varMap.put("sort-property", "createdAt");
+        Map page = getPage(RESOURCE_DOCUMENT, admin, varMap);
+        Assert.assertNotNull(page);
+        Assert.assertNotNull(page.containsKey("content"));
+        Assert.assertTrue(((List) page.get("content")).size() > 0);
     }
 
     @Test

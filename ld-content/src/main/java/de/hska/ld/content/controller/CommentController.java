@@ -12,8 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * <p><b>Resource:</b> {@value de.hska.ld.content.util.Content#RESOURCE_COMMENT}
  */
@@ -43,14 +41,14 @@ public class CommentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{commentId}/comment")
-    public ResponseEntity<List<Comment>> getCommentsPage(@PathVariable Long commentId,
+    public ResponseEntity<Page<Comment>> getCommentsPage(@PathVariable Long commentId,
                                                          @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                          @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                          @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                          @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
         Page<Comment> commentsPage = commentService.getCommentCommentsPage(commentId, pageNumber, pageSize, sortDirection, sortProperty);
         if (commentsPage != null) {
-            return new ResponseEntity<>(commentsPage.getContent(), HttpStatus.OK);
+            return new ResponseEntity<>(commentsPage, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

@@ -122,16 +122,26 @@ public abstract class AbstractIntegrationTest {
         }
     }
 
+    public Map getPage(String resource, User user) {
+        return getForObject(resource, user, Map.class, null);
+    }
+
+    public Map getPage(String resource, User user, Map<String, ?> urlVariables) {
+        return getForObject(resource, user, Map.class, urlVariables);
+    }
+
     @SuppressWarnings("unchecked")
-    protected <T> T getForObject(String resource, final byte[] auth, Class<T> responseType, Map<String, ?> urlVariables) {
+    protected <T> T getForObject(String resource, User user, Class<T> responseType, Map<String, ?> urlVariables) {
         resource = BASE_URL + resource;
-        if (auth == null) {
+        if (user == null) {
             if (urlVariables == null) {
                 return template.getForObject(resource, responseType);
             } else {
                 return template.getForObject(resource, responseType, urlVariables);
             }
         } else {
+            String usernameAndPassword = user.getUsername() + ":" + PASSWORD;
+            byte[] auth = usernameAndPassword.getBytes();
             RestTemplate objectTemplate = new RestTemplate();
             ClientHttpRequestInterceptor interceptor = (request, body, execution) -> {
                 byte[] encodedAuthorisation = Base64.encode(auth);
