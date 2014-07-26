@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.*;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.codec.Base64;
@@ -44,7 +45,10 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
 import static de.hska.ld.core.fixture.CoreFixture.newUser;
@@ -118,35 +122,62 @@ public abstract class AbstractIntegrationTest {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    protected <T> T getForObject(String resource, final byte[] auth, Class<T> responseType, Map<String, ?> urlVariables) {
+        resource = BASE_URL + resource;
+        if (auth == null) {
+            if (urlVariables == null) {
+                return template.getForObject(resource, responseType);
+            } else {
+                return template.getForObject(resource, responseType, urlVariables);
+            }
+        } else {
+            RestTemplate objectTemplate = new RestTemplate();
+            ClientHttpRequestInterceptor interceptor = (request, body, execution) -> {
+                byte[] encodedAuthorisation = Base64.encode(auth);
+                request.getHeaders().add("Authorization", "Basic " + new String(encodedAuthorisation));
+                return execution.execute(request, body);
+            };
+            List<ClientHttpRequestInterceptor> list = new ArrayList<>();
+            list.add(interceptor);
+            objectTemplate.setInterceptors(list);
+            if (urlVariables == null) {
+                return objectTemplate.getForObject(resource, responseType);
+            } else {
+                return objectTemplate.getForObject(resource, responseType, urlVariables);
+            }
+        }
+    }
+
     protected void setAuthentication(User user) {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user,
                 user.getPassword(), user.getAuthorities()));
     }
 
-    protected HttpRequest get() {
-        return new HttpRequest(HttpMethod.GET);
+    protected HttpRequestWrapper get() {
+        return new HttpRequestWrapper(HttpMethod.GET);
     }
 
-    protected HttpRequest post() {
-        return new HttpRequest(HttpMethod.POST);
+    protected HttpRequestWrapper post() {
+        return new HttpRequestWrapper(HttpMethod.POST);
     }
 
-    protected HttpRequest put() {
-        return new HttpRequest(HttpMethod.PUT);
+    protected HttpRequestWrapper put() {
+        return new HttpRequestWrapper(HttpMethod.PUT);
     }
 
-    protected HttpRequest delete() {
-        return new HttpRequest(HttpMethod.DELETE);
+    protected HttpRequestWrapper delete() {
+        return new HttpRequestWrapper(HttpMethod.DELETE);
     }
 
-    public class HttpRequest {
+    public class HttpRequestWrapper {
 
         private String resource;
         private HttpMethod httpMethod;
         private Object body;
         private byte[] auth;
 
-        public HttpRequest(HttpMethod httpMethod) {
+        public HttpRequestWrapper(HttpMethod httpMethod) {
             this.httpMethod = httpMethod;
         }
 
@@ -158,33 +189,33 @@ public abstract class AbstractIntegrationTest {
             return template.exchange(BASE_URL + resource, httpMethod, createHeaderAndBody(body, auth), responseType);
         }
 
-        public HttpRequest resource(String resource) {
+        public HttpRequestWrapper resource(String resource) {
             this.resource = resource;
             return this;
         }
 
-        public HttpRequest body(Object body) {
+        public HttpRequestWrapper body(Object body) {
             this.body = body;
             return this;
         }
 
-        public HttpRequest as(byte[] auth) {
+        public HttpRequestWrapper as(byte[] auth) {
             this.auth = auth;
             return this;
         }
 
-        public HttpRequest as(User user) {
+        public HttpRequestWrapper as(User user) {
             String usernameAndPassword = user.getUsername() + ":" + PASSWORD;
             this.auth = usernameAndPassword.getBytes();
             return this;
         }
 
-        public HttpRequest asUser() {
+        public HttpRequestWrapper asUser() {
             this.auth = AUTH_USER;
             return this;
         }
 
-        public HttpRequest asAdmin() {
+        public HttpRequestWrapper asAdmin() {
             this.auth = AUTH_ADMIN;
             return this;
         }

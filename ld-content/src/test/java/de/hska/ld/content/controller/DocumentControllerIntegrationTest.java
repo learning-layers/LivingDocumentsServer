@@ -64,7 +64,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
                 RequestBuilder.buildCombinedRequestParams(
                         requestParamPageNumber, requestParamPageSize, requestParamSortDirection, requestParamSortProperty
                 );
-        HttpRequest request = get().resource(RESOURCE_DOCUMENT + combinedRequestParams).asUser();
+        HttpRequestWrapper request = get().resource(RESOURCE_DOCUMENT + combinedRequestParams).asUser();
 
         ResponseEntity<List<LinkedHashMap>> response2 = request.exec((Class<List<LinkedHashMap>>) (Class) ArrayList.class);
         long listSize = response2.getBody().size();
@@ -122,7 +122,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         String URI = RESOURCE_DOCUMENT + "/" + response.getBody().getId() + RESOURCE_COMMENT;
         Comment comment = new Comment();
         comment.setText("Text");
-        HttpRequest request = post().resource(URI).asUser().body(comment);
+        HttpRequestWrapper request = post().resource(URI).asUser().body(comment);
         ResponseEntity<Comment> response2 = request.exec(Comment.class);
         Assert.assertEquals(HttpStatus.CREATED, response2.getStatusCode());
 
@@ -135,7 +135,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
                 RequestBuilder.buildCombinedRequestParams(
                         requestParamPageNumber, requestParamPageSize, requestParamSortDirection, requestParamSortProperty
                 );
-        HttpRequest request3 = get().resource(URI + combinedRequestParams).asUser();
+        HttpRequestWrapper request3 = get().resource(URI + combinedRequestParams).asUser();
         ResponseEntity<List<LinkedHashMap>> response3 = request3.exec((Class<List<LinkedHashMap>>) (Class) ArrayList.class);
         Assert.assertEquals(HttpStatus.OK, response3.getStatusCode());
         long listSize = response3.getBody().size();
