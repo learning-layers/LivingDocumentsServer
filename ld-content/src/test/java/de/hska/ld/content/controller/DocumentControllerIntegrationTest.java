@@ -130,7 +130,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testAddTagHttpOk() {
+    public void testAddAndRemoveTagHttpOk() {
         // Add document
         ResponseEntity<Document> responseCreateDocument = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
         Assert.assertEquals(HttpStatus.CREATED, responseCreateDocument.getStatusCode());
@@ -148,8 +148,36 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.OK, responseAddTag.getStatusCode());
 
         // Check if Tag is present in the taglist of the document
-        // TODO
+        String URIGetDocumentTags = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getBody().getId() + "/tags";
+        Map varMap = new HashMap<>();
+        varMap.put("page-number", 0);
+        varMap.put("page-size", 10);
+        varMap.put("sort-direction", "DESC");
+        varMap.put("sort-property", "createdAt");
+        Map page = getPage(URIGetDocumentTags, testUser, varMap);
+        Assert.assertNotNull(page);
+        Assert.assertNotNull(page.containsKey("content"));
+        Assert.assertTrue(((List) page.get("content")).size() > 0);
 
+        // Remove tag
+        HttpRequestWrapper requestRemoveTag = delete().resource(URI).asUser();
+        ResponseEntity responseRemoveTag = requestRemoveTag.exec();
+        Assert.assertEquals(HttpStatus.OK, responseRemoveTag.getStatusCode());
+
+        // Check if Tag is present in the taglist of the document
+        boolean foundResult = true;
+        try {
+            Map page2 = getPage(URIGetDocumentTags, testUser, varMap);
+            Assert.assertNotNull(page2);
+            Assert.assertNotNull(page2.containsKey("content"));
+            Assert.assertTrue(((List) page2.get("content")).size() == 0);
+        } catch (HttpClientErrorException e) {
+            Assert.assertEquals(e.getStatusCode().toString(), "404");
+            foundResult = false;
+        }
+        if (foundResult) {
+            Assert.fail();
+        }
     }
 
 }
