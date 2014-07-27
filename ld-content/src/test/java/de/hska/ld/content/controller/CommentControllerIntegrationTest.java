@@ -6,6 +6,7 @@ import de.hska.ld.content.persistence.dto.CommentDto;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,6 +44,8 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testAddCommentToCommentHttpOk() {
+        User user = userService.findByUsername("user");
+
         // Add document
         ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -62,7 +65,7 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
         varMap.put("page-size", 10);
         varMap.put("sort-direction", "DESC");
         varMap.put("sort-property", "createdAt");
-        Map page = getPage(URIAddCommentToDocument, testUser, varMap);
+        Map page = getPage(URIAddCommentToDocument, user, varMap);
         Assert.assertNotNull(page);
         Assert.assertNotNull(page.containsKey("content"));
         Assert.assertTrue(((List) page.get("content")).size() > 0);

@@ -1,5 +1,6 @@
 package de.hska.ld.content.service.impl;
 
+import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.repository.CommentRepository;
@@ -18,6 +19,8 @@ import org.springframework.data.domain.Sort;
 
 import javax.transaction.Transactional;
 import java.util.Date;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 public class CommentServiceImpl extends AbstractContentService<Comment> implements CommentService {
 
@@ -41,6 +44,14 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         User user = Core.currentUser();
+        if (!document.getCreator().equals(user)) {
+            try {
+                Optional<Access> access = document.getAccessList().stream().filter(ele -> ele.getUser().equals(user)).findFirst();
+                access.get();
+            } catch (NoSuchElementException e) {
+                throw new UserNotAuthorizedException();
+            }
+        }
         Page<Comment> commentPage = repository.findAllForDocument(document.getId(), pageable);
         return commentPage;
     }

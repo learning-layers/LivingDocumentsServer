@@ -117,13 +117,15 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         ResponseEntity<Comment> response2 = request.exec(Comment.class);
         Assert.assertEquals(HttpStatus.CREATED, response2.getStatusCode());
 
+        User user = userService.findByUsername("user");
+
         // read document comments
         Map varMap = new HashMap<>();
         varMap.put("page-number", 0);
         varMap.put("page-size", 10);
         varMap.put("sort-direction", "DESC");
         varMap.put("sort-property", "createdAt");
-        Map page = getPage(URI, testUser, varMap);
+        Map page = getPage(URI, user, varMap);
         Assert.assertNotNull(page);
         Assert.assertNotNull(page.containsKey("content"));
         Assert.assertTrue(((List) page.get("content")).size() > 0);
