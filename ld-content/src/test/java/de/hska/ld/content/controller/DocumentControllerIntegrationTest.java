@@ -2,6 +2,7 @@ package de.hska.ld.content.controller;
 
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.content.util.RequestBuilder;
@@ -25,6 +26,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String RESOURCE_COMMENT = "/comment";
     private static final String TITLE = "Title";
     private static final String DESCRIPTION = "Description";
+    private static final String RESOURCE_TAG = Content.RESOURCE_TAG;
 
     @Autowired
     UserService userService;
@@ -34,11 +36,16 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
 
     Document document;
 
+    Tag tag;
+
     @Before
     public void setUp() throws Exception {
         document = new Document();
         document.setTitle(TITLE);
         document.setDescription(DESCRIPTION);
+        tag = new Tag();
+        tag.setName("tagName");
+        tag.setDescription("tagDescription");
     }
 
     @Test
@@ -127,14 +134,23 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testAddTagHttpOk() {
         // Add document
-        ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Assert.assertNotNull(response.getBody().getId());
+        ResponseEntity<Document> responseCreateDocument = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
+        Assert.assertEquals(HttpStatus.CREATED, responseCreateDocument.getStatusCode());
+        Assert.assertNotNull(responseCreateDocument.getBody().getId());
+
+        // Create Tag
+        ResponseEntity<Tag> responseCreateTag = post().resource(RESOURCE_TAG).asUser().body(tag).exec(Tag.class);
+        Assert.assertEquals(HttpStatus.CREATED, responseCreateTag.getStatusCode());
+        Assert.assertNotNull(responseCreateTag.getBody().getId());
 
         // Add Tag
+        String URI = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getBody().getId() + "/tag/" + responseCreateTag.getBody().getId();
+        HttpRequestWrapper requestAddTag = post().resource(URI).asUser();
+        ResponseEntity responseAddTag = requestAddTag.exec();
+        Assert.assertEquals(HttpStatus.OK, responseAddTag.getStatusCode());
 
-
-        // Add Tag to document
+        // Check if Tag is present in the taglist of the document
+        // TODO
 
     }
 

@@ -43,7 +43,7 @@ public interface DocumentService extends ContentService<Document> {
 
     void addTag(Long id, Tag tag);
 
-    void removeTag(Long id, Tag tag);
+    void removeTag(Long id, Long tagId);
 
     Document addAccess(Document document, User user, Access.Permission... permission);
 

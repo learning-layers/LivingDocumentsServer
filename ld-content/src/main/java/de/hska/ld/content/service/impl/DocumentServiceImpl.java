@@ -130,8 +130,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Override
     @Transactional
-    public void removeTag(Long id, Tag tag) {
+    public void removeTag(Long id, Long tagId) {
         Document document = findById(id);
+        Tag tag = tagService.findById(tagId);
         document.getTagList().remove(tag);
         super.save(document);
     }
