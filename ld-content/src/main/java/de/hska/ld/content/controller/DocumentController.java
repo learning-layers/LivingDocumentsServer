@@ -38,8 +38,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * <p><b>Resource:</b> {@value Content#RESOURCE_DOCUMENT}
  */
@@ -74,13 +72,13 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<Document>> getDocumentsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+    public ResponseEntity<Page<Document>> getDocumentsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                            @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                            @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                            @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
         Page<Document> documentsPage = documentService.getDocumentsPage(pageNumber, pageSize, sortDirection, sortProperty);
         if (documentsPage != null) {
-            return new ResponseEntity<>(documentsPage.getContent(), HttpStatus.OK);
+            return new ResponseEntity<>(documentsPage, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

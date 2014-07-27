@@ -38,6 +38,7 @@ public class TagControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
+        super.setUp();
         User user = userService.findByUsername("user");
         document = new Document();
         document.setTitle(TITLE);
