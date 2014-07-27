@@ -218,4 +218,22 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(document.getSubscriptionList().get(0).getTypeList().size() == 1);
         Assert.assertEquals(document.getSubscriptionList().get(0).getTypeList().get(0), Subscription.Type.DISCUSSION);
     }
+
+    @Test
+    public void testGetDocumentTagsPage() {
+        for (int i = 0; i < 21; i++) {
+            tagService.save(newTag());
+        }
+        Page<Tag> tagPage = tagService.getTagsPage(0, 10, "DESC", "createdAt");
+        Assert.assertNotNull(tagPage);
+        Assert.assertTrue(tagPage.getTotalElements() == 21);
+        Assert.assertTrue(tagPage.getSize() == 10);
+
+        Document document = documentService.save(newDocument());
+        documentService.addTag(document.getId(), tagPage.getContent().get(0).getId());
+
+        Page<Tag> documentTagsPage = documentService.getDocumentTagsPage(document.getId(), 0, 10, "DESC", "createdAt");
+        Assert.assertNotNull(documentTagsPage);
+        Assert.assertTrue(documentTagsPage.getTotalElements() == 1);
+    }
 }

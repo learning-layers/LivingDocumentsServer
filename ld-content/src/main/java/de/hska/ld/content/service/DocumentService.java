@@ -48,4 +48,6 @@ public interface DocumentService extends ContentService<Document> {
     Document addAccess(Document document, User user, Access.Permission... permission);
 
     Document removeAccess(Document document, User user, Access.Permission... permissions);
+
+    Page<Tag> getDocumentTagsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 }

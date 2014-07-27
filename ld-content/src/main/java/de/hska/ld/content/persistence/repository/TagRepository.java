@@ -30,4 +30,5 @@ import org.springframework.data.repository.CrudRepository;
 public interface TagRepository extends CrudRepository<Tag, Long> {
 
     Page<Tag> findAll(Pageable pageable);
+
 }

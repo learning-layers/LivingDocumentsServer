@@ -24,8 +24,10 @@ package de.hska.ld.content.controller;
 
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.util.Core;
@@ -50,6 +52,9 @@ public class DocumentController {
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private TagService tagService;
 
     /**
      * <pre>
@@ -229,6 +234,33 @@ public class DocumentController {
     public ResponseEntity removeTag(@PathVariable Long documentId, @PathVariable Long tagId) {
         documentService.removeTag(documentId, tagId);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * Fetches the commments for a specifc document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> GET /api/document/{documentId}/comments
+     * </pre>
+     *
+     * @param documentId the node id of the node the comments shall be fetched for
+     * @return <b>200 OK</b> and a list of comments
+     * <b>404 NOT FOUND</b> if there is no node present within the system that has the specified nodeId
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags")
+    public ResponseEntity<Page<Tag>> getTagsPage(@PathVariable Long documentId,
+                                                 @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                 @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                 @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                 @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        Page<Tag> tagsPage = documentService.getDocumentTagsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
+        if (tagsPage != null && tagsPage.getNumberOfElements() > 0) {
+            return new ResponseEntity<>(tagsPage, HttpStatus.OK);
+        } else {
+            throw new NotFoundException();
+        }
     }
 
 //    /**

@@ -193,6 +193,18 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    public Page<Tag> getDocumentTagsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        return repository.findAllTagsForDocument(documentId, pageable);
+    }
+
+    @Override
     public DocumentRepository getRepository() {
         return repository;
     }

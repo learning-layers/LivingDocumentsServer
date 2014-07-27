@@ -23,6 +23,7 @@
 package de.hska.ld.content;
 
 import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
 import de.hska.ld.core.AbstractIntegrationTest;
 import org.junit.Assert;
@@ -40,6 +41,9 @@ public class TagServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     TagService tagService;
+
+    @Autowired
+    DocumentService documentService;
 
     @Override
     @Before
