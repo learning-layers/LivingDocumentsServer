@@ -30,13 +30,21 @@ import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.util.Core;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * <p><b>Resource:</b> {@value Content#RESOURCE_DOCUMENT}
@@ -261,6 +269,62 @@ public class DocumentController {
         }
     }
 
+    /**
+     * This resource allows uploading files.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/upload
+     * </pre>
+     *
+     * @param file       the Multipart file that has been uploaded
+     * @param documentId the document ID to which the file shall be attached
+     * @return <b>200 OK</b> if the upload has been successfully performed<br>
+     * <b>400 BAD REQUEST</b> if empty file parameter<br>
+     * <b>500 Internal Server Error</b> if there occurred any other server side issue
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/upload")
+    public ResponseEntity uploadFile(@RequestParam MultipartFile file, @RequestParam Long documentId) {
+        String name = file.getOriginalFilename();
+        if (!file.isEmpty()) {
+            documentService.addAttachment(documentId, file, name);
+            return new ResponseEntity(HttpStatus.OK);
+        } else {
+            throw new ValidationException("file");
+        }
+    }
+
+    /**
+     * This resource allows downloading a file attachment.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path - option 1 (downloading an attachment):</b> GET {@value Content#RESOURCE_DOCUMENT}/{documentId}/download?attachment={position}
+     *     <b>Path - option 2 (download a main content):</b> GET {@value Content#RESOURCE_DOCUMENT}/{documentId}/download
+     * </pre>
+     *
+     * @param documentId the ID of the document that contains the needed attachment
+     * @param position   the position of the attachment in the attachment list
+     * @param response   <b>FILE DOWNLOAD INITIATED</b> if the attachment could be found, and the download is starting<br>
+     *                   <b>400 BAD REQUEST</b><br>
+     *                   <b>403 FORBIDDEN</b> if the access to this attachment has been denied<br>
+     *                   <b>404 NOT FOUND</b> if no attachment has been found for the given document ID or attachment position<br>
+     *                   <b>500 Internal Server Error</b> if there occurred any other server side issue
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/download")
+    public void downloadFile(@PathVariable Long documentId, @RequestParam Integer position, HttpServletResponse response) {
+        try {
+            InputStream inputStream = documentService.getAttachmentSource(documentId, position);
+            response.setContentType("application/pdf");
+            OutputStream outputStream = response.getOutputStream();
+            IOUtils.copy(inputStream, outputStream);
+        } catch (IOException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
 //    /**
 //     * Adds a comment node to either a parent document or a parent comment.
 //     * <p>
@@ -300,96 +364,6 @@ public class DocumentController {
 //            }
 //        } catch (RepositoryException e) {
 //            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
-//
-//    /**
-//     * This resource allows uploading files.
-//     * <p>
-//     * <pre>
-//     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document/upload
-//     * </pre>
-//     *
-//     * @param file           the Multipart file that has been uploaded
-//     * @param documentNodeId the documentNodeId to which the file shall be attached
-//     * @param cmd            the command which decides where this file shall be attached within the document.<br>
-//     *                       <ul>
-//     *                       <li><b>main</b> for attaching the file as a main content of a document<br>
-//     *                       (attaches the file to the front of a document)<br></li>
-//     *                       <li><b>attachment</b> for attaching the file to the back of a document as attachment</li>
-//     *                       </ul>
-//     * @return <b>200 OK</b> if the upload has been successfully performed<br>
-//     * <b>400 BAD REQUEST</b> if empty file parameter<br>
-//     * <b>500 Internal Server Error</b> if there occurred any other server side issue
-//     */
-//    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.POST, value = "/document/upload")
-//    public ResponseEntity uploadFile(@RequestParam MultipartFile file, @RequestParam String documentNodeId,
-//                                     @RequestParam String cmd, @JcrSession Session session) {
-//        String name = file.getOriginalFilename();
-//        if (!file.isEmpty()) {
-//            try {
-//                Node documentNode = jcrService.getNode(session, documentNodeId);
-//                jcrService.addFileNode(session, documentNode, file.getInputStream(), name, cmd);
-//                return new ResponseEntity(HttpStatus.OK);
-//            } catch (Exception e) {
-//                return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
-//            }
-//        } else {
-//            return new ResponseEntity(HttpStatus.BAD_REQUEST);
-//        }
-//    }
-//
-//    /**
-//     * This resource allows downloading a file attachment.
-//     * <p>
-//     * <pre>
-//     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path - option 1 (downloading an attachment):</b> GET {@value Content#RESOURCE_DOCUMENT}/document/{documentNodeId}/download?attachment={attachmentNodeId}
-//     *     <b>Path - option 2 (download a main content):</b> GET {@value Content#RESOURCE_DOCUMENT}/document/{documentNodeId}/download
-//     * </pre>
-//     *
-//     * @param documentNodeId   the node id of the document that contains the needed attachment node
-//     * @param attachmentNodeId the node id of the attachment that is needed
-//     * @param response         <b>FILE DOWNLOAD INITIATED</b> if the attachment could be found, and the download is starting<br>
-//     *                         <b>400 BAD REQUEST</b><br>
-//     *                         <b>403 FORBIDDEN</b> if the access to this attachment has been denied<br>
-//     *                         <b>404 NOT FOUND</b> if no node has been found for a given document or attachment node id<br>
-//     *                         <b>500 Internal Server Error</b> if there occurred any other server side issue
-//     */
-//    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.GET, value = "/document/{documentNodeId}/download")
-//    public void downloadFile(@PathVariable String documentNodeId, @RequestParam(required = false) String attachmentNodeId,
-//                             @JcrSession Session session, HttpServletResponse response) {
-//        try {
-//            Node fileNode;
-//            try {
-//                Node documentNode = jcrService.getNode(session, documentNodeId);
-//                if (!documentNode.getPrimaryNodeType().getName().equals(Content.LD_DOCUMENT)) {
-//                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//                    return;
-//                }
-//                if (attachmentNodeId != null) {
-//                    Node attachmentsNode = documentNode.getNode(Content.LD_ATTACHMENTS_NODE);
-//                    fileNode = attachmentsNode.getNode(attachmentNodeId);
-//                } else {
-//                    fileNode = documentNode.getNode(Content.LD_MAIN_FILE_NODE);
-//                }
-//            } catch (PathNotFoundException e) {
-//                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-//                return;
-//            } catch (RepositoryException e) {
-//                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-//                return;
-//            }
-//
-//            InputStream inputStream = JcrUtils.readFile(fileNode.getNode(JcrConstants.JCR_CONTENT));
-//            response.setContentType("application/pdf");
-//            OutputStream outputStream = response.getOutputStream();
-//            IOUtils.copy(inputStream, outputStream);
-//        } catch (Exception e) {
-//            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 //        }
 //    }
 //

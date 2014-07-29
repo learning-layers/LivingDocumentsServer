@@ -28,6 +28,9 @@ import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.core.persistence.domain.User;
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.InputStream;
 
 public interface DocumentService extends ContentService<Document> {
 
@@ -48,6 +51,10 @@ public interface DocumentService extends ContentService<Document> {
     Document addAccess(Document document, User user, Access.Permission... permission);
 
     Document removeAccess(Document document, User user, Access.Permission... permissions);
+
+    void addAttachment(Long documentId, MultipartFile file, String fileName);
+
+    InputStream getAttachmentSource(Long documentId, int position);
 
     Page<Tag> getDocumentTagsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 }

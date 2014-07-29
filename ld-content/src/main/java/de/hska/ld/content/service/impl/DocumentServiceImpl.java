@@ -14,7 +14,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 public class DocumentServiceImpl extends AbstractContentService<Document> implements DocumentService {
@@ -177,17 +181,31 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return super.save(document);
     }
 
-    private boolean hasPermission(Document document, User user, Access.Permission permission) {
-        if (document.getCreator().equals(user)) {
-            return true;
+    @Override
+    public void addAttachment(Long documentId, MultipartFile file, String fileName) {
+        Document document = findById(documentId);
+        if (document == null) {
+            throw new ValidationException("id");
         }
+        Attachment attachment = null;
         try {
-            Access access = document.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
-            Access.Permission result = access.getPermissionList().stream().filter(p -> p.equals(permission)).findFirst().get();
-            return result != null;
-        } catch (NoSuchElementException e) {
-            return false;
+            attachment = new Attachment(file.getInputStream(), fileName);
+        } catch (IOException e) {
+            throw new ValidationException("file");
         }
+        document.getAttachmentList().add(attachment);
+        super.save(document);
+    }
+
+    @Override
+    public InputStream getAttachmentSource(Long documentId, int position) {
+        Document document = findById(documentId);
+        if (position < 0 || document.getAccessList().size() <= position) {
+            throw new ValidationException("position");
+        }
+        Attachment attachment = document.getAttachmentList().get(position);
+        byte[] source = attachment.getSource();
+        return new ByteArrayInputStream(source);
     }
 
     @Override
@@ -200,6 +218,19 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         return repository.findAllTagsForDocument(documentId, pageable);
+    }
+
+    private boolean hasPermission(Document document, User user, Access.Permission permission) {
+        if (document.getCreator().equals(user)) {
+            return true;
+        }
+        try {
+            Access access = document.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
+            Access.Permission result = access.getPermissionList().stream().filter(p -> p.equals(permission)).findFirst().get();
+            return result != null;
+        } catch (NoSuchElementException e) {
+            return false;
+        }
     }
 
     @Override
