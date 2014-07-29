@@ -71,7 +71,7 @@ public abstract class Content {
             inverseJoinColumns = {@JoinColumn(name = "subscription_id")})
     private List<Subscription> subscriptionList;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "parent")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "parent")
     /*@JoinTable(name = "content_comment",
             joinColumns = {@JoinColumn(name = "content_id")},
             inverseJoinColumns = {@JoinColumn(name = "comment_id")})*/

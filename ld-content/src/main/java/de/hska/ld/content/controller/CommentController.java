@@ -4,6 +4,7 @@ import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.dto.CommentDto;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.util.Content;
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -74,4 +75,29 @@ public class CommentController {
         return new ResponseEntity<>(new CommentDto(comment), HttpStatus.CREATED);
     }
 
+    /**
+     * Updates an existing comment.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> PUT {@value Content#RESOURCE_DOCUMENT}/comment
+     * </pre>
+     *
+     * @param comment the content that contains the changes to this comment. Example:<br>
+     *                       <tt>{text: 'The comment text'}</tt>
+     * @return <b>200 OK</b> if the changes have been successfully applied<br>
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST)
+    public ResponseEntity<CommentDto> updateComment(@RequestBody Comment comment) {
+        comment = commentService.update(comment);
+        return new ResponseEntity<>(new CommentDto(comment), HttpStatus.OK);
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{commentId}")
+    public ResponseEntity<CommentDto> removeComment(@PathVariable Long commentId) {
+        commentService.markAsDeleted(commentId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

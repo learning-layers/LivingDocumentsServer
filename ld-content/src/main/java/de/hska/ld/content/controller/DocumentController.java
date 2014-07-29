@@ -262,65 +262,6 @@ public class DocumentController {
     }
 
 //    /**
-//     * Removes a tag from a node.
-//     * <p>
-//     * <pre>
-//     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> DELETE {@value Content#RESOURCE_DOCUMENT}/tag/remove?tagName=&lt;tagName&gt;
-//     * </pre>
-//     *
-//     * @param taggedNodeId the node id of the node that contains the tag
-//     * @param tagId        the tag ID of the tag that shall be removed from the node
-//     * @return <b>200 OK</b> if the tag has been removed from the node<br>
-//     * <b>404 NOT FOUND</b> if there is no node with the given taggedNodeId present in the system<br>
-//     * <b>409 CONFLICT</b> if there has been no tag with the given tagName present on the node
-//     */
-//    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.DELETE, value = "/tag/remove")
-//    public ResponseEntity removeTag(@RequestParam String taggedNodeId, @RequestParam String tagId,
-//                                    @JcrSession Session session) {
-//        try {
-//            Node node = jcrService.getNode(session, taggedNodeId);
-//            jcrService.removeTag(session, node, tagId);
-//        } catch (ItemNotFoundException e) {
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        } catch (ConstraintViolationException e) {
-//            return new ResponseEntity<>(HttpStatus.CONFLICT);
-//        } catch (RepositoryException e) {
-//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//        return new ResponseEntity<>(HttpStatus.OK);
-//    }
-
-//    /**
-//     * Updates an existing comment.
-//     * <p>
-//     * <pre>
-//     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> PUT {@value Content#RESOURCE_DOCUMENT}/comment
-//     * </pre>
-//     *
-//     * @param commentNodeDto the node content that contains the changes to this comment. Example:<br>
-//     *                       <tt>{id: 'nodeId', description: 'The comment description'}</tt>
-//     * @return <b>200 OK</b> if the changes have been successfully applied<br>
-//     * <b>404 NOT FOUND</b> if a comment with the given comment node id inside the node dto could not be found
-//     */
-//    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.PUT, value = "/comment")
-//    public ResponseEntity<NodeDto> updateCommentNode(@RequestBody NodeDto commentNodeDto, @JcrSession Session session) {
-//        try {
-//            Node rootNode = session.getRootNode();
-//            Node documentsNode = rootNode.getNode(Content.LD_DOCUMENTS);
-//
-//            Node commentNode = documentsNode.getNode(commentNodeDto.getNodeId());
-//            jcrService.updateComment(session, commentNode, commentNodeDto.getDescription());
-//            return new ResponseEntity<>(new NodeDto(commentNode), HttpStatus.OK);
-//        } catch (RepositoryException e) {
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        }
-//    }
-
-//    /**
 //     * Adds a comment node to either a parent document or a parent comment.
 //     * <p>
 //     * <pre>

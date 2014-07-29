@@ -78,10 +78,7 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
     public Comment save(Comment comment) {
         Comment dbComment = findById(comment.getId());
         User currentUser = Core.currentUser();
-        if (dbComment == null) {
-            //comment.setCreator(currentUser);
-            //comment.setCreatedAt(new Date());
-        } else {
+        if (dbComment != null) {
             boolean isCreator = dbComment.getCreator().getId().equals(currentUser.getId());
             if (!isCreator) {
                 throw new UserNotAuthorizedException();
@@ -91,6 +88,16 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
             comment = dbComment;
         }
         return super.save(comment);
+    }
+
+    @Override
+    public Comment update(Comment comment) {
+        Comment dbComment = findById(comment.getId());
+        if (comment.getId() == null || dbComment == null) {
+            throw new ValidationException("id");
+        }
+        dbComment.setText(comment.getText());
+        return super.save(dbComment);
     }
 
     @Override

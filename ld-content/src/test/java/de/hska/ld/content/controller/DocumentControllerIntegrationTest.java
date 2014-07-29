@@ -62,8 +62,6 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
 
-        //User admin = userService.findByUsername(Core.BOOTSTRAP_ADMIN);
-
         Map varMap = new HashMap<>();
         varMap.put("page-number", 0);
         varMap.put("page-size", 10);
