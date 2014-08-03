@@ -16,14 +16,14 @@ subprojects {
         target = project.hasProperty('trg') ? trg : 'jar'
         container = project.hasProperty('cnt') ? cnt : 'tomcat'
 
-        springBootVersion = '1.0.2.RELEASE'
+        springBootVersion = '1.1.4.RELEASE'
         springSecurityLdapVersion = '3.2.1.RELEASE'
         springVersion = '4.0.4.RELEASE'
         validationApiVersion = '1.1.0.Final'
         apacheCommonsIoVersion = '2.4'
         commonsDbcpVersion = '1.4'
         hibernateValidation = '5.1.0.Final'
-        h2Version = '1.3.173'
+        h2Version = '1.4.178'
         postgresVersion = '9.1-901.jdbc4'
         mySqlVersion = '5.1.30'
     }

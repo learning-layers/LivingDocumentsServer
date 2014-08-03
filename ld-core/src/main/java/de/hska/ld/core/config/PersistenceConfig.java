@@ -22,14 +22,15 @@
 
 package de.hska.ld.core.config;
 
-import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.hibernate3.HibernateExceptionTranslator;
 import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -39,8 +40,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Properties;
 
 @Configuration
 @EnableJpaRepositories("de.hska.ld.*.persistence")
@@ -52,7 +52,7 @@ public class PersistenceConfig {
 
     @Bean
     public DataSource dataSource() throws SQLException {
-        BasicDataSource dataSource = new BasicDataSource();
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(env.getProperty("module.core.db.driver"));
         dataSource.setUrl(env.getProperty("module.core.db.url"));
         dataSource.setUsername(env.getProperty("module.core.db.username"));
@@ -61,19 +61,28 @@ public class PersistenceConfig {
     }
 
     @Bean
-    public EntityManagerFactory entityManagerFactory() throws SQLException {
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory() throws SQLException {
+        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+        factory.setJpaVendorAdapter(jpaVendorAdapter());
+        factory.setPackagesToScan("de.hska.ld.*.persistence.domain");
+        factory.setDataSource(dataSource());
+
+        Properties jpaProperties = new Properties();
+        jpaProperties.setProperty("hibernate.hbm2ddl.auto", env.getProperty("module.core.db.ddl"));
+        factory.setJpaProperties(jpaProperties);
+        factory.afterPropertiesSet();
+
+        return factory;
+    }
+
+    @Bean
+    public JpaVendorAdapter jpaVendorAdapter() {
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         vendorAdapter.setGenerateDdl(true);
         vendorAdapter.setShowSql(Boolean.parseBoolean(env.getProperty("module.core.db.log.sql")));
-
-        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
-        factory.setJpaVendorAdapter(vendorAdapter);
-        factory.setPackagesToScan("de.hska.ld.*.persistence.domain");
-        factory.setDataSource(dataSource());
-        factory.setJpaPropertyMap(jpaProperties());
-        factory.afterPropertiesSet();
-
-        return factory.getObject();
+        vendorAdapter.setDatabasePlatform(env.getProperty("module.core.db.dialect"));
+        vendorAdapter.setGenerateDdl(true);
+        return vendorAdapter;
     }
 
     @Bean
@@ -84,22 +93,12 @@ public class PersistenceConfig {
     @Bean
     public PlatformTransactionManager transactionManager() throws SQLException {
         JpaTransactionManager txManager = new JpaTransactionManager();
-        txManager.setEntityManagerFactory(entityManagerFactory());
+        txManager.setEntityManagerFactory(entityManagerFactory().getObject());
         return txManager;
     }
 
     @Bean
     public HibernateExceptionTranslator hibernateExceptionTranslator() {
         return new HibernateExceptionTranslator();
-    }
-
-    private Map<String, String> jpaProperties() {
-        Map<String, String> map = new HashMap<>();
-        map.put("hibernate.hbm2ddl.auto", env.getProperty("module.core.db.ddl"));
-        String dialect = env.getProperty("module.core.db.dialect");
-        if (dialect != null) {
-            map.put("hibernate.dialect", dialect);
-        }
-        return map;
     }
 }

@@ -48,7 +48,6 @@ public class Comment extends Content {
         this.text = text;
     }
 
-    @JsonIgnore
     public Content getParent() {
         return parent;
     }
