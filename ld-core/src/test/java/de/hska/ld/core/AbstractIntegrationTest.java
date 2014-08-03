@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 
-package de.hska.ld;
+package de.hska.ld.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

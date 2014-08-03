@@ -22,7 +22,7 @@
 
 package de.hska.ld.core.controller;
 
-import de.hska.ld.AbstractIntegrationTest;
+import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.dto.IdDto;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.service.RoleService;

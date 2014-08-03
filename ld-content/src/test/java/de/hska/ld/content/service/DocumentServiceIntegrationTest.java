@@ -20,12 +20,10 @@
  * limitations under the License.
  */
 
-package de.hska.ld.content;
+package de.hska.ld.content.service;
 
-import de.hska.ld.AbstractIntegrationTest;
 import de.hska.ld.content.persistence.domain.*;
-import de.hska.ld.content.service.DocumentService;
-import de.hska.ld.content.service.TagService;
+import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;

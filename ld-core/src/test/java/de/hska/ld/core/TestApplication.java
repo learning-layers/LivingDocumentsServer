@@ -20,13 +20,13 @@
  * limitations under the License.
  */
 
-package de.hska.ld;
+package de.hska.ld.core;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 
-@ComponentScan
+@ComponentScan({"de.hska.ld.*.config", "de.hska.ld.*.persistence", "de.hska.ld.*.controller"})
 @EnableAutoConfiguration
 public class TestApplication {
 

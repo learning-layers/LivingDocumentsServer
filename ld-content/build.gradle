@@ -1,0 +1,3 @@
+dependencies {
+    testCompile project(':ld-core').sourceSets.test.output
+}
