@@ -22,10 +22,10 @@
 
 package de.hska.ld.content;
 
+import de.hska.ld.AbstractIntegrationTest;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
-import de.hska.ld.core.AbstractIntegrationTest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

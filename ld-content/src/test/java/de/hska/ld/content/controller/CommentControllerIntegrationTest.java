@@ -1,11 +1,11 @@
 package de.hska.ld.content.controller;
 
+import de.hska.ld.AbstractIntegrationTest;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.dto.CommentDto;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
-import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.junit.Assert;

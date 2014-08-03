@@ -1,8 +1,8 @@
 package de.hska.ld.content;
 
+import de.hska.ld.AbstractIntegrationTest;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.service.CommentService;
-import de.hska.ld.core.AbstractIntegrationTest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

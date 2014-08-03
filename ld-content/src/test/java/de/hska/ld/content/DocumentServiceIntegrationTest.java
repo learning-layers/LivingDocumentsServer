@@ -22,10 +22,10 @@
 
 package de.hska.ld.content;
 
+import de.hska.ld.AbstractIntegrationTest;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
-import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
@@ -118,14 +118,14 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         setAuthentication(userWithoutAccess);
         UserNotAuthorizedException userNotAuthorizedException = null;
         try {
-            documentService.addTag(document.getId(), tag);
+            documentService.addTag(document.getId(), tag.getId());
         } catch (UserNotAuthorizedException e) {
             userNotAuthorizedException = e;
         }
         Assert.assertNotNull(userNotAuthorizedException);
 
         setAuthentication(testUser);
-        documentService.addTag(document.getId(), tag);
+        documentService.addTag(document.getId(), tag.getId());
 
         document = documentService.findById(document.getId());
         Assert.assertNotNull(document);
@@ -141,7 +141,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
 
         Document document = documentService.save(newDocument());
 
-        documentService.addAccess(document, userWithAccess, Access.Permission.READ);
+        documentService.addAccess(document.getId(), userWithAccess, Access.Permission.READ);
 
         setAuthentication(userWithAccess);
         Page<Document> documentPage = documentService.getDocumentsPage(0, 10, "DESC", "createdAt");
@@ -167,7 +167,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(documentPage.getNumberOfElements() == 0);
 
         setAuthentication(testUser);
-        document = documentService.addAccess(document, user, Access.Permission.READ);
+        document = documentService.addAccess(document.getId(), user, Access.Permission.READ);
 
         setAuthentication(user);
         documentPage = documentService.getDocumentsPage(0, 10, "DESC", "createdAt");
@@ -190,7 +190,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(userNotAuthorizedException);
 
         setAuthentication(testUser);
-        document = documentService.addAccess(document, user, Access.Permission.READ, Access.Permission.WRITE);
+        document = documentService.addAccess(document.getId(), user, Access.Permission.READ, Access.Permission.WRITE);
 
         setAuthentication(user);
         document.setTitle(document.getTitle() + "(updated)");

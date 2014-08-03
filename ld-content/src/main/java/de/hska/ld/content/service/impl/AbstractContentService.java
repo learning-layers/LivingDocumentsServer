@@ -15,6 +15,7 @@ import java.util.List;
 public abstract class AbstractContentService<T extends Content> extends AbstractService<T> implements ContentService<T> {
 
     @Override
+    @Transactional
     public void markAsDeleted(Long id) {
         T t = findById(id);
         t.setDeleted(true);

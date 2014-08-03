@@ -119,19 +119,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Override
     @Transactional
-    public void addTag(Long id, Tag tag) {
-        Document document = findById(id);
-        User user = Core.currentUser();
-        if (hasPermission(document, user, Access.Permission.WRITE)) {
-            document.getTagList().add(tag);
-            super.save(document);
-        } else {
-            throw new UserNotAuthorizedException();
-        }
-    }
-
-    @Override
-    @Transactional
     public void removeTag(Long id, Long tagId) {
         Document document = findById(id);
         Tag tag = tagService.findById(tagId);
@@ -141,7 +128,8 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Override
     @Transactional
-    public Document addAccess(Document document, User user, Access.Permission... permissions) {
+    public Document addAccess(Long id, User user, Access.Permission... permissions) {
+        Document document = findById(id);
         Access access;
         try {
             access = document.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();

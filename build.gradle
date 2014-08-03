@@ -26,6 +26,15 @@ subprojects {
         h2Version = '1.4.178'
         postgresVersion = '9.1-901.jdbc4'
         mySqlVersion = '5.1.30'
+        tomcatVersion = '8.0.9'
+    }
+
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (project.container == 'tomcat' && details.requested.group == 'org.apache.tomcat.embed') {
+                details.useVersion tomcatVersion
+            }
+        }
     }
 
     buildscript {
