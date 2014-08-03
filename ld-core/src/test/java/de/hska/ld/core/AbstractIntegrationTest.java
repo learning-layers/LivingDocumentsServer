@@ -24,6 +24,7 @@ package de.hska.ld.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.hska.ld.TestApplication;
 import de.hska.ld.core.exception.ApplicationError;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
