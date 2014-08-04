@@ -53,8 +53,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         Document dbDocument = findById(document.getId());
         User currentUser = Core.currentUser();
         if (dbDocument == null) {
-            //document.setCreator(currentUser);
-            //document.setCreatedAt(new Date());
             // TODO more dynamic solution
             document.setAccessList(null);
             document.setAttachmentList(null);
@@ -82,17 +80,13 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     @Override
     @Transactional
     public Comment addComment(Long id, Comment comment) {
-        User user = Core.currentUser();
         Document document = findById(id);
-        if (hasPermission(document, user, Access.Permission.WRITE) || document.getCreator().equals(user)) {
-            document.getCommentList().add(comment);
-            comment.setParent(document);
-            document = super.save(document);
-            Optional<Comment> optional = document.getCommentList().stream().sorted(byDateTime).findFirst();
-            return optional.get();
-        } else {
-            throw new UserNotAuthorizedException();
-        }
+        checkPermission(document, Access.Permission.WRITE);
+        document.getCommentList().add(comment);
+        comment.setParent(document);
+        document = super.save(document);
+        Optional<Comment> optional = document.getCommentList().stream().sorted(byDateTime).findFirst();
+        return optional.get();
     }
 
     @Override
@@ -108,13 +102,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     public void addTag(Long id, Long tagId) {
         Document document = findById(id);
         Tag tag = tagService.findById(tagId);
-        User user = Core.currentUser();
-        if (hasPermission(document, user, Access.Permission.WRITE)) {
-            document.getTagList().add(tag);
-            super.save(document);
-        } else {
-            throw new UserNotAuthorizedException();
-        }
+        checkPermission(document, Access.Permission.WRITE);
+        document.getTagList().add(tag);
+        super.save(document);
     }
 
     @Override
@@ -171,16 +161,23 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Override
     public void addAttachment(Long documentId, MultipartFile file, String fileName) {
+        try {
+            addAttachment(documentId, file.getInputStream(), fileName);
+        } catch (IOException e) {
+            throw new ValidationException("file");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void addAttachment(Long documentId, InputStream is, String fileName) {
         Document document = findById(documentId);
         if (document == null) {
             throw new ValidationException("id");
         }
-        Attachment attachment = null;
-        try {
-            attachment = new Attachment(file.getInputStream(), fileName);
-        } catch (IOException e) {
-            throw new ValidationException("file");
-        }
+        checkPermission(document, Access.Permission.WRITE);
+        Attachment attachment;
+        attachment = new Attachment(is, fileName);
         document.getAttachmentList().add(attachment);
         super.save(document);
     }
@@ -188,7 +185,8 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     @Override
     public InputStream getAttachmentSource(Long documentId, int position) {
         Document document = findById(documentId);
-        if (position < 0 || document.getAccessList().size() <= position) {
+        checkPermission(document, Access.Permission.READ);
+        if (position < 0 || position >= document.getAccessList().size()) {
             throw new ValidationException("position");
         }
         Attachment attachment = document.getAttachmentList().get(position);
@@ -208,16 +206,18 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return repository.findAllTagsForDocument(documentId, pageable);
     }
 
-    private boolean hasPermission(Document document, User user, Access.Permission permission) {
-        if (document.getCreator().equals(user)) {
-            return true;
-        }
-        try {
-            Access access = document.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
-            Access.Permission result = access.getPermissionList().stream().filter(p -> p.equals(permission)).findFirst().get();
-            return result != null;
-        } catch (NoSuchElementException e) {
-            return false;
+    private void checkPermission(Document document, Access.Permission permission) {
+        User user = Core.currentUser();
+        if (!document.getCreator().equals(user)) {
+            try {
+                Access access = document.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
+                Access.Permission result = access.getPermissionList().stream().filter(p -> p.equals(permission)).findFirst().get();
+                if (result == null) {
+                    throw new UserNotAuthorizedException();
+                }
+            } catch (NoSuchElementException e) {
+                throw new UserNotAuthorizedException();
+            }
         }
     }
 

@@ -38,4 +38,6 @@ public interface UserService extends UserDetailsService, Service<User> {
     Boolean hasRole(User user, String roleName);
 
     List<User> findByRole(String roleName);
+
+    void runAs(User user, Runnable runnable);
 }

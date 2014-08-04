@@ -33,6 +33,9 @@ import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -151,6 +154,18 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             }
         }
         return false;
+    }
+
+    @Override
+    public void runAs(User user, Runnable runnable) {
+        Authentication authenticationBefore = SecurityContextHolder.getContext().getAuthentication();
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user,
+                user.getPassword(), user.getAuthorities()));
+        try {
+            runnable.run();
+        } finally {
+            SecurityContextHolder.getContext().setAuthentication(authenticationBefore);
+        }
     }
 
     private void createRoleListForUser(User user) {

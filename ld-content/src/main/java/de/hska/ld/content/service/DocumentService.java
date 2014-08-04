@@ -52,6 +52,8 @@ public interface DocumentService extends ContentService<Document> {
 
     void addAttachment(Long documentId, MultipartFile file, String fileName);
 
+    void addAttachment(Long documentId, InputStream is, String fileName);
+
     InputStream getAttachmentSource(Long documentId, int position);
 
     Page<Tag> getDocumentTagsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);

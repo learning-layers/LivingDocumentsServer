@@ -29,14 +29,6 @@ subprojects {
         tomcatVersion = '8.0.9'
     }
 
-    configurations.all {
-        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            if (project.container == 'tomcat' && details.requested.group == 'org.apache.tomcat.embed') {
-                details.useVersion tomcatVersion
-            }
-        }
-    }
-
     buildscript {
         repositories {
             maven { url 'http://repo.spring.io/libs-snapshot' }
