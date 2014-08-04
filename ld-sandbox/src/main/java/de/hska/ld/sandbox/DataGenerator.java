@@ -22,11 +22,11 @@
 
 package de.hska.ld.sandbox;
 
-import de.hska.ld.content.persistence.domain.Attachment;
-import de.hska.ld.content.persistence.domain.Comment;
-import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
+import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -35,7 +35,7 @@ import java.io.InputStream;
 public class DataGenerator {
 
     @Autowired
-    public void init(DocumentService documentService) {
+    public void init(DocumentService documentService, UserService userService) {
         InputStream in = null;
         try {
             in = DataGenerator.class.getResourceAsStream("/" + "sandbox.pdf");
@@ -56,7 +56,13 @@ public class DataGenerator {
             Attachment attachment = new Attachment(in, "sandbox.pdf");
             document.getAttachmentList().add(attachment);
 
-            documentService.save(document);
+            document = documentService.save(document);
+
+            User user = userService.findByUsername(Core.BOOTSTRAP_USER);
+            document = documentService.addAccess(document.getId(), user, Access.Permission.READ);
+
+            User adminUser = userService.findByUsername(Core.BOOTSTRAP_ADMIN);
+            documentService.addAccess(document.getId(), adminUser, Access.Permission.READ, Access.Permission.WRITE);
         } finally {
             IOUtils.closeQuietly(in);
         }

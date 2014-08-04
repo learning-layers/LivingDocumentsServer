@@ -27,7 +27,6 @@ import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
-import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
@@ -58,9 +57,6 @@ public class DocumentController {
 
     @Autowired
     private CommentService commentService;
-
-    @Autowired
-    private TagService tagService;
 
     /**
      * <pre>
@@ -325,32 +321,6 @@ public class DocumentController {
         }
     }
 
-//    /**
-//     * Adds a comment node to either a parent document or a parent comment.
-//     * <p>
-//     * <pre>
-//     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path</b> POST {@value Content#RESOURCE_DOCUMENT}/{nodeId}/comment
-//     * </pre>
-//     *
-//     * @param nodeId  the node id of the parent to which the new comment should be added
-//     * @param textDto the text content of the comment that shall be added
-//     * @return <b>200 OK</b> and the node data if everything went fine<br>
-//     * <b>404 NOT FOUND</b> if the parent node could not be found in the system
-//     */
-//    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/comment")
-//    public ResponseEntity<NodeDto> addCommentNode(@PathVariable String nodeId, @RequestBody TextDto textDto,
-//                                                  @JcrSession Session session) {
-//        try {
-//            Node documentOrCommentNode = jcrService.getNode(session, nodeId);
-//            Node commentNode = jcrService.addComment(session, documentOrCommentNode, textDto.getText());
-//            return new ResponseEntity<>(new NodeDto(commentNode), HttpStatus.OK);
-//        } catch (RepositoryException e) {
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        }
-//    }
-
 //    @Secured(Core.ROLE_USER)
 //    @RequestMapping(method = RequestMethod.GET, value = "/search")
 //    public ResponseEntity<List<NodeDto>> searchForDocumentNode(@JcrSession Session session, @RequestParam String query) {
@@ -364,39 +334,6 @@ public class DocumentController {
 //            }
 //        } catch (RepositoryException e) {
 //            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
-//
-//    /**
-//     * Adds a tag to any node.
-//     * <p>
-//     * <pre>
-//     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/{nodeId}/tag
-//     * </pre>
-//     *
-//     * @param nodeId the node id of a node that shall be tagged
-//     * @param tagDto the tag contents. Example:<br>
-//     *               {tagName: '', description: ''}
-//     * @return <b>200 OK</b> if the node has been successfully tagged with the given tag<br>
-//     * <b>404 NOT FOUND</b> if there is no node with the given nodeId within the system<br>
-//     * <b>409 CONFLICT</b> if the given tag has already been added to this node
-//     */
-//    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/tag")
-//    public ResponseEntity<TextDto> addTagNode(@PathVariable String nodeId, @RequestBody TagDto tagDto,
-//                                              @JcrSession Session session) {
-//        try {
-//            Node nodeToBeTagged = jcrService.getNode(session, nodeId);
-//            Node tagNode = jcrService.addTag(session, nodeToBeTagged, tagDto.getTagName(), tagDto.getDescription());
-//
-//            TextDto nodeDto = new TextDto();
-//            nodeDto.setText(tagNode.getName());
-//            return new ResponseEntity<>(nodeDto, HttpStatus.OK);
-//        } catch (ItemExistsException e) {
-//            return new ResponseEntity<>(HttpStatus.CONFLICT);
-//        } catch (RepositoryException e) {
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 //        }
 //    }
 //
