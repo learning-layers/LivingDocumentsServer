@@ -234,4 +234,16 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(documentTagsPage);
         Assert.assertTrue(documentTagsPage.getTotalElements() == 1);
     }
+
+    @Test
+    public void testAddDiscussionToExistingDocument() {
+        Document document = documentService.save(newDocument());
+        Document discussion = newDocument();
+
+        document = documentService.addDiscussionToDocument(document.getId(), discussion);
+
+        Assert.assertNotNull(document.getDiscussionList());
+        Assert.assertTrue(document.getDiscussionList().size() > 0);
+        Assert.assertNotNull(document.getDiscussionList().get(0).getParent());
+    }
 }

@@ -46,6 +46,8 @@ public interface DocumentService extends ContentService<Document> {
 
     void removeTag(Long id, Long tagId);
 
+    Document addDiscussionToDocument(Long id, Document discussion);
+
     Document addAccess(Long id, User user, Access.Permission... permission);
 
     Document removeAccess(Document document, User user, Access.Permission... permissions);

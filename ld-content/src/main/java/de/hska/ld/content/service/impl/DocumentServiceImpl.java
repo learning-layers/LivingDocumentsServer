@@ -118,6 +118,20 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Override
     @Transactional
+    public Document addDiscussionToDocument(Long id, Document discussion) {
+        Document document = findById(id);
+
+        document.getDiscussionList().add(discussion);
+        discussion.setParent(document);
+
+        document = super.save(document);
+        document.getDiscussionList().size();
+
+        return document;
+    }
+
+    @Override
+    @Transactional
     public Document addAccess(Long id, User user, Access.Permission... permissions) {
         Document document = findById(id);
         Access access;
