@@ -31,8 +31,8 @@ import javax.persistence.*;
 @Table(name = "ld_comment")
 public class Comment extends Content {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parentId")
+    @ManyToOne
+    @JoinColumn(name = "parent_id")
     @JsonIgnore
     private Content parent;
 

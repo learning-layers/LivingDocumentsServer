@@ -53,6 +53,17 @@ public class Document extends Content {
             inverseJoinColumns = {@JoinColumn(name = "access_id")})
     private List<Access> accessList;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "discussion",
+            joinColumns = {@JoinColumn(name = "discussion_id")},
+            inverseJoinColumns = {@JoinColumn(name = "discussion_id_inverse")})
+    private List<Document> discussionList;
+
+    @ManyToOne
+    @JoinColumn(name = "parent_id")
+    @JsonIgnore
+    private Document parent;
+
     public String getTitle() {
         return title;
     }
@@ -91,5 +102,25 @@ public class Document extends Content {
 
     public void setAccessList(List<Access> accessList) {
         this.accessList = accessList;
+    }
+
+    @JsonProperty("discussions")
+    public List<Document> getDiscussionList() {
+        return discussionList;
+    }
+
+    public void setDiscussionList(List<Document> discussionList) {
+        if (discussionList == null) {
+            discussionList = new ArrayList<>();
+        }
+        this.discussionList = discussionList;
+    }
+
+    public Document getParent() {
+        return parent;
+    }
+
+    public void setParent(Document parent) {
+        this.parent = parent;
     }
 }
