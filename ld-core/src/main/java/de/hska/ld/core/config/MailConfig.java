@@ -41,11 +41,28 @@ public class MailConfig {
     @Value("${email.port}")
     private Integer port;
 
+    @Value("${email.smtp.auth}")
+    private Boolean smtpAuth;
+
+    @Value("${email.smtp.starttls.enable}")
+    private Boolean startTlsEnable;
+
+    @Value("${mail.smtp.ssl.trust}")
+    private Boolean sslTrust;
+
+    @Value("${email.username}")
+    private String username;
+
+    @Value("${email.password}")
+    private String password;
+
     @Bean
     public JavaMailSender javaMailService() {
         JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
         javaMailSender.setHost(host);
         javaMailSender.setPort(port);
+        javaMailSender.setUsername(username);
+        javaMailSender.setPassword(password);
         javaMailSender.setJavaMailProperties(getMailProperties());
         return javaMailSender;
     }
@@ -62,10 +79,10 @@ public class MailConfig {
 
     private Properties getMailProperties() {
         Properties properties = new Properties();
-        properties.setProperty("mail.transport.protocol", "smtp");
-        properties.setProperty("mail.smtp.auth", "false");
-        properties.setProperty("mail.smtp.starttls.enable", "false");
-        properties.setProperty("mail.smtp.ssl.trust", "false");
+        //properties.setProperty("mail.transport.protocol", protocol);
+        properties.setProperty("mail.smtp.auth", smtpAuth.toString());
+        properties.setProperty("mail.smtp.starttls.enable", startTlsEnable.toString());
+        properties.setProperty("mail.smtp.ssl.trust", sslTrust.toString());
         return properties;
     }
 }
