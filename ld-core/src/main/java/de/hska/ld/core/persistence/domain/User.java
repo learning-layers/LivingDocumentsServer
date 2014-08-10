@@ -129,6 +129,7 @@ public class User implements UserDetails {
         this.fullName = fullName;
     }
 
+    @JsonIgnore
     public String getConfirmationKey() {
         return confirmationKey;
     }
