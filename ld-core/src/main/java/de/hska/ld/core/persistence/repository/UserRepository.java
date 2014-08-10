@@ -33,6 +33,11 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
     User findByUsername(String username);
 
+    User findByEmail(String email);
+
+    @Query("FROM User u WHERE u.username = :userKey OR u.email = :userKey")
+    User findByUsernameOrEmail(@Param("userKey") String userKey);
+
     @Query("SELECT u FROM User u LEFT JOIN u.roleList r WHERE r.name = :roleName")
     List<User> findByRole(@Param("roleName") String roleName);
 }

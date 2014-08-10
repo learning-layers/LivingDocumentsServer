@@ -68,7 +68,7 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = repository.findByUsername(username);
+        User user = repository.findByUsernameOrEmail(username);
         return user;
     }
 
@@ -86,6 +86,7 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             }
             user.setId(null);
             user.setCreatedAt(new Date());
+            user.setEnabled(true);
             String hashedPwd = encodePassword(user.getPassword());
             user.setPassword(hashedPwd);
             createRoleListForUser(user);

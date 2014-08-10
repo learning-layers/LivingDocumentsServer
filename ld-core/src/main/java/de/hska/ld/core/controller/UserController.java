@@ -115,7 +115,7 @@ public class UserController {
      * Saves a user. This means a new user will be created if no ID is specified or an old user will be
      * updated if ID is specified.
      *
-     * <b>Required roles:</b> no role required
+     * <b>Required roles:</b> ROLE_ADMIN
      * <b>Path:</b> POST {@value Core#RESOURCE_USER}
      * </pre>
      *
@@ -126,6 +126,7 @@ public class UserController {
      *         <b>400 Bad Request</b> if at least one property was invalid or <br>
      *         <b>403 Forbidden</b> if authorization failed
      */
+    @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<User> saveUser(@RequestBody @Valid User user) {
         boolean isNew = user.getId() == null;
