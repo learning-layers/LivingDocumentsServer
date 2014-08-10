@@ -33,11 +33,12 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
     User findByUsername(String username);
 
-    User findByEmail(String email);
+    @Query("FROM User u WHERE u.email = :email AND u.email is not null")
+    User findByEmail(@Param("email") String email);
 
     User findByConfirmationKey(String confirmationKey);
 
-    @Query("FROM User u WHERE u.username = :userKey OR u.email = :userKey")
+    @Query("FROM User u WHERE u.username = :userKey OR (u.email = :userKey AND u.email is not null)")
     User findByUsernameOrEmail(@Param("userKey") String userKey);
 
     @Query("SELECT u FROM User u LEFT JOIN u.roleList r WHERE r.name = :roleName")

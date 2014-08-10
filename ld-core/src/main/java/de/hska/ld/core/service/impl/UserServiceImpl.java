@@ -150,8 +150,9 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         User userFoundByEmail = findByEmail(user.getEmail());
         setNewUserFields(user, userFoundByUsername, userFoundByEmail);
         user.setConfirmationKey(UUID.randomUUID().toString());
+        user.setEnabled(false);
         user = super.save(user);
-        sendConfirmationMail(user);
+        //sendConfirmationMail(user);
     }
 
     @Override
