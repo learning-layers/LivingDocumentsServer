@@ -1,0 +1,9 @@
+<div>
+    ${dear} ${fullName},
+  <br>
+  <br>${text}
+  <br>
+  <br><a href="${confirmationUrl}">${link}</a>
+  <br>
+  <br>${greeting}
+</div>

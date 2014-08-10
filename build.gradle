@@ -21,7 +21,11 @@ subprojects {
         springVersion = '4.0.4.RELEASE'
         validationApiVersion = '1.1.0.Final'
         apacheCommonsIoVersion = '2.4'
+        javaMailVersion = '1.4.7'
         commonsDbcpVersion = '1.4'
+        velocityVersion = '1.7'
+        velocityToolsVersion = '2.0'
+        commonsValidatorVersion = '1.4.0'
         hibernateValidation = '5.1.0.Final'
         h2Version = '1.4.178'
         postgresVersion = '9.1-901.jdbc4'
@@ -68,10 +72,15 @@ subprojects {
         compile "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion"
         compile "org.springframework.boot:spring-boot-starter-security:$springBootVersion"
         compile "org.springframework.security:spring-security-ldap:$springSecurityLdapVersion"
+        compile "org.springframework:spring-context-support:$springVersion"
         compile "javax.validation:validation-api:$validationApiVersion"
+        compile "javax.mail:mail:$javaMailVersion"
+        compile "commons-validator:commons-validator:$commonsValidatorVersion"
         compile "org.hibernate:hibernate-validator:$hibernateValidation"
         compile "commons-dbcp:commons-dbcp:$commonsDbcpVersion"
         compile "commons-io:commons-io:$apacheCommonsIoVersion"
+        compile "org.apache.velocity:velocity:$velocityVersion"
+        compile "org.apache.velocity:velocity-tools:$velocityToolsVersion"
         compile "com.h2database:h2:$h2Version"
         compile "mysql:mysql-connector-java:$mySqlVersion"
         compile "postgresql:postgresql:$postgresVersion"

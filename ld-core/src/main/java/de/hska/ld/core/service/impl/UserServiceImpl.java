@@ -29,23 +29,29 @@ import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.persistence.repository.UserRepository;
+import de.hska.ld.core.service.MailService;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
 
 public class UserServiceImpl extends AbstractService<User> implements UserService {
+
+    EmailValidator emailValidator = EmailValidator.getInstance();
 
     @Autowired
     private UserRepository repository;
@@ -56,9 +62,17 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private MailService mailService;
+
     @Override
     public User findByUsername(String username) {
         return repository.findByUsername(username);
+    }
+
+    @Override
+    public User findByEmail(String email) {
+        return repository.findByEmail(email);
     }
 
     @Override
@@ -76,41 +90,32 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     public User save(User user) {
         boolean isNew = user.getId() == null;
         User userFoundByUsername = findByUsername(user.getUsername());
+        User userFoundByEmail = findByEmail(user.getEmail());
         if (isNew) {
-            // Check user input
-            if (user.getPassword() == null) {
-                throw new ValidationException("password");
-            }
-            if (userFoundByUsername != null) {
-                throw new AlreadyExistsException("username");
-            }
-            user.setId(null);
-            user.setCreatedAt(new Date());
-            user.setEnabled(true);
-            String hashedPwd = encodePassword(user.getPassword());
-            user.setPassword(hashedPwd);
-            createRoleListForUser(user);
+            setNewUserFields(user, userFoundByUsername, userFoundByEmail);
         } else {
             // Check if a the current user wants to update an account owned by somebody else
             User currentUser = Core.currentUser();
-            if (currentUser == null) {
+            boolean isAdmin = hasRole(currentUser, Core.ROLE_ADMIN);
+            if (!isAdmin && !currentUser.getId().equals(user.getId())) {
                 throw new UserNotAuthorizedException();
-            } else {
-                boolean isAdmin = hasRole(currentUser, Core.ROLE_ADMIN);
-                if (!isAdmin && !currentUser.getId().equals(user.getId())) {
-                    throw new UserNotAuthorizedException();
-                }
             }
             if (userFoundByUsername != null && user.getUsername().equals(userFoundByUsername.getUsername()) &&
                     !user.getId().equals(userFoundByUsername.getId())) {
                 throw new AlreadyExistsException("username");
             }
+            if (userFoundByEmail != null && user.getEmail().equals(userFoundByEmail.getEmail()) &&
+                    !user.getId().equals(userFoundByEmail.getId())) {
+                throw new AlreadyExistsException("email");
+            }
             User dbUser = repository.findOne(user.getId());
             user.setId(dbUser.getId());
+            user.setEnabled(dbUser.isEnabled());
             user.setPassword(dbUser.getPassword());
             user.setRoleList(dbUser.getRoleList());
         }
-        return super.save(user);
+        user = super.save(user);
+        return user;
     }
 
     @Override
@@ -137,6 +142,29 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             user.getRoleList().add(role);
         });
         return save(user);
+    }
+
+    @Override
+    public void register(User user) {
+        User userFoundByUsername = findByUsername(user.getUsername());
+        User userFoundByEmail = findByEmail(user.getEmail());
+        setNewUserFields(user, userFoundByUsername, userFoundByEmail);
+        user.setConfirmationKey(UUID.randomUUID().toString());
+        user = super.save(user);
+        sendConfirmationMail(user);
+    }
+
+    @Override
+    @Transactional
+    public User confirmRegistration(String confirmationKey) {
+        User user = repository.findByConfirmationKey(confirmationKey);
+        if (user == null) {
+            throw new NotFoundException("confirmationKey");
+        }
+        user.setEnabled(true);
+        user.setConfirmationKey(null);
+        user = super.save(user);
+        return user;
     }
 
     @Override
@@ -197,10 +225,42 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         return dbRoleList;
     }
 
-    private List<Role> createRoleListForNewUser() {
-        List<Role> roleList = new ArrayList<>();
-        roleList.add(roleService.findByName(Core.ROLE_USER));
-        return roleList;
+    private void setNewUserFields(User user, User userFoundByUsername, User userFoundByEmail) {
+        // Check user input
+        if (user.getPassword() == null) {
+            throw new ValidationException("password");
+        }
+        if (userFoundByUsername != null) {
+            throw new AlreadyExistsException("username");
+        }
+        if (userFoundByEmail != null) {
+            throw new AlreadyExistsException("email");
+        }
+        if (user.getEmail() != null && !emailValidator.isValid(user.getEmail())) {
+            throw new ValidationException("email");
+        }
+        user.setId(null);
+        user.setCreatedAt(new Date());
+        user.setConfirmationKey(UUID.randomUUID().toString());
+        user.setEnabled(true);
+        String hashedPwd = encodePassword(user.getPassword());
+        user.setPassword(hashedPwd);
+        createRoleListForUser(user);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void sendConfirmationMail(User user) {
+        Locale locale = LocaleContextHolder.getLocale();
+        ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+
+        Map model = new HashMap<>();
+        model.put("subject", bundle.getString("user.confirmation.subject"));
+        model.put("text", bundle.getString("user.confirmation.text"));
+        model.put("link", bundle.getString("user.confirmation.link"));
+        model.put("confirmationUrl", request.getContextPath() + "/users/confirmRegistration/" + user.getConfirmationKey());
+
+        mailService.sendMail(user, "user_confirmation.vm", model);
     }
 
     @Override

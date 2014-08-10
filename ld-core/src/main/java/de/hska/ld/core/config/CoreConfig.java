@@ -22,8 +22,10 @@
 
 package de.hska.ld.core.config;
 
+import de.hska.ld.core.service.MailService;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.UserService;
+import de.hska.ld.core.service.impl.MailServiceImpl;
 import de.hska.ld.core.service.impl.RoleServiceImpl;
 import de.hska.ld.core.service.impl.UserServiceImpl;
 import org.springframework.boot.context.embedded.MultipartConfigFactory;
@@ -43,6 +45,11 @@ public class CoreConfig {
     @Bean
     public RoleService roleService() {
         return new RoleServiceImpl();
+    }
+
+    @Bean
+    public MailService mailService() {
+        return new MailServiceImpl();
     }
 
     @Bean

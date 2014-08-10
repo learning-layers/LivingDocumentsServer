@@ -68,6 +68,9 @@ public class User implements UserDetails {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
+    @Column(name = "confirmation_key")
+    private String confirmationKey;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
@@ -124,6 +127,14 @@ public class User implements UserDetails {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getConfirmationKey() {
+        return confirmationKey;
+    }
+
+    public void setConfirmationKey(String confirmationKey) {
+        this.confirmationKey = confirmationKey;
     }
 
     public Date getCreatedAt() {
