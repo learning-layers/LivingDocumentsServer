@@ -228,6 +228,17 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         return repository.findDisabledAll(pageable);
     }
 
+    @Override
+    @Transactional
+    public User activateUser(Long userid) {
+        User user = super.findById(userid);
+        if (user != null) {
+            user.setEnabled(true);
+            super.save(user);
+        }
+        return user;
+    }
+
     private void createRoleListForUser(User user) {
         Collection<Role> roleList;
         boolean adminAvailable = findByUsername(Core.BOOTSTRAP_ADMIN) != null;

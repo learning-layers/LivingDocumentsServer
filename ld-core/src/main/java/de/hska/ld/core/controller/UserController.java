@@ -123,6 +123,17 @@ public class UserController {
         }
     }
 
+    @Secured(Core.ROLE_ADMIN)
+    @RequestMapping(method = RequestMethod.POST, value = "/activate/{userid}")
+    public ResponseEntity activateUser(@PathVariable Long userid) {
+        User user = userService.activateUser(userid);
+        if (user != null) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     /**
      * <pre>
      * Authenticates the current user.
