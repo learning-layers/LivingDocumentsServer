@@ -36,6 +36,10 @@ import de.hska.ld.core.util.Core;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -196,6 +200,19 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         } finally {
             SecurityContextHolder.getContext().setAuthentication(authenticationBefore);
         }
+    }
+
+    @Override
+    public Page<User> getUsersPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        User user = Core.currentUser();
+        return repository.findAll(pageable);
     }
 
     private void createRoleListForUser(User user) {

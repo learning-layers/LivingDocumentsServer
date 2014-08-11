@@ -23,6 +23,8 @@
 package de.hska.ld.core.persistence.repository;
 
 import de.hska.ld.core.persistence.domain.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -43,4 +45,6 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
     @Query("SELECT u FROM User u LEFT JOIN u.roleList r WHERE r.name = :roleName")
     List<User> findByRole(@Param("roleName") String roleName);
+
+    Page<User> findAll(Pageable pageable);
 }

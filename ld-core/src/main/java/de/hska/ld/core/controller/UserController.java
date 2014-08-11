@@ -27,6 +27,7 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -60,11 +61,37 @@ public class UserController {
      * <b>404 Not Found</b> if no users are in the system
      */
     @Secured(Core.ROLE_ADMIN)
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET, value = "/userlist")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> userList = userService.findAll();
         if (userList != null) {
             return new ResponseEntity<>(userList, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * <pre>
+     * Gets a list with all users.
+     *
+     * <b>Required roles:</b> ROLE_ADMIN
+     * <b>Path:</b> GET {@value Core#RESOURCE_USER}
+     * </pre>
+     *
+     * @return <b>200 OK</b> and a list with all users or <br>
+     * <b>403 Forbidden</b> if authorization failed or <br>
+     * <b>404 Not Found</b> if no users are in the system
+     */
+    @Secured(Core.ROLE_ADMIN)
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<Page<User>> getUsersPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                   @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                   @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                   @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        Page<User> usersPage = userService.getUsersPage(pageNumber, pageSize, sortDirection, sortProperty);
+        if (usersPage != null) {
+            return new ResponseEntity<>(usersPage, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

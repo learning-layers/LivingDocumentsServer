@@ -23,6 +23,7 @@
 package de.hska.ld.core.service;
 
 import de.hska.ld.core.persistence.domain.User;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
@@ -46,4 +47,6 @@ public interface UserService extends UserDetailsService, Service<User> {
     User confirmRegistration(String confirmationKey);
 
     void runAs(User user, Runnable runnable);
+
+    Page<User> getUsersPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 }
