@@ -215,6 +215,19 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         return repository.findAll(pageable);
     }
 
+    @Override
+    public Page<User> getUsersDisabledPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        User user = Core.currentUser();
+        return repository.findDisabledAll(pageable);
+    }
+
     private void createRoleListForUser(User user) {
         Collection<Role> roleList;
         boolean adminAvailable = findByUsername(Core.BOOTSTRAP_ADMIN) != null;

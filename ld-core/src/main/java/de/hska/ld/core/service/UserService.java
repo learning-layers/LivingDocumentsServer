@@ -49,4 +49,6 @@ public interface UserService extends UserDetailsService, Service<User> {
     void runAs(User user, Runnable runnable);
 
     Page<User> getUsersPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+
+    Page<User> getUsersDisabledPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 }

@@ -99,6 +99,32 @@ public class UserController {
 
     /**
      * <pre>
+     * Gets a list with all users.
+     *
+     * <b>Required roles:</b> ROLE_ADMIN
+     * <b>Path:</b> GET {@value Core#RESOURCE_USER}
+     * </pre>
+     *
+     * @return <b>200 OK</b> and a list with all users or <br>
+     * <b>403 Forbidden</b> if authorization failed or <br>
+     * <b>404 Not Found</b> if no users are in the system
+     */
+    @Secured(Core.ROLE_ADMIN)
+    @RequestMapping(method = RequestMethod.GET, value = "/disabled")
+    public ResponseEntity<Page<User>> getUsersDisabledPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                           @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                           @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                           @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        Page<User> usersPage = userService.getUsersDisabledPage(pageNumber, pageSize, sortDirection, sortProperty);
+        if (usersPage != null) {
+            return new ResponseEntity<>(usersPage, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * <pre>
      * Authenticates the current user.
      *
      * <b>Required roles:</b> ROLE_USER

@@ -47,4 +47,7 @@ public interface UserRepository extends CrudRepository<User, Long> {
     List<User> findByRole(@Param("roleName") String roleName);
 
     Page<User> findAll(Pageable pageable);
+
+    @Query("SELECT u FROM User u WHERE u.enabled is not true")
+    Page<User> findDisabledAll(Pageable pageable);
 }
