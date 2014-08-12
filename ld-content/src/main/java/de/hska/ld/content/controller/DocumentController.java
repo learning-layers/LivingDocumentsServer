@@ -108,6 +108,30 @@ public class DocumentController {
         return new ResponseEntity<>(document, HttpStatus.CREATED);
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.PUT, value = "/{documentId}")
+    public ResponseEntity<Document> updateDocument(@PathVariable Long documentId, @RequestBody Document document, @RequestParam(value = "cmd", defaultValue = "all") String cmd) {
+        Document dbDocument = documentService.findById(documentId);
+        if (dbDocument.isDeleted()) {
+            throw new NotFoundException("id");
+        }
+        if ("title".equals(cmd)) {
+            if (document.getTitle() == null) {
+                throw new ValidationException("title");
+            }
+            dbDocument.setTitle(document.getTitle());
+        } else if ("description".equals(cmd)) {
+            if (document.getTitle() == null) {
+                throw new ValidationException("description");
+            }
+            dbDocument.setDescription(document.getDescription());
+        } else {
+            throw new ValidationException("command");
+        }
+        dbDocument = documentService.save(dbDocument);
+        return new ResponseEntity<>(dbDocument, HttpStatus.OK);
+    }
+
     /**
      * This resource allows it to read a document.
      * <p>
