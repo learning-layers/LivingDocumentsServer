@@ -17,7 +17,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -202,15 +201,16 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    public InputStream getAttachmentSource(Long documentId, int position) {
+    public Attachment getAttachment(Long documentId, int position) {
         Document document = findById(documentId);
         checkPermission(document, Access.Permission.READ);
         if (position < 0 || position >= document.getAccessList().size()) {
             throw new ValidationException("position");
         }
         Attachment attachment = document.getAttachmentList().get(position);
-        byte[] source = attachment.getSource();
-        return new ByteArrayInputStream(source);
+        return attachment;
+        /*byte[] source = attachment.getSource();
+        return new ByteArrayInputStream(source);*/
     }
 
     @Override

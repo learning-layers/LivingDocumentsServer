@@ -22,10 +22,7 @@
 
 package de.hska.ld.content.service;
 
-import de.hska.ld.content.persistence.domain.Access;
-import de.hska.ld.content.persistence.domain.Comment;
-import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.core.persistence.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
@@ -56,7 +53,7 @@ public interface DocumentService extends ContentService<Document> {
 
     Long addAttachment(Long documentId, InputStream is, String fileName);
 
-    InputStream getAttachmentSource(Long documentId, int position);
+    Attachment getAttachment(Long documentId, int position);
 
     Page<Tag> getDocumentTagsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 

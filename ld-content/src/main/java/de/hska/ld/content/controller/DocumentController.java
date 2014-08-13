@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.controller;
 
+import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -348,10 +350,12 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/download")
     public void downloadFile(@PathVariable Long documentId, @RequestParam Integer position, HttpServletResponse response) {
         try {
-            InputStream inputStream = documentService.getAttachmentSource(documentId, position);
-            response.setContentType("application/pdf");
+            Attachment attachment = documentService.getAttachment(documentId, position);
+            byte[] source = attachment.getSource();
+            InputStream is = new ByteArrayInputStream(source);
+            response.setContentType(attachment.getMimeType());
             OutputStream outputStream = response.getOutputStream();
-            IOUtils.copy(inputStream, outputStream);
+            IOUtils.copy(is, outputStream);
         } catch (IOException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
