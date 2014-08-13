@@ -25,6 +25,7 @@ package de.hska.ld.core.service;
 import de.hska.ld.core.persistence.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -43,6 +44,8 @@ public interface UserService extends UserDetailsService, Service<User> {
     List<User> findByRole(String roleName);
 
     List<byte[]> getAvatars(String userIdsString);
+
+    void uploadAvatar(MultipartFile file, String name);
 
     void register(User user);
 

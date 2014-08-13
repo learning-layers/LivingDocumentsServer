@@ -29,6 +29,10 @@ public class ApplicationException extends RuntimeException {
     protected ApplicationError applicationError;
     protected HttpStatus httpStatus;
 
+    public ApplicationException() {
+        this.httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+    }
+
     public ApplicationException(String key) {
         super();
         this.applicationError = new ApplicationError(key);

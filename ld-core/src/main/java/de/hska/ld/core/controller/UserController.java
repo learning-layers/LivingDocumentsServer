@@ -23,6 +23,7 @@
 package de.hska.ld.core.controller;
 
 import de.hska.ld.core.dto.UserRoleDto;
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
@@ -34,6 +35,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -286,5 +288,17 @@ public class UserController {
     @RequestMapping(method = RequestMethod.GET, value = "/avatars")
     public List<byte[]> loadAvatars(@RequestParam String userIdsString) {
         return userService.getAvatars(userIdsString);
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/avatar")
+    public ResponseEntity uploadAvatar(@RequestParam MultipartFile file) {
+        String name = file.getOriginalFilename();
+        if (!file.isEmpty()) {
+            userService.uploadAvatar(file, name);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            throw new ValidationException("file");
+        }
     }
 }

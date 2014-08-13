@@ -22,10 +22,7 @@
 
 package de.hska.ld.core.service.impl;
 
-import de.hska.ld.core.exception.AlreadyExistsException;
-import de.hska.ld.core.exception.NotFoundException;
-import de.hska.ld.core.exception.UserNotAuthorizedException;
-import de.hska.ld.core.exception.ValidationException;
+import de.hska.ld.core.exception.*;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.persistence.repository.UserRepository;
@@ -49,8 +46,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.*;
 
 public class UserServiceImpl extends AbstractService<User> implements UserService {
@@ -252,6 +251,18 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             }
         }
         return avatarList;
+    }
+
+    @Override
+    public void uploadAvatar(MultipartFile file, String name) {
+        try {
+            //String avatar = name + ";" + new String(file.getBytes());
+            User user = Core.currentUser();
+            user.setAvatar(file.getBytes());
+            super.save(user);
+        } catch (IOException e) {
+            throw new ApplicationException();
+        }
     }
 
     private void createRoleListForUser(User user) {
