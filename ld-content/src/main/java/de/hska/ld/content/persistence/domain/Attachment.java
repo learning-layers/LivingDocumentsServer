@@ -43,6 +43,10 @@ public class Attachment extends Content {
     }
 
     public Attachment(InputStream inputStream, String name) {
+        setNewValues(inputStream, name);
+    }
+
+    public void setNewValues(InputStream inputStream, String name) {
         try {
             this.mimeType = URLConnection.guessContentTypeFromName(name);
             this.source = IOUtils.toByteArray(inputStream);

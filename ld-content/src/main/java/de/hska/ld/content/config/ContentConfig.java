@@ -22,14 +22,8 @@
 
 package de.hska.ld.content.config;
 
-import de.hska.ld.content.service.CommentService;
-import de.hska.ld.content.service.DocumentService;
-import de.hska.ld.content.service.SubscriptionService;
-import de.hska.ld.content.service.TagService;
-import de.hska.ld.content.service.impl.CommentServiceImpl;
-import de.hska.ld.content.service.impl.DocumentServiceImpl;
-import de.hska.ld.content.service.impl.SubscriptionServiceImpl;
-import de.hska.ld.content.service.impl.TagServiceImpl;
+import de.hska.ld.content.service.*;
+import de.hska.ld.content.service.impl.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -54,5 +48,10 @@ public class ContentConfig {
     @Bean
     public SubscriptionService subscriptionService() {
         return new SubscriptionServiceImpl();
+    }
+
+    @Bean
+    public AttachmentService attachmentService() {
+        return new AttachmentServiceImpl();
     }
 }

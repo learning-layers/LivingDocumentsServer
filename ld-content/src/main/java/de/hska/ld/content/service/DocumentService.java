@@ -59,4 +59,6 @@ public interface DocumentService extends ContentService<Document> {
     InputStream getAttachmentSource(Long documentId, int position);
 
     Page<Tag> getDocumentTagsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+
+    Long updateAttachment(Long documentId, Long attachmentId, MultipartFile file, String name);
 }

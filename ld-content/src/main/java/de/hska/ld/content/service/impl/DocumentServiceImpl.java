@@ -2,6 +2,7 @@ package de.hska.ld.content.service.impl;
 
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
+import de.hska.ld.content.service.AttachmentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
@@ -25,6 +26,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Autowired
     private DocumentRepository repository;
+
+    @Autowired
+    private AttachmentService attachmentService;
 
     @Autowired
     private TagService tagService;
@@ -219,6 +223,33 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         return repository.findAllTagsForDocument(documentId, pageable);
+    }
+
+    @Override
+    public Long updateAttachment(Long documentId, Long attachmentId, MultipartFile file, String fileName) {
+        try {
+            return updateAttachment(documentId, attachmentId, file.getInputStream(), fileName);
+        } catch (IOException e) {
+            throw new ValidationException("file");
+        }
+    }
+
+    @Transactional
+    private Long updateAttachment(Long documentId, Long attachmentId, InputStream is, String fileName) {
+        Document document = findById(documentId);
+        if (document == null) {
+            throw new ValidationException("id");
+        }
+        checkPermission(document, Access.Permission.WRITE);
+        Attachment attachment = attachmentService.findById(attachmentId);
+        // check if attachment belongs to the document
+        if (!document.getAttachmentList().contains(attachment)) {
+            throw new UserNotAuthorizedException();
+        }
+        // update attachment
+        attachment.setNewValues(is, fileName);
+        attachment = attachmentService.save(attachment);
+        return attachment.getId();
     }
 
     private void checkPermission(Document document, Access.Permission permission) {
