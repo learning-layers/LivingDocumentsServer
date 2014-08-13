@@ -239,6 +239,21 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         return user;
     }
 
+    @Override
+    public List<byte[]> getAvatars(String userIdsString) {
+        List<byte[]> avatarList = new ArrayList<>();
+        if (userIdsString != null) {
+            String[] userIds = userIdsString.split(";");
+            for (String idString : userIds) {
+                User user = findById(Long.parseLong(idString));
+                if (user != null) {
+                    avatarList.add(user.getAvatar());
+                }
+            }
+        }
+        return avatarList;
+    }
+
     private void createRoleListForUser(User user) {
         Collection<Role> roleList;
         boolean adminAvailable = findByUsername(Core.BOOTSTRAP_ADMIN) != null;

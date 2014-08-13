@@ -281,4 +281,10 @@ public class UserController {
         userService.delete(id);
         return new ResponseEntity(HttpStatus.OK);
     }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/avatars")
+    public List<byte[]> loadAvatars(@RequestParam String userIdsString) {
+        return userService.getAvatars(userIdsString);
+    }
 }

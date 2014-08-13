@@ -78,6 +78,11 @@ public class User implements UserDetails {
     @Column(name = "enabled")
     private boolean enabled;
 
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "avatar")
+    private byte[] avatar;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "ld_user_role",
             joinColumns = {@JoinColumn(name = "user_id")},
@@ -177,6 +182,14 @@ public class User implements UserDetails {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public byte[] getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(byte[] avatar) {
+        this.avatar = avatar;
     }
 
     @Override

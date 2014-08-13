@@ -42,6 +42,8 @@ public interface UserService extends UserDetailsService, Service<User> {
 
     List<User> findByRole(String roleName);
 
+    List<byte[]> getAvatars(String userIdsString);
+
     void register(User user);
 
     User confirmRegistration(String confirmationKey);
