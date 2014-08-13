@@ -52,9 +52,9 @@ public interface DocumentService extends ContentService<Document> {
 
     Document removeAccess(Document document, User user, Access.Permission... permissions);
 
-    void addAttachment(Long documentId, MultipartFile file, String fileName);
+    Long addAttachment(Long documentId, MultipartFile file, String fileName);
 
-    void addAttachment(Long documentId, InputStream is, String fileName);
+    Long addAttachment(Long documentId, InputStream is, String fileName);
 
     InputStream getAttachmentSource(Long documentId, int position);
 

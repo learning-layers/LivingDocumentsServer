@@ -174,9 +174,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    public void addAttachment(Long documentId, MultipartFile file, String fileName) {
+    public Long addAttachment(Long documentId, MultipartFile file, String fileName) {
         try {
-            addAttachment(documentId, file.getInputStream(), fileName);
+            return addAttachment(documentId, file.getInputStream(), fileName);
         } catch (IOException e) {
             throw new ValidationException("file");
         }
@@ -184,7 +184,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Override
     @Transactional
-    public void addAttachment(Long documentId, InputStream is, String fileName) {
+    public Long addAttachment(Long documentId, InputStream is, String fileName) {
         Document document = findById(documentId);
         if (document == null) {
             throw new ValidationException("id");
@@ -194,6 +194,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         attachment = new Attachment(is, fileName);
         document.getAttachmentList().add(attachment);
         super.save(document);
+        return attachment.getId();
     }
 
     @Override

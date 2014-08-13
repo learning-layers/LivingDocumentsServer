@@ -305,11 +305,11 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/upload")
-    public ResponseEntity uploadFile(@RequestParam MultipartFile file, @RequestParam Long documentId) {
+    public ResponseEntity<Long> uploadFile(@RequestParam MultipartFile file, @RequestParam Long documentId) {
         String name = file.getOriginalFilename();
         if (!file.isEmpty()) {
-            documentService.addAttachment(documentId, file, name);
-            return new ResponseEntity(HttpStatus.OK);
+            Long attachmentId = documentService.addAttachment(documentId, file, name);
+            return new ResponseEntity(attachmentId, HttpStatus.OK);
         } else {
             throw new ValidationException("file");
         }
