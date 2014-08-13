@@ -116,12 +116,12 @@ public class DocumentController {
             throw new NotFoundException("id");
         }
         if ("title".equals(cmd)) {
-            if (document.getTitle() == null) {
+            if (document.getTitle() == null || "".equals(document.getTitle())) {
                 throw new ValidationException("title");
             }
             dbDocument.setTitle(document.getTitle());
         } else if ("description".equals(cmd)) {
-            if (document.getTitle() == null) {
+            if (document.getDescription() == null || "".equals(document.getDescription())) {
                 throw new ValidationException("description");
             }
             dbDocument.setDescription(document.getDescription());
