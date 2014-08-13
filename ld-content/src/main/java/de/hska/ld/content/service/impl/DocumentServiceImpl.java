@@ -194,7 +194,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         attachment = new Attachment(is, fileName);
         document.getAttachmentList().add(attachment);
         super.save(document);
-        return attachment.getId();
+        return document.getAttachmentList().get(document.getAttachmentList().size() - 1).getId();
     }
 
     @Override
