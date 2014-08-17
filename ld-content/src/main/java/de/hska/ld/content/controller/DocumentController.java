@@ -46,6 +46,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 /**
  * <p><b>Resource:</b> {@value Content#RESOURCE_DOCUMENT}
@@ -276,16 +277,27 @@ public class DocumentController {
      * @return <b>200 OK</b> and a list of comments
      * <b>404 NOT FOUND</b> if there is no node present within the system that has the specified nodeId
      */
-    @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags")
-    public ResponseEntity<Page<Tag>> getTagsPage(@PathVariable Long documentId,
-                                                 @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
-                                                 @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
-                                                 @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                 @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+     @Secured(Core.ROLE_USER)
+     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags")
+     public ResponseEntity<Page<Tag>> getTagsPage(@PathVariable Long documentId,
+                                                  @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                  @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                  @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                  @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
         Page<Tag> tagsPage = documentService.getDocumentTagsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
         if (tagsPage != null && tagsPage.getNumberOfElements() > 0) {
             return new ResponseEntity<>(tagsPage, HttpStatus.OK);
+        } else {
+            throw new NotFoundException();
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags/list")
+    public ResponseEntity<List<Tag>> getAllTags(@PathVariable Long documentId) {
+        List<Tag> tagList = documentService.getDocumentTagsList(documentId);
+        if (tagList != null) {
+            return new ResponseEntity<>(tagList, HttpStatus.OK);
         } else {
             throw new NotFoundException();
         }

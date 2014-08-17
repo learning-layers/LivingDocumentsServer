@@ -256,6 +256,12 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         }
     }
 
+    @Override
+    public List<Tag> getDocumentTagsList(Long documentId) {
+        Document document = findById(documentId);
+        return document.getTagList();
+    }
+
     @Transactional
     private Long updateAttachment(Long documentId, Long attachmentId, InputStream is, String fileName) {
         Document document = findById(documentId);
