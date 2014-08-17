@@ -82,6 +82,7 @@ subprojects {
         compile "org.apache.velocity:velocity-tools:$velocityToolsVersion"
         compile "com.h2database:h2:$h2Version"
         compile "mysql:mysql-connector-java:$mySqlVersion"
+        compile "com.fasterxml.jackson.datatype:jackson-datatype-hibernate4:2.4.1"
         // Add the core project as a dependency for each sub project
         if (project.name != 'ld-core') {
             compile project(path: ':ld-core')
