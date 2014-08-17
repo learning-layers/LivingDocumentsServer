@@ -61,4 +61,10 @@ public interface DocumentService extends ContentService<Document> {
     Long updateAttachment(Long documentId, Long attachmentId, MultipartFile file, String name);
 
     List<Tag> getDocumentTagsList(Long documentId);
+
+    List<Notification> getNotifications(User user);
+
+    Document addSubscription(Long id, Subscription.Type... type);
+
+    Document removeSubscription(Long id, Subscription.Type... type);
 }

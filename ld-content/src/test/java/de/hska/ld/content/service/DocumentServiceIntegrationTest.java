@@ -202,7 +202,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         Document document = documentService.save(newDocument());
 
         User user = userService.save(newUser());
-        document = documentService.addSubscription(document.getId(), user, Subscription.Type.COMMENT, Subscription.Type.DISCUSSION);
+        document = documentService.addSubscription(document.getId(), Subscription.Type.COMMENT, Subscription.Type.DISCUSSION);
 
         Assert.assertNotNull(document.getSubscriptionList());
         Assert.assertTrue(document.getSubscriptionList().size() == 1);
@@ -210,7 +210,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(document.getSubscriptionList().get(0).getTypeList().get(0), Subscription.Type.COMMENT);
         Assert.assertEquals(document.getSubscriptionList().get(0).getTypeList().get(1), Subscription.Type.DISCUSSION);
 
-        document = documentService.removeSubscription(document.getId(), user, Subscription.Type.COMMENT);
+        document = documentService.removeSubscription(document.getId(), Subscription.Type.COMMENT);
         Assert.assertNotNull(document.getSubscriptionList());
         Assert.assertTrue(document.getSubscriptionList().size() == 1);
         Assert.assertTrue(document.getSubscriptionList().get(0).getTypeList().size() == 1);

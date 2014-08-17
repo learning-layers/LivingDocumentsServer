@@ -59,6 +59,13 @@ public class Document extends Content {
             inverseJoinColumns = {@JoinColumn(name = "discussion_id_inverse")})
     private List<Document> discussionList;
 
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "content_subscription",
+            joinColumns = {@JoinColumn(name = "document_id")},
+            inverseJoinColumns = {@JoinColumn(name = "subscription_id")})
+    private List<Subscription> subscriptionList;
+
     @ManyToOne
     @JoinColumn(name = "parent_id")
     @JsonIgnore
@@ -114,6 +121,18 @@ public class Document extends Content {
             discussionList = new ArrayList<>();
         }
         this.discussionList = discussionList;
+    }
+
+    @JsonProperty("subscriptions")
+    public List<Subscription> getSubscriptionList() {
+        if (subscriptionList == null) {
+            subscriptionList = new ArrayList<>();
+        }
+        return subscriptionList;
+    }
+
+    public void setSubscriptionList(List<Subscription> subscriptionList) {
+        this.subscriptionList = subscriptionList;
     }
 
     public Document getParent() {

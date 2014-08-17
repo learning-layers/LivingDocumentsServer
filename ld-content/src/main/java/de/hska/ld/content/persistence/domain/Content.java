@@ -65,12 +65,6 @@ public abstract class Content {
             inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private List<Tag> tagList;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "content_subscription",
-            joinColumns = {@JoinColumn(name = "content_id")},
-            inverseJoinColumns = {@JoinColumn(name = "subscription_id")})
-    private List<Subscription> subscriptionList;
-
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "parent")
     /*@JoinTable(name = "content_comment",
             joinColumns = {@JoinColumn(name = "content_id")},
@@ -128,18 +122,6 @@ public abstract class Content {
 
     public void setTagList(List<Tag> tagList) {
         this.tagList = tagList;
-    }
-
-    @JsonProperty("subscriptions")
-    public List<Subscription> getSubscriptionList() {
-        if (subscriptionList == null) {
-            subscriptionList = new ArrayList<>();
-        }
-        return subscriptionList;
-    }
-
-    public void setSubscriptionList(List<Subscription> subscriptionList) {
-        this.subscriptionList = subscriptionList;
     }
 
     @JsonProperty("comments")
