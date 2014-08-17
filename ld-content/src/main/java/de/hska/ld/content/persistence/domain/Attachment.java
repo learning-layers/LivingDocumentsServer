@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.persistence.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,7 @@ public class Attachment extends Content {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "source")
+    @JsonIgnore
     private byte[] source;
 
     public String getName() {

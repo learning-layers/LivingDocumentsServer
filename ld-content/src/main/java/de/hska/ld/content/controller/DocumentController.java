@@ -151,6 +151,7 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
     public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
         Document document = documentService.findById(documentId);
+        documentService.loadContentCollection(document, Attachment.class, Comment.class);
         if (document.isDeleted()) {
             throw new NotFoundException("id");
         }

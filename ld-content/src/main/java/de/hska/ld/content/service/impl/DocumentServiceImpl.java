@@ -349,6 +349,17 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    public Document loadContentCollection(Document document, Class... clazzArray) {
+        document = super.loadContentCollection(document, clazzArray);
+        for (Class clazz : clazzArray) {
+            if (Attachment.class.equals(clazz)) {
+                document.getAttachmentList().size();
+            }
+        }
+        return document;
+    }
+
+    @Override
     public DocumentRepository getRepository() {
         return repository;
     }
