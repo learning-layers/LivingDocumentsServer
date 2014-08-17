@@ -87,8 +87,7 @@ public class Document extends Content {
         this.description = description;
     }
 
-    //@JsonProperty("attachments")
-    @JsonIgnore
+    @JsonProperty("attachments")
     public List<Attachment> getAttachmentList() {
         if (attachmentList == null) {
             attachmentList = new ArrayList<>();

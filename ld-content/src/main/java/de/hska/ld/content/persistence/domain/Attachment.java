@@ -59,6 +59,7 @@ public class Attachment extends Content {
     @Column(name = "mimeType")
     private String mimeType;
 
+    // TODO add Source One-to-one mapping, fetch type lazy
     @Lob
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "source")

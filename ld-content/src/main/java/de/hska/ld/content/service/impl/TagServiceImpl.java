@@ -57,6 +57,11 @@ public class TagServiceImpl extends AbstractContentService<Tag> implements TagSe
     }
 
     @Override
+    public Tag findByName(String tagName) {
+        return repository.findByName(tagName);
+    }
+
+    @Override
     public TagRepository getRepository() {
         return repository;
     }

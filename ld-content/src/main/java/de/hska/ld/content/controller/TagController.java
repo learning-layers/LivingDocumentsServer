@@ -91,6 +91,9 @@ public class TagController {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Tag> createTag(@RequestBody Tag tag) {
         if (tag != null) {
+            if ("".equals(tag.getName())) {
+                throw new ValidationException("name");
+            }
             tag = tagService.save(tag);
             return new ResponseEntity<>(tag, HttpStatus.CREATED);
         } else {
@@ -116,6 +119,17 @@ public class TagController {
     public ResponseEntity<Tag> updateTag(@PathVariable Long tagId, @RequestBody Tag tag) {
         if (tag != null) {
             tag = tagService.updateTag(tagId, tag);
+            return new ResponseEntity<>(tag, HttpStatus.OK);
+        } else {
+            throw new ValidationException("No tag provided.");
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/name/{tagName}")
+    public ResponseEntity<Tag> getTagByName(@PathVariable String tagName) {
+        if (tagName != null) {
+            Tag tag = tagService.findByName(tagName);
             return new ResponseEntity<>(tag, HttpStatus.OK);
         } else {
             throw new ValidationException("No tag provided.");
