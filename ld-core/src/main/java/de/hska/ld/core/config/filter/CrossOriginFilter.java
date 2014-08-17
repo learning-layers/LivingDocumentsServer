@@ -22,8 +22,6 @@
 
 package de.hska.ld.core.config.filter;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
@@ -34,26 +32,17 @@ import java.io.IOException;
 @Component
 public class CrossOriginFilter implements Filter {
 
-    private String allowedOrigin;
-
-    @Autowired
-    public void init(Environment env) {
-        allowedOrigin = env.getProperty("module.core.security.allowedOrigin");
-    }
-
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) req;
         String url = request.getRequestURL().toString();
         if (!url.contains("push")) {
             String origin = request.getHeader("Origin");
-            if (allowedOrigin == null || allowedOrigin.isEmpty() || allowedOrigin.equals(origin)) {
-                HttpServletResponse response = (HttpServletResponse) res;
-                response.setHeader("Access-Control-Allow-Credentials", "true");
-                response.setHeader("Access-Control-Allow-Origin", origin);
-                response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT");
-                response.setHeader("Access-Control-Max-Age", "3600");
-                response.setHeader("Access-Control-Allow-Headers", "x-requested-with, Content-Type");
-            }
+            HttpServletResponse response = (HttpServletResponse) res;
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            response.setHeader("Access-Control-Allow-Origin", origin);
+            response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT");
+            response.setHeader("Access-Control-Max-Age", "3600");
+            response.setHeader("Access-Control-Allow-Headers", "x-requested-with, Content-Type");
         }
         chain.doFilter(req, res);
     }
