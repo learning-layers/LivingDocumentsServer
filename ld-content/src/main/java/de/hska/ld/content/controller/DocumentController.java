@@ -22,15 +22,13 @@
 
 package de.hska.ld.content.controller;
 
-import de.hska.ld.content.persistence.domain.Attachment;
-import de.hska.ld.content.persistence.domain.Comment;
-import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
+import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +36,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,6 +45,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 /**
  * <p><b>Resource:</b> {@value Content#RESOURCE_DOCUMENT}
@@ -166,8 +166,8 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId the document id of the document one wants to delete
-     * @return <b>200 OK</b> if the removal of the document node has been successfully executed<br>
-     * <b>404 NOT FOUND</b> if a document node with the given id isn't present in this application<br>
+     * @return <b>200 OK</b> if the removal of the document has been successfully executed<br>
+     * <b>404 NOT FOUND</b> if a document with the given id isn't present in this application<br>
      * <b>500 Internal Server Error</b> if there occured any other server side issue
      */
     @Secured(Core.ROLE_USER)
@@ -185,9 +185,9 @@ public class DocumentController {
      *     <b>Path:</b> GET /api/document/{documentId}/comments
      * </pre>
      *
-     * @param documentId the node id of the node the comments shall be fetched for
+     * @param documentId the document id of the document the comments shall be fetched for
      * @return <b>200 OK</b> and a list of comments
-     * <b>404 NOT FOUND</b> if there is no node present within the system that has the specified nodeId
+     * <b>404 NOT FOUND</b> if there is no document present within the system that has the specified documentId
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/comment")
@@ -272,9 +272,9 @@ public class DocumentController {
      *     <b>Path:</b> GET /api/document/{documentId}/comments
      * </pre>
      *
-     * @param documentId the node id of the node the comments shall be fetched for
+     * @param documentId the document id of the document the comments shall be fetched for
      * @return <b>200 OK</b> and a list of comments
-     * <b>404 NOT FOUND</b> if there is no node present within the system that has the specified nodeId
+     * <b>404 NOT FOUND</b> if there is no document present within the system that has the specified documentId
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags")
@@ -311,7 +311,7 @@ public class DocumentController {
         String name = file.getOriginalFilename();
         if (!file.isEmpty()) {
             attachmentId = documentService.updateAttachment(documentId, attachmentId, file, name);
-            return new ResponseEntity(attachmentId, HttpStatus.OK);
+            return new ResponseEntity<>(attachmentId, HttpStatus.OK);
         } else {
             throw new ValidationException("file");
         }
@@ -323,7 +323,7 @@ public class DocumentController {
         String name = file.getOriginalFilename();
         if (!file.isEmpty()) {
             Long attachmentId = documentService.addAttachment(documentId, file, name);
-            return new ResponseEntity(attachmentId, HttpStatus.OK);
+            return new ResponseEntity<>(attachmentId, HttpStatus.OK);
         } else {
             throw new ValidationException("file");
         }
@@ -376,40 +376,32 @@ public class DocumentController {
 //            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 //        }
 //    }
-//
-//    /**
-//     * This resource allows it to add a subscription for tracking changes to a specific node.
-//     * <p>
-//     * <pre>
-//     *     <b>Required roles:</b> ROLE_USER
-//     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/{nodeId}/subscribe
-//     * </pre>
-//     *
-//     * @param nodeId the node id of the node that shall be tracked
-//     * @param type   the subscription type (e.g. DOCUMENT, ATTACHMENT, COMMENT, DISCUSSION, USER) depending on which
-//     *               part of a node the user wants to receive notifications for.
-//     * @return <b>201 CREATED</b> if a subscription has been successfully applied to the node<br>
-//     * <b>404 NOT FOUND</b> if the node could not be found within the system
-//     */
-//    @Secured(Core.ROLE_USER)
-//    @RequestMapping(method = RequestMethod.POST, value = "/{nodeId}/subscribe")
-//    public ResponseEntity subscribe(@PathVariable String nodeId, Subscription.Type type, @JcrSession Session session,
-//                                    @AuthenticationPrincipal User user) {
-//        try {
-//            Node node = session.getNode("/" + nodeId);
-//            // TODO check access permission
-//        } catch (Exception e) {
-//            return new ResponseEntity(HttpStatus.NOT_FOUND);
-//        }
-//
-//        Subscription subscription = new Subscription(nodeId, type, user);
-//        try {
-//            subscriptionService.save(subscription);
-//        } catch (Exception e) {
-//            // already exists
-//        }
-//
-//        return new ResponseEntity(HttpStatus.CREATED);
-//    }
-//
+
+    /**
+     * This resource allows it to add a subscription for tracking changes to a specific node.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/{nodeId}/subscribe
+     * </pre>
+     *
+     * @param documentId the document id of the document that shall be tracked
+     * @param type       the subscription type (e.g. DOCUMENT, ATTACHMENT, COMMENT, DISCUSSION, USER) depending on which
+     *                   part of a document the user wants to receive notifications for.
+     * @return <b>201 CREATED</b> if a subscription has been successfully applied to the document<br>
+     * <b>404 NOT FOUND</b> if the node could not be found within the system
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/subscribe")
+    public ResponseEntity subscribe(@PathVariable Long documentId, @RequestBody Subscription.Type type) {
+        documentService.addSubscription(documentId, type);
+        return new ResponseEntity(HttpStatus.CREATED);
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/notifications")
+    public ResponseEntity<List<Notification>> getNotifications(@AuthenticationPrincipal User user) {
+        List<Notification> notificationList = documentService.getNotifications(user);
+        return new ResponseEntity<>(notificationList, HttpStatus.OK);
+    }
 }

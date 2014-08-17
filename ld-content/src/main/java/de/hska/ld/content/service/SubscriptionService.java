@@ -22,9 +22,17 @@
 
 package de.hska.ld.content.service;
 
+import de.hska.ld.content.persistence.domain.Notification;
 import de.hska.ld.content.persistence.domain.Subscription;
+import de.hska.ld.core.persistence.domain.User;
+
+import java.util.List;
 
 public interface SubscriptionService {
 
     Subscription save(Subscription subscription);
+
+    public void saveItem(Long documentId, Long userId);
+
+    List<Notification> deliverSubscriptionItems(User user);
 }

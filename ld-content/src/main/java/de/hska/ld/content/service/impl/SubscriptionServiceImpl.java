@@ -22,18 +22,49 @@
 
 package de.hska.ld.content.service.impl;
 
+import de.hska.ld.content.persistence.domain.Notification;
 import de.hska.ld.content.persistence.domain.Subscription;
+import de.hska.ld.content.persistence.repository.NotificationRepository;
 import de.hska.ld.content.persistence.repository.SubscriptionRepository;
 import de.hska.ld.content.service.SubscriptionService;
+import de.hska.ld.core.persistence.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
     @Override
     public Subscription save(Subscription subscription) {
         return subscriptionRepository.save(subscription);
+    }
+
+    @Override
+    public void saveItem(Long documentId, Long userId) {
+        Notification notification = new Notification();
+        notification.setDocumentId(documentId);
+        notification.setUserId(userId);
+        notificationRepository.save(notification);
+    }
+
+    @Override
+    @Transactional
+    public List<Notification> deliverSubscriptionItems(User user) {
+        List<Notification> subscriptionItemsList = notificationRepository
+                .findByUserIdAndDelivered(user.getId(), false);
+
+        for (Notification notification : subscriptionItemsList) {
+            notification.setDelivered(true);
+            notificationRepository.save(notification);
+        }
+
+        return subscriptionItemsList;
     }
 }

@@ -26,7 +26,9 @@ import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
 import de.hska.ld.content.service.AttachmentService;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.content.service.SubscriptionService;
 import de.hska.ld.content.service.TagService;
+import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
@@ -53,6 +55,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Autowired
     private TagService tagService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     private Comparator<Content> byDateTime = (c1, c2) -> c2.getCreatedAt().compareTo(c1.getCreatedAt());
 
@@ -256,6 +261,46 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         }
     }
 
+    @Override
+    public List<Notification> getNotifications(User user) {
+        return subscriptionService.deliverSubscriptionItems(user);
+    }
+
+    @Override
+    @Transactional
+    public Document addSubscription(Long id, Subscription.Type... types) {
+        User user = Core.currentUser();
+        Document document = findById(id);
+        if (document == null) {
+            throw new NotFoundException("id");
+        }
+        Subscription subscription = new Subscription(user, types);
+        document.getSubscriptionList().add(subscription);
+        return save(document);
+    }
+
+    @Override
+    @Transactional
+    public Document removeSubscription(Long id, Subscription.Type... types) {
+        User user = Core.currentUser();
+        Document document = findById(id);
+        if (document == null) {
+            throw new NotFoundException("id");
+        }
+        Subscription subscription = document.getSubscriptionList().stream()
+                .filter(s -> s.getUser().equals(user)).findFirst().get();
+        List<Subscription.Type> stl = subscription.getTypeList();
+        for (Subscription.Type st : types) {
+            if (stl.contains(st)) {
+                stl.remove(st);
+            }
+        }
+        if (stl.size() == 0) {
+            document.getSubscriptionList().remove(subscription);
+        }
+        return save(document);
+    }
+
     @Transactional
     private Long updateAttachment(Long documentId, Long attachmentId, InputStream is, String fileName) {
         Document document = findById(documentId);
@@ -287,6 +332,14 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
                 throw new UserNotAuthorizedException();
             }
         }
+    }
+
+    private void createSubscriptionItems(Long documentId, Subscription.Type type, List<Subscription> subscriptionList) {
+        subscriptionList.stream().forEach(s -> {
+            if (s.getTypeList().contains(type)) {
+                subscriptionService.saveItem(s.getUser().getId(), documentId);
+            }
+        });
     }
 
     @Override

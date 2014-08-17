@@ -28,6 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.List;
 
 public interface DocumentService extends ContentService<Document> {
 
@@ -58,4 +59,10 @@ public interface DocumentService extends ContentService<Document> {
     Page<Tag> getDocumentTagsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
     Long updateAttachment(Long documentId, Long attachmentId, MultipartFile file, String name);
+
+    List<Notification> getNotifications(User user);
+
+    Document addSubscription(Long id, Subscription.Type... type);
+
+    Document removeSubscription(Long id, Subscription.Type... type);
 }
