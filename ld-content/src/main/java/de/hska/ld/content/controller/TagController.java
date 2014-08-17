@@ -91,6 +91,9 @@ public class TagController {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Tag> createTag(@RequestBody Tag tag) {
         if (tag != null) {
+            if ("".equals(tag.getName())) {
+                throw new ValidationException("name");
+            }
             tag = tagService.save(tag);
             return new ResponseEntity<>(tag, HttpStatus.CREATED);
         } else {
