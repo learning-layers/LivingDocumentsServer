@@ -111,6 +111,13 @@ public class DocumentController {
     }
 
     @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value="/{documentId}/discussion")
+    public ResponseEntity<Document> createDiscussion(@PathVariable Long documentId, @RequestBody Document document) {
+        document = documentService.addDiscussionToDocument(documentId, document);
+        return new ResponseEntity<>(document, HttpStatus.CREATED);
+    }
+
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/{documentId}")
     public ResponseEntity<Document> updateDocument(@PathVariable Long documentId, @RequestBody Document document, @RequestParam(value = "cmd", defaultValue = "all") String cmd) {
         Document dbDocument = documentService.findById(documentId);
