@@ -112,8 +112,8 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
     public Comment agreeToComment(Long commentId) {
         Comment comment = findById(commentId);
         User user = Core.currentUser();
+        user = userService.findById(user.getId());
         if (!comment.getLikeList().contains(user)) {
-            user = userService.findById(user.getId());
             comment.getLikeList().add(user);
             comment = super.save(comment);
         }
