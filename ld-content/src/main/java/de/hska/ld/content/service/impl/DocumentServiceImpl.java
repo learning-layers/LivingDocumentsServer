@@ -98,7 +98,13 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             document.setCommentList(null);
             document.setSubscriptionList(null);
             document.setTagList(null);
+            Attachment attachment = new Attachment();
+            attachment.setName("maincontent.html");
+            attachment.setMimeType("text/html");
+            attachment.setSource("".getBytes());
+            document.getAttachmentList().add(0, attachment);
         } else {
+            // document already present in the database
             boolean isCreator = dbDocument.getCreator().getId().equals(currentUser.getId());
             boolean hasAccess = dbDocument.getAccessList().stream().anyMatch(a -> {
                 boolean user = a.getUser().getId().equals(currentUser.getId());
@@ -242,7 +248,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     public Attachment getAttachment(Long documentId, int position) {
         Document document = findById(documentId);
         checkPermission(document, Access.Permission.READ);
-        if (position < 0 || position >= document.getAccessList().size()) {
+        if (position < 0 || position >= document.getAttachmentList().size()) {
             throw new ValidationException("position");
         }
         Attachment attachment = document.getAttachmentList().get(position);
