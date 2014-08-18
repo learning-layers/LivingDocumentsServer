@@ -41,6 +41,7 @@ import org.springframework.data.domain.Sort;
 
 import javax.transaction.Transactional;
 import java.util.Date;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -93,6 +94,13 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         Page<Comment> commentPage = repository.findAllForComment(comment.getId(), pageable);
         return commentPage;
+    }
+
+    @Override
+    public List<Comment> getCommentCommentsList(Long commentId) {
+        Comment comment = findById(commentId);
+        loadContentCollection(comment, Comment.class);
+        return comment.getCommentList();
     }
 
     @Override

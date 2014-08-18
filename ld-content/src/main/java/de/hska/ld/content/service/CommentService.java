@@ -25,6 +25,8 @@ package de.hska.ld.content.service;
 import de.hska.ld.content.persistence.domain.Comment;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 public interface CommentService extends ContentService<Comment> {
 
     Page<Comment> getDocumentCommentsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
@@ -35,4 +37,5 @@ public interface CommentService extends ContentService<Comment> {
 
     Page<Comment> getCommentCommentsPage(Long commentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
+    List<Comment> getCommentCommentsList(Long commentId);
 }
