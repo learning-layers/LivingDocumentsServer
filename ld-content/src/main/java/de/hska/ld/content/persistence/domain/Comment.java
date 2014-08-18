@@ -24,9 +24,12 @@ package de.hska.ld.content.persistence.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.hska.ld.core.persistence.domain.User;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "ld_comment")
@@ -40,6 +43,12 @@ public class Comment extends Content {
     @NotBlank
     @Column(name = "text", nullable = false)
     private String text;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "comment_like_user",
+            joinColumns = {@JoinColumn(name = "comment_id")},
+            inverseJoinColumns = {@JoinColumn(name = "user_id")})
+    private List<User> likeList;
 
     public String getText() {
         return text;
@@ -57,8 +66,24 @@ public class Comment extends Content {
         this.parent = parent;
     }
 
+    public List<User> getLikeList() {
+        if (likeList == null) {
+            likeList = new ArrayList<>();
+        }
+        return likeList;
+    }
+
+    public void setLikeList(List<User> likeList) {
+        this.likeList = likeList;
+    }
+
     @JsonProperty("subcommentlength")
     public int getSubcommentlength() {
         return this.getCommentList().size();
+    }
+
+    @JsonProperty("likeslength")
+    public int getLikeslength() {
+        return this.getLikeList().size();
     }
 }
