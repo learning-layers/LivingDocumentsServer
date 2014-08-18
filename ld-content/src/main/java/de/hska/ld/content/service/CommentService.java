@@ -38,4 +38,6 @@ public interface CommentService extends ContentService<Comment> {
     Page<Comment> getCommentCommentsPage(Long commentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
     List<Comment> getCommentCommentsList(Long commentId);
+
+    Comment agreeToComment(Long commentId);
 }

@@ -79,11 +79,22 @@ public class CommentController {
     }
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/{commentId}/comment/list")
-    public ResponseEntity<List<Comment>> getCommentsPage(@PathVariable Long commentId) {
+     @RequestMapping(method = RequestMethod.GET, value = "/{commentId}/comment/list")
+     public ResponseEntity<List<Comment>> getCommentsPage(@PathVariable Long commentId) {
         List<Comment> commentsPage = commentService.getCommentCommentsList(commentId);
         if (commentsPage != null) {
             return new ResponseEntity<>(commentsPage, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.PUT, value = "/{commentId}/agree")
+    public ResponseEntity<Comment> agreeToComment(@PathVariable Long commentId) {
+        Comment comment = commentService.agreeToComment(commentId);
+        if (comment != null) {
+            return new ResponseEntity<>(comment, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

@@ -32,6 +32,7 @@ import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -52,6 +53,9 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private UserService userService;
 
     @Override
     public Page<Comment> getDocumentCommentsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
@@ -101,6 +105,19 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         Comment comment = findById(commentId);
         loadContentCollection(comment, Comment.class);
         return comment.getCommentList();
+    }
+
+    @Override
+    @Transactional
+    public Comment agreeToComment(Long commentId) {
+        Comment comment = findById(commentId);
+        User user = Core.currentUser();
+        if (!comment.getLikeList().contains(user)) {
+            user = userService.findById(user.getId());
+            comment.getLikeList().add(user);
+            comment = super.save(comment);
+        }
+        return comment;
     }
 
     @Override
