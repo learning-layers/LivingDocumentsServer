@@ -65,7 +65,7 @@ public abstract class Content {
             inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private List<Tag> tagList;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "parent")
+    @OneToMany(cascade = CascadeType.PERSIST, mappedBy = "parent")
     /*@JoinTable(name = "content_comment",
             joinColumns = {@JoinColumn(name = "content_id")},
             inverseJoinColumns = {@JoinColumn(name = "comment_id")})*/

@@ -59,7 +59,16 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     @Autowired
     private SubscriptionService subscriptionService;
 
-    private Comparator<Content> byDateTime = (c1, c2) -> c2.getCreatedAt().compareTo(c1.getCreatedAt());
+    private Comparator<Content> byDateTime = (c1, c2) -> {
+        if (c1.getCreatedAt() == null) {
+            return -1;
+        } else if (c2.getCreatedAt() == null) {
+            return 1;
+        } else {
+            int compareVal = c2.getCreatedAt().compareTo(c1.getCreatedAt());
+            return compareVal;
+        }
+    };
 
     @Override
     public Page<Document> getDocumentsPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
@@ -133,7 +142,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         Document document = findById(id);
         Tag tag = tagService.findById(tagId);
         checkPermission(document, Access.Permission.WRITE);
-        document.getTagList().add(tag);
+        if (!document.getAttachmentList().contains(tag)) {
+            document.getTagList().add(tag);
+        }
         super.save(document);
     }
 
