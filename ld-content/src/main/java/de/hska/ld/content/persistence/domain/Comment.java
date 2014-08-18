@@ -23,6 +23,7 @@
 package de.hska.ld.content.persistence.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
@@ -54,5 +55,10 @@ public class Comment extends Content {
 
     public void setParent(Content parent) {
         this.parent = parent;
+    }
+
+    @JsonProperty("subcommentlength")
+    public int getSubcommentlength() {
+        return this.getCommentList().size();
     }
 }
