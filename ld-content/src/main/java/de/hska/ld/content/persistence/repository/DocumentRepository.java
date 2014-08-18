@@ -38,4 +38,7 @@ public interface DocumentRepository extends CrudRepository<Document, Long> {
 
     @Query("SELECT dtl FROM Document d LEFT JOIN d.tagList dtl WHERE d.id = :documentId")
     Page<Tag> findAllTagsForDocument(@Param("documentId") Long documentId, Pageable pageable);
+
+    @Query("SELECT d FROM Document d LEFT JOIN d.accessList al WHERE al.user = :user OR d.creator = :user AND d.parent.id = :documentId")
+    Page<Document> findDiscussionsAll(@Param("documentId") Long documentId, User user, Pageable pageable);
 }

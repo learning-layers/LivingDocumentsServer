@@ -90,6 +90,21 @@ public class DocumentController {
         }
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/discussions")
+    public ResponseEntity<Page<Document>> getDiscussionsPage(@PathVariable Long documentId,
+                                                             @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                           @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                           @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                           @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        Page<Document> documentsPage = documentService.getDiscussionDocumentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
+        if (documentsPage != null) {
+            return new ResponseEntity<>(documentsPage, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     /**
      * This resource allows it to create a document.
      * <p>

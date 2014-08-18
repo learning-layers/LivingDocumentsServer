@@ -318,6 +318,19 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return save(document);
     }
 
+    @Override
+    public Page<Document> getDiscussionDocumentsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        User user = Core.currentUser();
+        return repository.findDiscussionsAll(documentId, user, pageable);
+    }
+
     @Transactional
     private Long updateAttachment(Long documentId, Long attachmentId, InputStream is, String fileName) {
         Document document = findById(documentId);

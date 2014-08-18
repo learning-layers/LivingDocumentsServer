@@ -67,4 +67,6 @@ public interface DocumentService extends ContentService<Document> {
     Document addSubscription(Long id, Subscription.Type... type);
 
     Document removeSubscription(Long id, Subscription.Type... type);
+
+    Page<Document> getDiscussionDocumentsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 }
