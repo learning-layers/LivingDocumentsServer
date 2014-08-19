@@ -389,6 +389,16 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return attachment;
     }
 
+    @Override
+    @Transactional
+    public Hyperlink addHyperlink(Long documentId, Hyperlink hyperlink) {
+        Document document = findById(documentId);
+        checkPermission(document, Access.Permission.WRITE);
+        document.getHyperlinkList().add(hyperlink);
+        super.save(document);
+        return hyperlink;
+    }
+
     @Transactional
     private Long updateAttachment(Long documentId, Long attachmentId, InputStream is, String fileName) {
         Document document = findById(documentId);

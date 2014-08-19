@@ -174,7 +174,7 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
     public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
         Document document = documentService.findById(documentId);
-        documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class);
+        documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class);
         if (document.isDeleted()) {
             throw new NotFoundException("id");
         }
@@ -285,6 +285,26 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}/tag/{tagId}")
     public ResponseEntity removeTag(@PathVariable Long documentId, @PathVariable Long tagId) {
         documentService.removeTag(documentId, tagId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * This resource allows it to create a document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     * </pre>
+     *
+     * @param documentId Contains title and optional description of the new document. Example:
+     *                   {title: 'New Document', description: '&lt;optional&gt;'}
+     * @return <b>200 OK</b> with the generated document<br>
+     * <b>400 Bad Request</b> if no title exists<br>
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/hyperlinks")
+    public ResponseEntity<Document> addHyperlink(@PathVariable Long documentId, @RequestBody Hyperlink hyperlink) {
+        documentService.addHyperlink(documentId, hyperlink);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
