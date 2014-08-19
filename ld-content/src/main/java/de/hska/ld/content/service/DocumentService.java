@@ -77,4 +77,5 @@ public interface DocumentService extends ContentService<Document> {
 
     Attachment getAttachmentByAttachmentId(Long documentId, Long attachmentId);
 
+    Hyperlink addHyperlink(Long documentId, Hyperlink hyperlink);
 }

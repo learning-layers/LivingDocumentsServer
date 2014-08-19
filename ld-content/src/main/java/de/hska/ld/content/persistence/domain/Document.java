@@ -61,10 +61,16 @@ public class Document extends Content {
 
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "content_subscription",
+    @JoinTable(name = "document_subscription",
             joinColumns = {@JoinColumn(name = "document_id")},
             inverseJoinColumns = {@JoinColumn(name = "subscription_id")})
     private List<Subscription> subscriptionList;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "document_hyperlink",
+            joinColumns = {@JoinColumn(name = "document_id")},
+            inverseJoinColumns = {@JoinColumn(name = "hyperlink_id")})
+    private List<Hyperlink> hyperlinkList;
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
@@ -129,6 +135,18 @@ public class Document extends Content {
             subscriptionList = new ArrayList<>();
         }
         return subscriptionList;
+    }
+
+    @JsonProperty("hyperlinks")
+    public List<Hyperlink> getHyperlinkList() {
+        if (hyperlinkList == null) {
+            hyperlinkList = new ArrayList<>();
+        }
+        return hyperlinkList;
+    }
+
+    public void setHyperlinkList(List<Hyperlink> hyperlinkList) {
+        this.hyperlinkList = hyperlinkList;
     }
 
     public void setSubscriptionList(List<Subscription> subscriptionList) {
