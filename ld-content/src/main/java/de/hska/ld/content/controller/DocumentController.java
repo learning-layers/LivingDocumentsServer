@@ -397,6 +397,21 @@ public class DocumentController {
     }
 
     @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/download/{attachmentId}")
+    public void downloadFile(@PathVariable Long documentId, @PathVariable Long attachmentId, HttpServletResponse response) {
+        try {
+            Attachment attachment = documentService.getAttachmentByAttachmentId(documentId, attachmentId);
+            byte[] source = attachment.getSource();
+            InputStream is = new ByteArrayInputStream(source);
+            response.setContentType(attachment.getMimeType());
+            OutputStream outputStream = response.getOutputStream();
+            IOUtils.copy(is, outputStream);
+        } catch (IOException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/attachment")
     public ResponseEntity<Page<Attachment>> getDocumentAttachmentPage(
                                                            @PathVariable Long documentId,

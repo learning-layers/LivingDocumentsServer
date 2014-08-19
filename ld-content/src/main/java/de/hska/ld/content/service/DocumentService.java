@@ -75,4 +75,6 @@ public interface DocumentService extends ContentService<Document> {
 
     Page<Attachment> getDocumentAttachmentPage(Long documentId, String attachmentType, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
+    Attachment getAttachmentByAttachmentId(Long documentId, Long attachmentId);
+
 }

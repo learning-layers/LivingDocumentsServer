@@ -376,6 +376,19 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return repository.findAttachmentsByTypeForDocument(documentId, attachmentTypes, pageable);
     }
 
+    @Override
+    public Attachment getAttachmentByAttachmentId(Long documentId, Long attachmentId) {
+        Document document = findById(documentId);
+        checkPermission(document, Access.Permission.READ);
+        Attachment attachment = attachmentService.findById(attachmentId);
+        if (attachment != null) {
+            if (!document.getAttachmentList().contains(attachment)) {
+                throw new UserNotAuthorizedException();
+            }
+        }
+        return attachment;
+    }
+
     @Transactional
     private Long updateAttachment(Long documentId, Long attachmentId, InputStream is, String fileName) {
         Document document = findById(documentId);
