@@ -353,7 +353,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             Document currentParent = document.getParent();
             while (currentParent != null) {
                 BreadcrumbDto parentBreadcrumbDto = new BreadcrumbDto();
-                parentBreadcrumbDto.setCurrent(true);
+                parentBreadcrumbDto.setCurrent(false);
                 parentBreadcrumbDto.setDocumentId(currentParent.getId());
                 parentBreadcrumbDto.setDocumentTitle(currentParent.getTitle());
                 breadcrumbList.add(parentBreadcrumbDto);
