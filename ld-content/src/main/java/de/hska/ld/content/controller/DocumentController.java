@@ -341,7 +341,7 @@ public class DocumentController {
      * <b>500 Internal Server Error</b> if there occurred any other server side issue
      */
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.PUT, value = "/upload/{attachmentId}")
+    @RequestMapping(method = RequestMethod.POST, value = "/upload/{attachmentId}")
     public ResponseEntity<Long> uploadFile(@RequestParam MultipartFile file, @PathVariable Long attachmentId, @RequestParam Long documentId) {
         String name = file.getOriginalFilename();
         if (!file.isEmpty()) {
