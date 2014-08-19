@@ -72,4 +72,7 @@ public interface DocumentService extends ContentService<Document> {
     Page<Document> getDiscussionDocumentsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
     List<BreadcrumbDto> getBreadcrumbs(Long documentId);
+
+    Page<Attachment> getDocumentAttachmentPage(Long documentId, String attachmentType, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+
 }

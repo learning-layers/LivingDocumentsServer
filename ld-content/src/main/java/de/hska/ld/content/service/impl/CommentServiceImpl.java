@@ -28,6 +28,7 @@ import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.repository.CommentRepository;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.core.exception.AlreadyExistsException;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
@@ -116,6 +117,8 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         if (!comment.getLikeList().contains(user)) {
             comment.getLikeList().add(user);
             comment = super.save(comment);
+        } else {
+            throw new AlreadyExistsException("agree");
         }
         return comment;
     }

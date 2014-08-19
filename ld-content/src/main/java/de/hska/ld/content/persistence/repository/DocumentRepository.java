@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.persistence.repository;
 
+import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.core.persistence.domain.User;
@@ -30,6 +31,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 public interface DocumentRepository extends CrudRepository<Document, Long> {
 
@@ -41,4 +44,7 @@ public interface DocumentRepository extends CrudRepository<Document, Long> {
 
     @Query("SELECT d FROM Document d LEFT JOIN d.accessList al RIGHT JOIN d.parent p WHERE al.user = :user OR d.creator = :user AND p.id = :documentId")
     Page<Document> findDiscussionsAll(@Param("documentId") Long documentId, @Param("user") User user, Pageable pageable);
+
+    @Query("SELECT atl from Document d LEFT JOIN d.attachmentList atl WHERE d.id = :documentId AND atl.mimeType IN (:mimeTypes)")
+    Page<Attachment> findAttachmentsByTypeForDocument(@Param("documentId") Long documentId,  @Param("mimeTypes") List<String> attachmentTypes, Pageable pageable);
 }

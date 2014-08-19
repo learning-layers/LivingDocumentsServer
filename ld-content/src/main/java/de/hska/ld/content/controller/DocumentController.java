@@ -396,6 +396,24 @@ public class DocumentController {
         }
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/attachment")
+    public ResponseEntity<Page<Attachment>> getDocumentAttachmentPage(
+                                                           @PathVariable Long documentId,
+                                                           @RequestParam(value = "attachment-types", defaultValue = "0") String attachmentTypes,
+                                                           @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                           @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                           @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                           @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        Page<Attachment> attachmentPage = documentService.getDocumentAttachmentPage(documentId, attachmentTypes, pageNumber, pageSize, sortDirection, sortProperty);
+        if (attachmentPage != null) {
+            return new ResponseEntity<>(attachmentPage, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+
 //    @Secured(Core.ROLE_USER)
 //    @RequestMapping(method = RequestMethod.GET, value = "/search")
 //    public ResponseEntity<List<NodeDto>> searchForDocumentNode(@JcrSession Session session, @RequestParam String query) {

@@ -363,6 +363,19 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return breadcrumbList;
     }
 
+    @Override
+    public Page<Attachment> getDocumentAttachmentPage(Long documentId, String attachmentType, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        List<String> attachmentTypes = Arrays.asList(attachmentType.split(";"));
+        return repository.findAttachmentsByTypeForDocument(documentId, attachmentTypes, pageable);
+    }
+
     @Transactional
     private Long updateAttachment(Long documentId, Long attachmentId, InputStream is, String fileName) {
         Document document = findById(documentId);
