@@ -170,7 +170,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
         document.getDiscussionList().add(discussion);
         discussion.setParent(document);
-
+        this.save(discussion);
         document = super.save(document);
         document.getDiscussionList().size();
 
