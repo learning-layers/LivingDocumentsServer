@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.service.impl;
 
+import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
 import de.hska.ld.content.service.AttachmentService;
@@ -335,6 +336,31 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         User user = Core.currentUser();
         return repository.findDiscussionsAll(documentId, user, pageable);
+    }
+
+    @Override
+    public List<BreadcrumbDto> getBreadcrumbs(Long documentId) {
+        Document document = findById(documentId);
+        List<BreadcrumbDto> breadcrumbList = new ArrayList<>();
+        if (document != null) {
+            // add the document itself to the breadcrumbs
+            BreadcrumbDto breadcrumbDto = new BreadcrumbDto();
+            breadcrumbDto.setCurrent(true);
+            breadcrumbDto.setDocumentId(document.getId());
+            breadcrumbDto.setDocumentTitle(document.getTitle());
+            breadcrumbList.add(breadcrumbDto);
+            // retrieve parent document information
+            Document currentParent = document.getParent();
+            while (currentParent != null) {
+                BreadcrumbDto parentBreadcrumbDto = new BreadcrumbDto();
+                parentBreadcrumbDto.setCurrent(true);
+                parentBreadcrumbDto.setDocumentId(currentParent.getId());
+                parentBreadcrumbDto.setDocumentTitle(currentParent.getTitle());
+                breadcrumbList.add(parentBreadcrumbDto);
+                currentParent = currentParent.getParent();
+            }
+        }
+        return breadcrumbList;
     }
 
     @Transactional

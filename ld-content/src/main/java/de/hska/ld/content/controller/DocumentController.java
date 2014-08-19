@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.controller;
 
+import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
@@ -410,6 +411,17 @@ public class DocumentController {
 //            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 //        }
 //    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/breadcrumbs")
+    public ResponseEntity<List<BreadcrumbDto>> getBreadcrumbs(@PathVariable Long documentId) {
+        List<BreadcrumbDto> breadcrumbList = documentService.getBreadcrumbs(documentId);
+        if (breadcrumbList != null) {
+            return new ResponseEntity<>(breadcrumbList, HttpStatus.OK);
+        } else {
+            throw new NotFoundException();
+        }
+    }
 
     /**
      * This resource allows it to add a subscription for tracking changes to a specific node.

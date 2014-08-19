@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.service;
 
+import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.core.persistence.domain.User;
 import org.springframework.data.domain.Page;
@@ -69,4 +70,6 @@ public interface DocumentService extends ContentService<Document> {
     Document removeSubscription(Long id, Subscription.Type... type);
 
     Page<Document> getDiscussionDocumentsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+
+    List<BreadcrumbDto> getBreadcrumbs(Long documentId);
 }
