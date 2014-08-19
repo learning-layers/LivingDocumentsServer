@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface NotificationRepository extends CrudRepository<Notification, Long> {
 
-    List<Notification> findByUserIdAndDelivered(@Param("userId") Long userId,
+    List<Notification> findBySubscriberIdAndDelivered(@Param("userId") Long userId,
                                                 @Param("delivered") boolean delivered);
 }

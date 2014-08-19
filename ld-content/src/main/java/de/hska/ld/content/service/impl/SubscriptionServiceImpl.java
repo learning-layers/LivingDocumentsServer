@@ -47,10 +47,12 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
-    public void saveItem(Long documentId, Long userId) {
+    public void saveNotification(Long documentId, Long subscriberId, Long editorId, Subscription.Type type) {
         Notification notification = new Notification();
         notification.setDocumentId(documentId);
-        notification.setUserId(userId);
+        notification.setSubscriberId(subscriberId);
+        notification.setEditorId(editorId);
+        notification.setType(type);
         notificationRepository.save(notification);
     }
 
@@ -58,7 +60,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Transactional
     public List<Notification> deliverSubscriptionItems(User user) {
         List<Notification> subscriptionItemsList = notificationRepository
-                .findByUserIdAndDelivered(user.getId(), false);
+                .findBySubscriberIdAndDelivered(user.getId(), false);
 
         for (Notification notification : subscriptionItemsList) {
             notification.setDelivered(true);
