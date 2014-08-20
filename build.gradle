@@ -16,8 +16,8 @@ subprojects {
         target = project.hasProperty('trg') ? trg : 'jar'
         container = project.hasProperty('cnt') ? cnt : 'tomcat'
 
-        springBootVersion = '1.1.4.RELEASE'
-        springVersion = '4.0.4.RELEASE'
+        springBootVersion = '1.1.5.RELEASE'
+        springVersion = '4.0.6.RELEASE'
         validationApiVersion = '1.1.0.Final'
         apacheCommonsIoVersion = '2.4'
         javaMailVersion = '1.4.7'
