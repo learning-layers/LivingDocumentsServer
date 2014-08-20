@@ -49,7 +49,7 @@ public class TagController {
      * Gets a page of tags.
      *
      * <b>Required roles:</b> ROLE_USER
-     * <b>Path:</b> GET /api/tags?page-number=0&page-size=10&sort-direction=DESC&sort-property=createdAt
+     * <b>Path:</b> GET /api/tags?page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt
      * </pre>
      *
      * @param pageNumber    the page number as a request parameter (default: 0)

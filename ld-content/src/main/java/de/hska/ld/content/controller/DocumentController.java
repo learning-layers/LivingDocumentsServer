@@ -66,7 +66,7 @@ public class DocumentController {
      * Gets a page of documents.
      *
      * <b>Required roles:</b> ROLE_USER
-     * <b>Path:</b> GET /api/documents?page-number=0&page-size=10&sort-direction=DESC&sort-property=createdAt
+     * <b>Path:</b> GET /api/documents?page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt
      * </pre>
      *
      * @param pageNumber    the page number as a request parameter (default: 0)
@@ -96,7 +96,7 @@ public class DocumentController {
      * Gets a page of discussions (sub documents) of a document.
      *
      * <b>Required roles:</b> ROLE_USER
-     * <b>Path:</b> GET /api/documents/{documentId}/discussions?page-number=0&page-size=10&sort-direction=DESC&sort-property=createdAt
+     * <b>Path:</b> GET /api/documents/{documentId}/discussions?page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt
      * </pre>
      *
      * @param pageNumber    the page number as a request parameter (default: 0)
@@ -251,7 +251,7 @@ public class DocumentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> GET /api/document/{documentId}/comment?page-number=0&page-size=10&sort-direction=DESC&sort-property=createdAt
+     *     <b>Path:</b> GET /api/document/{documentId}/comment?page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt
      * </pre>
      *
      * @param documentId the document id of the document the comments shall be fetched for
@@ -283,7 +283,7 @@ public class DocumentController {
      *
      * @param documentId The document id one wants to append the comment to.
      * @param comment The comment one want to append to a document. Example: <br>
-     *                {text: '&lt;comment text&gt'}
+     *                {text: '&lt;comment text&gt;'}
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
@@ -343,7 +343,7 @@ public class DocumentController {
      *
      * @param documentId the document id one wants to a hyperlink to.
      * @param hyperlink the hyperlink that shall be added to the document. Example: <br>
-     *                  {url:'&lt;url&gt', description:'&lt;description&gt;'}
+     *                  {url:'&lt;url&gt;', description:'&lt;description&gt;'}
      * @return <b>200 OK</b> if successful.
      */
     @Secured(Core.ROLE_USER)
@@ -358,7 +358,7 @@ public class DocumentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> GET /api/documents/{documentId}/tags?page-number=0&page-size=10&sort-direction=DESC&sort-property=createdAt
+     *     <b>Path:</b> GET /api/documents/{documentId}/tags?page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt
      * </pre>
      *
      * @param documentId the document id of the document the tag shall be fetched for.
@@ -492,7 +492,7 @@ public class DocumentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path GET /api/documents/{documentId}/download/{attachmentId}
+     *     <b>Path</b> GET /api/documents/{documentId}/download/{attachmentId}
      * </pre>
      *
      * @param documentId the ID of the document that contains the needed attachment
@@ -523,7 +523,7 @@ public class DocumentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> GET /api/documents/{documentId}/attachment?attachment-types=image/png&page-number=0&page-size=10&sort-direction=DESC&sort-property=createdAt
+     *     <b>Path:</b> GET /api/documents/{documentId}/attachment?attachment-types=image/png&amp;page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt
      * </pre>
      *
      * @param documentId the document id of the document the tag shall be fetched for.
