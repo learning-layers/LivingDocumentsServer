@@ -22,8 +22,6 @@
 
 package de.hska.ld.core.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import de.hska.ld.core.service.MailService;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.UserService;
@@ -33,11 +31,8 @@ import de.hska.ld.core.service.impl.UserServiceImpl;
 import org.springframework.boot.context.embedded.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 import javax.servlet.MultipartConfigElement;
-import java.util.List;
 
 @Configuration
 public class CoreConfig {

@@ -1,5 +1,7 @@
 package de.hska.ld.content.persistence.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 
 @Entity
@@ -14,8 +16,14 @@ public class Notification {
     @Column(name = "document_id")
     private Long documentId;
 
-    @Column(name = "user_id")
-    private Long userId;
+    @Column(name = "subscriber_id")
+    private Long subscriberId;
+
+    @Column(name = "editor_id")
+    private Long editorId;
+
+    @Column(name = "type")
+    private Subscription.Type type;
 
     @Column(name = "delivered")
     private boolean delivered;
@@ -36,12 +44,29 @@ public class Notification {
         this.documentId = documentId;
     }
 
-    public Long getUserId() {
-        return userId;
+    @JsonIgnore
+    public Long getSubscriberId() {
+        return subscriberId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setSubscriberId(Long subscriberId) {
+        this.subscriberId = subscriberId;
+    }
+
+    public Long getEditorId() {
+        return editorId;
+    }
+
+    public void setEditorId(Long editorId) {
+        this.editorId = editorId;
+    }
+
+    public Subscription.Type getType() {
+        return type;
+    }
+
+    public void setType(Subscription.Type type) {
+        this.type = type;
     }
 
     public boolean isDelivered() {

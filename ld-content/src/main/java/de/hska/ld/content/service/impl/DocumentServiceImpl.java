@@ -119,7 +119,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             dbDocument.setTitle(document.getTitle());
             dbDocument.setDescription(document.getDescription());
             document = dbDocument;
+            createNotifications(document, Subscription.Type.MAIN_CONTENT);
         }
+
         return super.save(document);
     }
 
@@ -131,6 +133,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         document.getCommentList().add(comment);
         comment.setParent(document);
         document = super.save(document);
+        createNotifications(document, Subscription.Type.COMMENT);
         Optional<Comment> optional = document.getCommentList().stream().sorted(byDateTime).findFirst();
         return optional.get();
     }
@@ -173,6 +176,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         discussion.setParent(document);
         this.save(discussion);
         document = super.save(document);
+        createNotifications(document, Subscription.Type.DISCUSSION);
         document.getDiscussionList().size();
 
         return document;
@@ -241,7 +245,8 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         Attachment attachment;
         attachment = new Attachment(is, fileName);
         document.getAttachmentList().add(attachment);
-        super.save(document);
+        document = super.save(document);
+        createNotifications(document, Subscription.Type.ATTACHMENT);
         return document.getAttachmentList().get(document.getAttachmentList().size() - 1).getId();
     }
 
@@ -414,6 +419,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         // update attachment
         attachment.setNewValues(is, fileName);
         attachment = attachmentService.save(attachment);
+        createNotifications(document, Subscription.Type.ATTACHMENT);
         return attachment.getId();
     }
 
@@ -432,10 +438,13 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         }
     }
 
-    private void createSubscriptionItems(Long documentId, Subscription.Type type, List<Subscription> subscriptionList) {
+    private void createNotifications(Document document, Subscription.Type type) {
+        User editor = Core.currentUser();
+        Long documentId = document.getId();
+        List<Subscription> subscriptionList = document.getSubscriptionList();
         subscriptionList.stream().forEach(s -> {
             if (s.getTypeList().contains(type)) {
-                subscriptionService.saveItem(s.getUser().getId(), documentId);
+                subscriptionService.saveNotification(s.getUser().getId(), documentId, editor.getId(), type);
             }
         });
     }

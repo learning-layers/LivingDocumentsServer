@@ -32,7 +32,7 @@ public interface SubscriptionService {
 
     Subscription save(Subscription subscription);
 
-    public void saveItem(Long documentId, Long userId);
+    public void saveNotification(Long documentId, Long subscriberId, Long editorId, Subscription.Type type);
 
     List<Notification> deliverSubscriptionItems(User user);
 }

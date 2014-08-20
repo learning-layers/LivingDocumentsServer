@@ -14,6 +14,7 @@ import java.util.List;
 @EnableWebMvc
 @Configuration
 public class MvcConfig extends WebMvcConfigurerAdapter {
+
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
