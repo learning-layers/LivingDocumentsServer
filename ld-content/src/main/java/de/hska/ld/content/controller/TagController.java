@@ -82,8 +82,6 @@ public class TagController {
      *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
      * </pre>
      *
-     * @param documentId Contains title and optional description of the new document. Example:
-     *                   {title: 'New Document', description: '&lt;optional&gt;'}
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
@@ -109,8 +107,6 @@ public class TagController {
      *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
      * </pre>
      *
-     * @param documentId Contains title and optional description of the new document. Example:
-     *                   {title: 'New Document', description: '&lt;optional&gt;'}
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
