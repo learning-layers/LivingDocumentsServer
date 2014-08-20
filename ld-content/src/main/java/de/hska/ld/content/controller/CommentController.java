@@ -51,17 +51,15 @@ public class CommentController {
      * Gets a page of comments.
      *
      * <b>Required roles:</b> ROLE_USER
-     * <b>Path:</b> GET {@value de.hska.ld.content.util.Content#RESOURCE_DOCUMENT}
+     * <b>Path:</b> GET /api/comments/{commentId}/comment
      * </pre>
      *
-     * @param commentId     the comment ID
-     * @param pageNumber    the page number as a request parameter (default: 0)
-     * @param pageSize      the page size as a request parameter (default: 10)
+     * @param commentId the comment ID
+     * @param pageNumber the page number as a request parameter (default: 0)
+     * @param pageSize the page size as a request parameter (default: 10)
      * @param sortDirection the sort direction as a request parameter (default: 'DESC')
-     * @param sortProperty  the sort property as a request parameter (default: 'createdAt')
-     * @return <b>200 OK</b> and a document page or <br>
-     * <b>404 Not Found</b> if no documents exists or <br>
-     * <b>403 Forbidden</b> if authorization failed
+     * @param sortProperty the sort property as a request parameter (default: 'createdAt')
+     * @return the requested subcomments page
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{commentId}/comment")
@@ -78,9 +76,20 @@ public class CommentController {
         }
     }
 
+    /**
+     * <pre>
+     * Gets a complete list of comments instead of paging through them.
+     *
+     * <b>Required roles:</b> ROLE_USER
+     * <b>Path:</b> GET /api/comments/{commentId}/comment/list
+     * </pre>
+     *
+     * @param commentId the comment id for which one wants the subcomment list
+     * @return subcomments list
+     */
     @Secured(Core.ROLE_USER)
-     @RequestMapping(method = RequestMethod.GET, value = "/{commentId}/comment/list")
-     public ResponseEntity<List<Comment>> getCommentsPage(@PathVariable Long commentId) {
+    @RequestMapping(method = RequestMethod.GET, value = "/{commentId}/comment/list")
+    public ResponseEntity<List<Comment>> getCommentsList(@PathVariable Long commentId) {
         List<Comment> commentsPage = commentService.getCommentCommentsList(commentId);
         if (commentsPage != null) {
             return new ResponseEntity<>(commentsPage, HttpStatus.OK);
@@ -89,6 +98,17 @@ public class CommentController {
         }
     }
 
+    /**
+     * <pre>
+     * Agree (Like) with a comment
+     *
+     * <b>Required roles:</b> ROLE_USER
+     * <b>Path:</b> PUT /api/comments/{commentId}/agree
+     * </pre>
+     *
+     * @param commentId the comment that one wants to agree to
+     * @return the comment to which was agreed
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/{commentId}/agree")
     public ResponseEntity<Comment> agreeToComment(@PathVariable Long commentId) {
@@ -102,17 +122,16 @@ public class CommentController {
 
 
     /**
-     * This resource allows it to create a document.
+     * This resource allows it to create a comment.
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     *     <b>Path:</b> POST /api/comments/{commentId}/comment
      * </pre>
      *
-     * @param commentId Contains title and optional description of the new document. Example:
-     *                  {title: 'New Document', description: '&lt;optional&gt;'}
-     * @return <b>200 OK</b> with the generated document<br>
-     * <b>400 Bad Request</b> if no title exists<br>
+     * @param commentId the comment id for which one wants to add a subcomment<br />
+     *                  {text: '&lt;CommentText&gt;'}
+     * @return return the comment plus the parentId of the parent comment
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{commentId}/comment")
@@ -126,12 +145,12 @@ public class CommentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> PUT {@value Content#RESOURCE_DOCUMENT}/comment
+     *     <b>Path:</b> POST /api/comments
      * </pre>
      *
-     * @param comment the content that contains the changes to this comment. Example:<br>
+     * @param comment the updated comment values. Example:<br>
      *                <tt>{text: 'The comment text'}</tt>
-     * @return <b>200 OK</b> if the changes have been successfully applied<br>
+     * @return return the comment plus the parentId of the parent comment
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST)
@@ -140,6 +159,17 @@ public class CommentController {
         return new ResponseEntity<>(new CommentDto(comment), HttpStatus.OK);
     }
 
+    /**
+     * Marks an existing comment as deleted.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> DELETE /api/comments/{commentId}
+     * </pre>
+     *
+     * @param commentId the comment id of the comment which shall be marked as deleted
+     * @return 200 HTTP.OK
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{commentId}")
     public ResponseEntity<CommentDto> removeComment(@PathVariable Long commentId) {
