@@ -66,7 +66,7 @@ public class DocumentController {
      * Gets a page of documents.
      *
      * <b>Required roles:</b> ROLE_USER
-     * <b>Path:</b> GET {@value de.hska.ld.content.util.Content#RESOURCE_DOCUMENT}
+     * <b>Path:</b> GET /api/documents?page-number=0&page-size=10&sort-direction=DESC&sort-property=createdAt
      * </pre>
      *
      * @param pageNumber    the page number as a request parameter (default: 0)
@@ -91,6 +91,22 @@ public class DocumentController {
         }
     }
 
+    /**
+     * <pre>
+     * Gets a page of discussions (sub documents) of a document.
+     *
+     * <b>Required roles:</b> ROLE_USER
+     * <b>Path:</b> GET /api/documents/{documentId}/discussions?page-number=0&page-size=10&sort-direction=DESC&sort-property=createdAt
+     * </pre>
+     *
+     * @param pageNumber    the page number as a request parameter (default: 0)
+     * @param pageSize      the page size as a request parameter (default: 10)
+     * @param sortDirection the sort direction as a request parameter (default: 'DESC')
+     * @param sortProperty  the sort property as a request parameter (default: 'createdAt')
+     * @return <b>200 OK</b> and a document page or <br>
+     * <b>404 Not Found</b> if no documents exists or <br>
+     * <b>403 Forbidden</b> if authorization failed
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/discussions")
     public ResponseEntity<Page<Document>> getDiscussionsPage(@PathVariable Long documentId,
@@ -111,7 +127,7 @@ public class DocumentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     *     <b>Path:</b> POST /api/documents
      * </pre>
      *
      * @param document Contains title and optional description of the new document. Example:
@@ -126,6 +142,21 @@ public class DocumentController {
         return new ResponseEntity<>(document, HttpStatus.CREATED);
     }
 
+    /**
+     * This resource allows it to create a discussion (sub document) and append it to a document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST /api/documents/{documentId}/discussion
+     * </pre>
+     *
+     * @param documentId the document id of the document one wants to append the discussion to.
+     * @param document Contains title and optional description of the new document. Example:
+     *                 {title: 'New Document', description: '&lt;optional&gt;'}
+     *
+     * @return <b>200 OK</b> with the generated discussion<br>
+     * <b>400 Bad Request</b> if no title exists<br>
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value="/{documentId}/discussion")
     public ResponseEntity<Document> createDiscussion(@PathVariable Long documentId, @RequestBody Document document) {
@@ -133,6 +164,20 @@ public class DocumentController {
         return new ResponseEntity<>(document, HttpStatus.CREATED);
     }
 
+    /**
+     * Updates a document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> PUT /api/documents/{documentId}
+     * </pre>
+     *
+     * @param documentId the document id of the document which shall be updated
+     * @param document Contains title and optional description of the new document. Example:
+     *                 {title: 'New Document', description: '&lt;optional&gt;'}
+     * @param cmd default=all, describes which section of a document shall be updated
+     * @return the updated document
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/{documentId}")
     public ResponseEntity<Document> updateDocument(@PathVariable Long documentId, @RequestBody Document document, @RequestParam(value = "cmd", defaultValue = "all") String cmd) {
@@ -150,6 +195,9 @@ public class DocumentController {
                 throw new ValidationException("description");
             }
             dbDocument.setDescription(document.getDescription());
+        } else if ("all".equals(cmd)) {
+            dbDocument.setTitle(document.getTitle());
+            dbDocument.setDescription(document.getDescription());
         } else {
             throw new ValidationException("command");
         }
@@ -162,13 +210,11 @@ public class DocumentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     *     <b>Path:</b> GET /api/documents/{documentId}
      * </pre>
      *
-     * @param documentId Contains title and optional description of the new document. Example:
-     *                   {title: 'New Document', description: '&lt;optional&gt;'}
-     * @return <b>200 OK</b> with the generated document<br>
-     * <b>400 Bad Request</b> if no title exists<br>
+     * @param documentId The document id of the document one wants to retrieve
+     * @return <b>200 OK</b> with the document<br> or <b>404 NOT FOUND</b>
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
@@ -186,13 +232,12 @@ public class DocumentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> DELETE {@value Content#RESOURCE_DOCUMENT}/document/{documentId}
+     *     <b>Path:</b> DELETE /api/documents/{documentId}
      * </pre>
      *
      * @param documentId the document id of the document one wants to delete
      * @return <b>200 OK</b> if the removal of the document has been successfully executed<br>
      * <b>404 NOT FOUND</b> if a document with the given id isn't present in this application<br>
-     * <b>500 Internal Server Error</b> if there occured any other server side issue
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}")
@@ -202,11 +247,11 @@ public class DocumentController {
     }
 
     /**
-     * Fetches the commments for a specifc document.
+     * Fetches a page of commments for a specifc document.
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> GET /api/document/{documentId}/comments
+     *     <b>Path:</b> GET /api/document/{documentId}/comment?page-number=0&page-size=10&sort-direction=DESC&sort-property=createdAt
      * </pre>
      *
      * @param documentId the document id of the document the comments shall be fetched for
@@ -229,15 +274,16 @@ public class DocumentController {
     }
 
     /**
-     * This resource allows it to create a document.
+     * This resource allows it to create a comment and append it to a document.
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     *     <b>Path:</b> POST /api/documents/{documentId}/comment
      * </pre>
      *
-     * @param documentId Contains title and optional description of the new document. Example:
-     *                   {title: 'New Document', description: '&lt;optional&gt;'}
+     * @param documentId The document id one wants to append the comment to.
+     * @param comment The comment one want to append to a document. Example: <br />
+     *                {text: '&lt;comment text&gt'}
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
@@ -249,15 +295,15 @@ public class DocumentController {
     }
 
     /**
-     * This resource allows it to create a document.
+     * This resource allows it to add a tag to a document.
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     *     <b>Path:</b> POST /api/documents/{documentId}/tag/{tagId}
      * </pre>
      *
-     * @param documentId Contains title and optional description of the new document. Example:
-     *                   {title: 'New Document', description: '&lt;optional&gt;'}
+     * @param documentId The document id of the document one want to add the tag to.
+     * @param tagId the tag id of the tag one wants to add to the document.
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
@@ -269,17 +315,16 @@ public class DocumentController {
     }
 
     /**
-     * This resource allows it to create a document.
+     * This resource allows it to remove a tag of a document.
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     *     <b>Path:</b> DELETE /api/documents/{documentId}/tag/{tagId}
      * </pre>
      *
-     * @param documentId Contains title and optional description of the new document. Example:
-     *                   {title: 'New Document', description: '&lt;optional&gt;'}
-     * @return <b>200 OK</b> with the generated document<br>
-     * <b>400 Bad Request</b> if no title exists<br>
+     * @param documentId The document id of the document one want to remove the tag from.
+     * @param tagId the tag id of the tag one wants to remove.
+     * @return <b>200 OK</b> if successful.
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}/tag/{tagId}")
@@ -293,13 +338,13 @@ public class DocumentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     *     <b>Path:</b> POST /api/documents/{documentId}/hyperlinks
      * </pre>
      *
-     * @param documentId Contains title and optional description of the new document. Example:
-     *                   {title: 'New Document', description: '&lt;optional&gt;'}
-     * @return <b>200 OK</b> with the generated document<br>
-     * <b>400 Bad Request</b> if no title exists<br>
+     * @param documentId the document id one wants to a hyperlink to.
+     * @param hyperlink the hyperlink that shall be added to the document. Example: <br />
+     *                  {url:'&lt;url&gt', description:'&lt;description&gt;'}
+     * @return <b>200 OK</b> if successful.
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/hyperlinks")
@@ -309,16 +354,16 @@ public class DocumentController {
     }
 
     /**
-     * Fetches the commments for a specifc document.
+     * Fetches a tags page for a specifc document.
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> GET /api/document/{documentId}/comments
+     *     <b>Path:</b> GET /api/documents/{documentId}/tags?page-number=0&page-size=10&sort-direction=DESC&sort-property=createdAt
      * </pre>
      *
-     * @param documentId the document id of the document the comments shall be fetched for
-     * @return <b>200 OK</b> and a list of comments
-     * <b>404 NOT FOUND</b> if there is no document present within the system that has the specified documentId
+     * @param documentId the document id of the document the tag shall be fetched for.
+     * @return <b>200 OK</b> the requested tags page
+     * <b>404 NOT FOUND</b> if there is no tag present
      */
      @Secured(Core.ROLE_USER)
      @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags")
@@ -335,6 +380,17 @@ public class DocumentController {
         }
     }
 
+    /**
+     * Fetches all tags as list for a specific document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> GET /api/documents/{documentId}/tags/list
+     * </pre>
+     *
+     * @param documentId the document the tags shall be fetched for.
+     * @return the tags list of the document.
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags/list")
     public ResponseEntity<List<Tag>> getAllTags(@PathVariable Long documentId) {
@@ -347,18 +403,19 @@ public class DocumentController {
     }
 
     /**
-     * This resource allows uploading files.
+     * This resource allows it to update of a file content.
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/upload
+     *     <b>Path:</b> POST /api/documents/upload/{attachmentId}
      * </pre>
      *
      * @param file       the Multipart file that has been uploaded
      * @param documentId the document ID to which the file shall be attached
+     * @param attachmentId the attachment id of the attachment that shall be updated
+     *
      * @return <b>200 OK</b> if the upload has been successfully performed<br>
      * <b>400 BAD REQUEST</b> if empty file parameter<br>
-     * <b>500 Internal Server Error</b> if there occurred any other server side issue
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/upload/{attachmentId}")
@@ -372,6 +429,20 @@ public class DocumentController {
         }
     }
 
+    /**
+     * This resource allows it upload a file and attach it to a document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST /api/documents/upload?documentId=1
+     * </pre>
+     *
+     * @param file       the Multipart file that has been uploaded
+     * @param documentId the document ID to which the file shall be attached
+     *
+     * @return <b>200 OK</b> if the upload has been successfully performed<br>
+     * <b>400 BAD REQUEST</b> if empty file parameter<br>
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/upload")
     public ResponseEntity<Long> uploadFile(@RequestParam MultipartFile file, @RequestParam Long documentId) {
@@ -389,8 +460,8 @@ public class DocumentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path - option 1 (downloading an attachment):</b> GET {@value Content#RESOURCE_DOCUMENT}/{documentId}/download?attachment={position}
-     *     <b>Path - option 2 (download a main content):</b> GET {@value Content#RESOURCE_DOCUMENT}/{documentId}/download
+     *     <b>Path - option 1 (downloading an attachment):</b> GET /api/documents/{documentId}/download?attachment={position}
+     *     <b>Path - option 2 (download a main content):</b> GET /api/documents/{documentId}/download
      * </pre>
      *
      * @param documentId the ID of the document that contains the needed attachment
@@ -416,6 +487,22 @@ public class DocumentController {
         }
     }
 
+    /**
+     * This resource allows downloading a file attachment.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path GET /api/documents/{documentId}/download/{attachmentId}
+     * </pre>
+     *
+     * @param documentId the ID of the document that contains the needed attachment
+     * @param attachmentId the attachment id of the attachment that shall be retrieved
+     * @param response   <b>FILE DOWNLOAD INITIATED</b> if the attachment could be found, and the download is starting<br>
+     *                   <b>400 BAD REQUEST</b><br>
+     *                   <b>403 FORBIDDEN</b> if the access to this attachment has been denied<br>
+     *                   <b>404 NOT FOUND</b> if no attachment has been found for the given document ID or attachment position<br>
+     *                   <b>500 Internal Server Error</b> if there occurred any other server side issue
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/download/{attachmentId}")
     public void downloadFile(@PathVariable Long documentId, @PathVariable Long attachmentId, HttpServletResponse response) {
@@ -431,6 +518,19 @@ public class DocumentController {
         }
     }
 
+    /**
+     * Fetches an attachment page for a specifc document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> GET /api/documents/{documentId}/attachment?attachment-types=image/png&page-number=0&page-size=10&sort-direction=DESC&sort-property=createdAt
+     * </pre>
+     *
+     * @param documentId the document id of the document the tag shall be fetched for.
+     * @param attachmentTypes the mime types of the attachments that shall be retrieved.
+     * @return <b>200 OK</b> the requested tags page
+     * <b>404 NOT FOUND</b> if there is no attachment with the given mime type present
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/attachment")
     public ResponseEntity<Page<Attachment>> getDocumentAttachmentPage(
@@ -465,6 +565,17 @@ public class DocumentController {
 //        }
 //    }
 
+    /**
+     * Fetches the navigation path to the document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> GET /api/documents/{documentId}/breadcrumbs
+     * </pre>
+     *
+     * @param documentId the document id of the document that the breadcrumbs shall be retrieved for.
+     * @return <b>200 OK</b>an array of parent documents (representation of a breadcrumb path), <b>404 NOT FOUND</b>
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/breadcrumbs")
     public ResponseEntity<List<BreadcrumbDto>> getBreadcrumbs(@PathVariable Long documentId) {
@@ -481,7 +592,7 @@ public class DocumentController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/{nodeId}/subscribe
+     *     <b>Path:</b> POST /api/documents/{documentId}/subscribe
      * </pre>
      *
      * @param documentId the document id of the document that shall be tracked
@@ -497,6 +608,16 @@ public class DocumentController {
         return new ResponseEntity(HttpStatus.CREATED);
     }
 
+    /**
+     * This resource allows it to retrieve all the notifications that a user got since his last visit.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> GET /api/documents/notifications
+     * </pre>
+     *
+     * @return <b>200 OK</b> the notification that belong to this user.
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/notifications")
     public ResponseEntity<List<Notification>> getNotifications(@AuthenticationPrincipal User user) {
