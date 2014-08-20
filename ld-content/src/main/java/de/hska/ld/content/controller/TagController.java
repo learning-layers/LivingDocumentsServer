@@ -82,8 +82,8 @@ public class TagController {
      *     <b>Path:</b> POST /api/tags
      * </pre>
      *
-     * @param tag the tag that shall be created. Example:<br />
-     *        {'name':'&lt;name&gt;', 'description': '&lt;description&gt;'} <br/>
+     * @param tag the tag that shall be created. Example:<br>
+     *        {'name':'&lt;name&gt;', 'description': '&lt;description&gt;'} <br>
      *        description is optional
      *
      * @return <b>201 CREATED</b> with the generated tag<br>
@@ -111,8 +111,8 @@ public class TagController {
      *     <b>Path:</b> POST /api/tags/{tagId}
      * </pre>
      *
-     * @param tag the tag that shall be created. Example:<br />
-     *        {'name':'&lt;name&gt;', 'description': '&lt;description&gt;'} <br/>
+     * @param tag the tag that shall be created. Example:<br>
+     *        {'name':'&lt;name&gt;', 'description': '&lt;description&gt;'} <br>
      *        description is optional
      *
      * @return <b>200 OK</b> with the update tag<br>

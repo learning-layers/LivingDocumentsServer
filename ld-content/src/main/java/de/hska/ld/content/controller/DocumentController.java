@@ -282,7 +282,7 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId The document id one wants to append the comment to.
-     * @param comment The comment one want to append to a document. Example: <br />
+     * @param comment The comment one want to append to a document. Example: <br>
      *                {text: '&lt;comment text&gt'}
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
@@ -342,7 +342,7 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId the document id one wants to a hyperlink to.
-     * @param hyperlink the hyperlink that shall be added to the document. Example: <br />
+     * @param hyperlink the hyperlink that shall be added to the document. Example: <br>
      *                  {url:'&lt;url&gt', description:'&lt;description&gt;'}
      * @return <b>200 OK</b> if successful.
      */

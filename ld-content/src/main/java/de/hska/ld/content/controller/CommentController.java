@@ -129,7 +129,7 @@ public class CommentController {
      *     <b>Path:</b> POST /api/comments/{commentId}/comment
      * </pre>
      *
-     * @param commentId the comment id for which one wants to add a subcomment<br />
+     * @param commentId the comment id for which one wants to add a subcomment<br>
      *                  {text: '&lt;CommentText&gt;'}
      * @return return the comment plus the parentId of the parent comment
      */
