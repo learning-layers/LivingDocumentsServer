@@ -118,6 +118,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             dbDocument.setModifiedAt(new Date());
             dbDocument.setTitle(document.getTitle());
             dbDocument.setDescription(document.getDescription());
+            if (document.isPublic()) {
+                dbDocument.setPublic(true);
+            }
             document = dbDocument;
             createNotifications(document, Subscription.Type.MAIN_CONTENT);
         }
@@ -174,6 +177,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
         document.getDiscussionList().add(discussion);
         discussion.setParent(document);
+        if (discussion.isPublic()) {
+            discussion.setPublic(true);
+        }
         this.save(discussion);
         document = super.save(document);
         createNotifications(document, Subscription.Type.DISCUSSION);
@@ -426,7 +432,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     private void checkPermission(Document document, Access.Permission permission) {
         User user = Core.currentUser();
-        if (!document.getCreator().equals(user)) {
+        if (!document.isPublic() && !document.getCreator().equals(user)) {
             try {
                 Access access = document.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
                 Access.Permission result = access.getPermissionList().stream().filter(p -> p.equals(permission)).findFirst().get();

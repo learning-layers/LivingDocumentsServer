@@ -49,7 +49,7 @@ public class TagController {
      * Gets a page of tags.
      *
      * <b>Required roles:</b> ROLE_USER
-     * <b>Path:</b> GET {@value de.hska.ld.content.util.Content#RESOURCE_TAG}
+     * <b>Path:</b> GET /api/tags?page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt
      * </pre>
      *
      * @param pageNumber    the page number as a request parameter (default: 0)
@@ -75,16 +75,18 @@ public class TagController {
     }
 
     /**
-     * This resource allows it to create a document.
+     * This resource allows it to create a tag that can later be user for tagging.
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     *     <b>Path:</b> POST /api/tags
      * </pre>
      *
-     * @param documentId Contains title and optional description of the new document. Example:
-     *                   {title: 'New Document', description: '&lt;optional&gt;'}
-     * @return <b>200 OK</b> with the generated document<br>
+     * @param tag the tag that shall be created. Example:<br>
+     *        {'name':'&lt;name&gt;', 'description': '&lt;description&gt;'} <br>
+     *        description is optional
+     *
+     * @return <b>201 CREATED</b> with the generated tag<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
     @Secured(Core.ROLE_USER)
@@ -102,16 +104,18 @@ public class TagController {
     }
 
     /**
-     * This resource allows it to create a document.
+     * This resource allows it to update a tag.
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> POST {@value Content#RESOURCE_DOCUMENT}/document
+     *     <b>Path:</b> POST /api/tags/{tagId}
      * </pre>
      *
-     * @param documentId Contains title and optional description of the new document. Example:
-     *                   {title: 'New Document', description: '&lt;optional&gt;'}
-     * @return <b>200 OK</b> with the generated document<br>
+     * @param tag the tag that shall be created. Example:<br>
+     *        {'name':'&lt;name&gt;', 'description': '&lt;description&gt;'} <br>
+     *        description is optional
+     *
+     * @return <b>200 OK</b> with the update tag<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
     @Secured(Core.ROLE_USER)
@@ -125,6 +129,18 @@ public class TagController {
         }
     }
 
+    /**
+     * Retrieve tags by name.
+     *
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> GET /api/tags/name/{tagName}
+     * </pre>
+     *
+     * @param tagName the name of the tags that shall be retrieved
+     * @return the tag (TODO has to be changed to a tag list, multiple tags could have the same name, different description)
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/name/{tagName}")
     public ResponseEntity<Tag> getTagByName(@PathVariable String tagName) {
@@ -135,18 +151,4 @@ public class TagController {
             throw new ValidationException("No tag provided.");
         }
     }
-
-    /**
-     * @return
-     */
-    /*@Secured(Core.ROLE_USER)
-    @RequestMapping(value = "tags", method = RequestMethod.GET)
-    public ResponseEntity<List<Tag>> getTags() {
-        List<Tag> tagList = tagService.findAll();
-        if (tagList != null && !tagList.isEmpty()) {
-            return new ResponseEntity<>(tagList, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }*/
 }
