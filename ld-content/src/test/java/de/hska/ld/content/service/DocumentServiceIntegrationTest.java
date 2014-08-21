@@ -260,18 +260,24 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testThatNotificationIsDelivered() {
         Document document = documentService.save(newDocument());
+
+        // create subscription for main content
         document = documentService.addSubscription(document.getId(), Subscription.Type.MAIN_CONTENT);
 
+        // make a change to the document and therefore trigger the notification creation process
         document.setTitle(document.getTitle() + "(updated)");
         document = documentService.save(document);
 
+        // retrieve notifications
         List<Notification> notificationList = documentService.getNotifications();
         Assert.assertNotNull(notificationList);
+        Assert.assertTrue(notificationList.size() == 1);
         for (Notification notification : notificationList) {
             Assert.assertTrue(notification.getDocumentId().equals(document.getId()));
         }
 
+        // retrieve notifications after the notification has been delivered
         notificationList = documentService.getNotifications();
-        Assert.assertNull(notificationList);
+        Assert.assertTrue(notificationList.size() == 0);
     }
 }

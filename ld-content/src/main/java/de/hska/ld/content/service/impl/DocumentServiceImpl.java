@@ -312,7 +312,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         }
         Subscription subscription = new Subscription(user, types);
         document.getSubscriptionList().add(subscription);
-        return save(document);
+        return super.save(document);
     }
 
     @Override
@@ -451,7 +451,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         List<Subscription> subscriptionList = document.getSubscriptionList();
         subscriptionList.stream().forEach(s -> {
             if (s.getTypeList().contains(type)) {
-                subscriptionService.saveNotification(s.getUser().getId(), documentId, editor.getId(), type);
+                subscriptionService.saveNotification(documentId, s.getUser().getId() , editor.getId(), type);
             }
         });
     }
