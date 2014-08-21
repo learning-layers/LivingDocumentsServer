@@ -310,8 +310,20 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         if (document == null) {
             throw new NotFoundException("id");
         }
-        Subscription subscription = new Subscription(user, types);
-        document.getSubscriptionList().add(subscription);
+
+        Subscription subscription = null;
+        if (document.getSubscriptionList().size() != 0) {
+            subscription = document.getSubscriptionList().stream()
+                    .filter(s -> s.getUser().equals(user)).findFirst().get();
+        }
+        if (subscription != null) {
+            List<Subscription.Type> typeList = Arrays.asList(types);
+            subscription.getTypeList().removeAll(typeList);
+            subscription.getTypeList().addAll(typeList);
+        } else {
+            subscription = new Subscription(user, types);
+            document.getSubscriptionList().add(subscription);
+        }
         return super.save(document);
     }
 

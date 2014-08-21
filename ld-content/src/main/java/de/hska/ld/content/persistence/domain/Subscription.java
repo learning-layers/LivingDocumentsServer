@@ -96,4 +96,21 @@ public class Subscription {
     public enum Type {
         MAIN_CONTENT, ATTACHMENT, COMMENT, DISCUSSION
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Subscription that = (Subscription) o;
+
+        if (user != null ? !user.equals(that.user) : that.user != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return user != null ? user.hashCode() : 0;
+    }
 }

@@ -254,7 +254,16 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         document = documentService.addSubscription(document.getId(), Subscription.Type.MAIN_CONTENT);
         Assert.assertNotNull(document.getSubscriptionList());
         Assert.assertTrue(document.getSubscriptionList().size() == 1);
+        Assert.assertTrue(document.getSubscriptionList().get(0).getTypeList().size() == 1);
         Assert.assertTrue(document.getSubscriptionList().get(0).getTypeList().get(0) == Subscription.Type.MAIN_CONTENT);
+
+        document = documentService.addSubscription(document.getId(), Subscription.Type.ATTACHMENT);
+        document = documentService.addSubscription(document.getId(), Subscription.Type.MAIN_CONTENT);
+        Assert.assertNotNull(document.getSubscriptionList());
+        Assert.assertTrue(document.getSubscriptionList().size() == 1);
+        Assert.assertTrue(document.getSubscriptionList().get(0).getTypeList().size() == 2);
+        Assert.assertTrue(document.getSubscriptionList().get(0).getTypeList().get(0) == Subscription.Type.ATTACHMENT);
+        Assert.assertTrue(document.getSubscriptionList().get(0).getTypeList().get(1) == Subscription.Type.MAIN_CONTENT);
     }
 
     @Test
