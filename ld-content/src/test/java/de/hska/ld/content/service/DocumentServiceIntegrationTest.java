@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 
 import java.io.InputStream;
+import java.util.List;
 
 import static de.hska.ld.content.ContentFixture.*;
 import static de.hska.ld.core.fixture.CoreFixture.newUser;
@@ -245,5 +246,32 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(document.getDiscussionList());
         Assert.assertTrue(document.getDiscussionList().size() > 0);
         Assert.assertNotNull(document.getDiscussionList().get(0).getParent());
+    }
+
+    @Test
+    public void testThatSubscriptionIsCreated() {
+        Document document = documentService.save(newDocument());
+        document = documentService.addSubscription(document.getId(), Subscription.Type.MAIN_CONTENT);
+        Assert.assertNotNull(document.getSubscriptionList());
+        Assert.assertTrue(document.getSubscriptionList().size() == 1);
+        Assert.assertTrue(document.getSubscriptionList().get(0).getTypeList().get(0) == Subscription.Type.MAIN_CONTENT);
+    }
+
+    @Test
+    public void testThatNotificationIsDelivered() {
+        Document document = documentService.save(newDocument());
+        document = documentService.addSubscription(document.getId(), Subscription.Type.MAIN_CONTENT);
+
+        document.setTitle(document.getTitle() + "(updated)");
+        document = documentService.save(document);
+
+        List<Notification> notificationList = documentService.getNotifications();
+        Assert.assertNotNull(notificationList);
+        for (Notification notification : notificationList) {
+            Assert.assertTrue(notification.getDocumentId().equals(document.getId()));
+        }
+
+        notificationList = documentService.getNotifications();
+        Assert.assertNull(notificationList);
     }
 }

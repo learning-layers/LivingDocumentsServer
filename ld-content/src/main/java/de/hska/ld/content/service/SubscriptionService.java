@@ -34,5 +34,5 @@ public interface SubscriptionService {
 
     public void saveNotification(Long documentId, Long subscriberId, Long editorId, Subscription.Type type);
 
-    List<Notification> deliverSubscriptionItems(User user);
+    List<Notification> deliverNotifications(User user);
 }

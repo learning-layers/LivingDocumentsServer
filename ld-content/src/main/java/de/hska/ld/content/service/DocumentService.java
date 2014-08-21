@@ -63,7 +63,7 @@ public interface DocumentService extends ContentService<Document> {
 
     List<Tag> getDocumentTagsList(Long documentId);
 
-    List<Notification> getNotifications(User user);
+    List<Notification> getNotifications();
 
     Document addSubscription(Long id, Subscription.Type... type);
 

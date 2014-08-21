@@ -29,7 +29,6 @@ import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
-import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -499,8 +497,8 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/notifications")
-    public ResponseEntity<List<Notification>> getNotifications(@AuthenticationPrincipal User user) {
-        List<Notification> notificationList = documentService.getNotifications(user);
+    public ResponseEntity<List<Notification>> getNotifications() {
+        List<Notification> notificationList = documentService.getNotifications();
         return new ResponseEntity<>(notificationList, HttpStatus.OK);
     }
 }

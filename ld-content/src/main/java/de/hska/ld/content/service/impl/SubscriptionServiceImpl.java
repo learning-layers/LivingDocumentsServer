@@ -58,7 +58,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     @Transactional
-    public List<Notification> deliverSubscriptionItems(User user) {
+    public List<Notification> deliverNotifications(User user) {
         List<Notification> subscriptionItemsList = notificationRepository
                 .findBySubscriberIdAndDelivered(user.getId(), false);
 
