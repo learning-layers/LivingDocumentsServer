@@ -80,4 +80,6 @@ public interface DocumentService extends ContentService<Document> {
     Hyperlink addHyperlink(Long documentId, Hyperlink hyperlink);
 
     List<Attachment> getDocumentAttachmentList(Long documentId);
+
+    void removeAttachment(Long documentId, Long attachmentId);
 }

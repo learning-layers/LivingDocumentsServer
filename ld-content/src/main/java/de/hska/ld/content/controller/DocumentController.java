@@ -570,6 +570,13 @@ public class DocumentController {
         }
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}/attachment/{attachmentId}")
+    public ResponseEntity removeAttachment(@PathVariable Long documentId, @PathVariable Long attachmentId) {
+        documentService.removeAttachment(documentId, attachmentId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 
 //    @Secured(Core.ROLE_USER)
 //    @RequestMapping(method = RequestMethod.GET, value = "/search")

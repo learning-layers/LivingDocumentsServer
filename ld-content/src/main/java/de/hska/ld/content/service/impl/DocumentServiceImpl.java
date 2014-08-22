@@ -444,6 +444,24 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return document.getAttachmentList();
     }
 
+    @Override
+    @Transactional
+    public void removeAttachment(Long documentId, Long attachmentId) {
+        Document document = findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        }
+        Attachment attachment = attachmentService.findById(attachmentId);
+        if (attachment == null) {
+            throw new NotFoundException("attachmentId");
+        }
+        if (!document.getAttachmentList().contains(attachment)) {
+            throw new UserNotAuthorizedException();
+        }
+        attachment.setDeleted(true);
+        attachmentService.save(attachment);
+    }
+
     @Transactional
     private Long updateAttachment(Long documentId, Long attachmentId, InputStream is, String fileName) {
         Document document = findById(documentId);
