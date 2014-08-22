@@ -45,6 +45,6 @@ public interface DocumentRepository extends CrudRepository<Document, Long> {
     @Query("SELECT d FROM Document d LEFT JOIN d.accessList al RIGHT JOIN d.parent p WHERE al.user = :user OR d.creator = :user  OR d.isPublic = true AND p.id = :documentId")
     Page<Document> findDiscussionsAll(@Param("documentId") Long documentId, @Param("user") User user, Pageable pageable);
 
-    @Query("SELECT atl from Document d LEFT JOIN d.attachmentList atl WHERE d.id = :documentId AND atl.mimeType IN (:mimeTypes)")
-    Page<Attachment> findAttachmentsByTypeForDocument(@Param("documentId") Long documentId,  @Param("mimeTypes") List<String> attachmentTypes, Pageable pageable);
+    @Query("SELECT atl from Document d LEFT JOIN d.attachmentList atl WHERE d.id = :documentId AND atl.mimeType IN (:mimeTypes) AND atl.mimeType NOT IN (:excludedMimeTypes)")
+    Page<Attachment> findAttachmentsByTypeForDocument(@Param("documentId") Long documentId, @Param("mimeTypes") List<String> attachmentTypes, @Param("excludedMimeTypes") List<String> excludedAttachmentTypesList, Pageable pageable);
 }

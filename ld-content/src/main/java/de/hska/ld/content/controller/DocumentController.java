@@ -533,14 +533,38 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/attachment")
     public ResponseEntity<Page<Attachment>> getDocumentAttachmentPage(
                                                            @PathVariable Long documentId,
-                                                           @RequestParam(value = "attachment-types", defaultValue = "0") String attachmentTypes,
+                                                           @RequestParam(value = "attachment-types", defaultValue = "all") String attachmentTypes,
+                                                           @RequestParam(value = "excluded-attachment-types", defaultValue = "") String excludedAttachmentTypes,
                                                            @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                            @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                            @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                            @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<Attachment> attachmentPage = documentService.getDocumentAttachmentPage(documentId, attachmentTypes, pageNumber, pageSize, sortDirection, sortProperty);
+        Page<Attachment> attachmentPage = documentService.getDocumentAttachmentPage(documentId, attachmentTypes, excludedAttachmentTypes, pageNumber, pageSize, sortDirection, sortProperty);
         if (attachmentPage != null) {
             return new ResponseEntity<>(attachmentPage, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * Fetches an attachment list for a specifc document.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> GET /api/documents/{documentId}/attachment/list
+     * </pre>
+     *
+     * @param documentId the document id of the document the attachments shall be fetched for.
+     * @return <b>200 OK</b> the requested tags page
+     * <b>404 NOT FOUND</b> if there is no attachment with the given mime type present
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/attachment/list")
+    public ResponseEntity<List<Attachment>> getDocumentAttachmentList(@PathVariable Long documentId) {
+        List<Attachment> attachmentList = documentService.getDocumentAttachmentList(documentId);
+        if (attachmentList != null) {
+            return new ResponseEntity<>(attachmentList, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

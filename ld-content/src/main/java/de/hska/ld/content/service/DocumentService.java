@@ -73,9 +73,11 @@ public interface DocumentService extends ContentService<Document> {
 
     List<BreadcrumbDto> getBreadcrumbs(Long documentId);
 
-    Page<Attachment> getDocumentAttachmentPage(Long documentId, String attachmentType, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+    Page<Attachment> getDocumentAttachmentPage(Long documentId, String attachmentType, String excludedAttachmentTypes, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
     Attachment getAttachmentByAttachmentId(Long documentId, Long attachmentId);
 
     Hyperlink addHyperlink(Long documentId, Hyperlink hyperlink);
+
+    List<Attachment> getDocumentAttachmentList(Long documentId);
 }

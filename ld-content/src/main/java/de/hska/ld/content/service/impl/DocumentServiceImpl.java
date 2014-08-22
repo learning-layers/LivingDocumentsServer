@@ -388,7 +388,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    public Page<Attachment> getDocumentAttachmentPage(Long documentId, String attachmentType, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+    public Page<Attachment> getDocumentAttachmentPage(Long documentId, String attachmentType, String excludedAttachmentTypes, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
         Sort.Direction direction;
         if (Sort.Direction.ASC.toString().equals(sortDirection)) {
             direction = Sort.Direction.ASC;
@@ -397,7 +397,13 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         List<String> attachmentTypes = Arrays.asList(attachmentType.split(";"));
-        return repository.findAttachmentsByTypeForDocument(documentId, attachmentTypes, pageable);
+        List<String> excludedAttachmentTypesList = null;
+        if (excludedAttachmentTypes != "") {
+            excludedAttachmentTypesList = Arrays.asList(excludedAttachmentTypes.split(";"));
+        } else {
+            excludedAttachmentTypesList = new ArrayList<>();
+        }
+        return repository.findAttachmentsByTypeForDocument(documentId, attachmentTypes, excludedAttachmentTypesList, pageable);
     }
 
     @Override
@@ -421,6 +427,17 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         document.getHyperlinkList().add(hyperlink);
         super.save(document);
         return hyperlink;
+    }
+
+    @Override
+    @Transactional
+    public List<Attachment> getDocumentAttachmentList(Long documentId) {
+        Document document = findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        }
+        this.loadContentCollection(document, Attachment.class);
+        return document.getAttachmentList();
     }
 
     @Transactional
