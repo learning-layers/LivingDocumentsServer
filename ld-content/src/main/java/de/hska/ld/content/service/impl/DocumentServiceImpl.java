@@ -513,6 +513,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         for (Class clazz : clazzArray) {
             if (Attachment.class.equals(clazz)) {
                 document.getAttachmentList().size();
+                document.setAttachmentList((List<Attachment>) filterDeletedListItems(document.getAttachmentList(), Attachment.class));
             }
         }
         return document;

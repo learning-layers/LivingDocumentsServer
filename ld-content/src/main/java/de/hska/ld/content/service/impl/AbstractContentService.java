@@ -31,6 +31,9 @@ import de.hska.ld.core.service.impl.AbstractService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public abstract class AbstractContentService<T extends Content> extends AbstractService<T> implements ContentService<T> {
 
     @Override
@@ -48,11 +51,24 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
         for (Class clazz : clazzArray) {
             if (Tag.class.equals(clazz)) {
                 t.getTagList().size();
+                t.setTagList((List<Tag>) filterDeletedListItems(t.getTagList(), clazz));
             } else if (Comment.class.equals(clazz)) {
                 t.getCommentList().size();
+                t.setCommentList((List<Comment>) filterDeletedListItems(t.getTagList(), clazz));
             }
         }
         return t;
+    }
+
+    public <I> List<? extends Content> filterDeletedListItems(List tList, Class<I> clazz) {
+        if (Content.class.isAssignableFrom(clazz)) {
+            if (tList.size() > 0) {
+                List<? extends Content> cList = tList;
+                List<? extends Content> filteredCList = cList.stream().filter(tItem -> !tItem.isDeleted()).collect(Collectors.toList());
+                return (List<? extends Content>) filteredCList;
+            }
+        }
+        return tList;
     }
 
     @Override
