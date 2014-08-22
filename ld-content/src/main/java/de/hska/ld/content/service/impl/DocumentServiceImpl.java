@@ -403,7 +403,11 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         } else {
             excludedAttachmentTypesList = new ArrayList<>();
         }
-        return repository.findAttachmentsByTypeForDocument(documentId, attachmentTypes, excludedAttachmentTypesList, pageable);
+        if (attachmentType == "all") {
+            return repository.findAttachmentsWithTypeExclusionForDocument(documentId, excludedAttachmentTypesList, pageable);
+        } else {
+            return repository.findAttachmentsByTypeWithExclusionForDocument(documentId, attachmentTypes, excludedAttachmentTypesList, pageable);
+        }
     }
 
     @Override
