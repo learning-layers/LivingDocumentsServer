@@ -65,7 +65,7 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
             if (tList.size() > 0) {
                 List<? extends Content> cList = tList;
                 List<? extends Content> filteredCList = cList.stream().filter(tItem -> !tItem.isDeleted()).collect(Collectors.toList());
-                return (List<? extends Content>) filteredCList;
+                return filteredCList;
             }
         }
         return tList;
