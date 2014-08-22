@@ -33,6 +33,6 @@ public interface TagRepository extends CrudRepository<Tag, Long> {
 
     Page<Tag> findAll(Pageable pageable);
 
-    @Query("SELECT t FROM Tag t WHERE t.name = :tagName")
+    @Query("SELECT t FROM Tag t WHERE t.name = :tagName AND (t.deleted = false OR t.deleted IS NULL)")
     Tag findByName(@Param("tagName") String tagName);
 }

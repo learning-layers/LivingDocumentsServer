@@ -36,9 +36,9 @@ public interface CommentRepository extends CrudRepository<Comment, Long> {
     Page<Comment> findAllForDocument(@Param("documentId") Long documentId, @Param("user") User user, Pageable pageable);*/
 
 
-    @Query("SELECT c FROM Comment c WHERE c.parent.id = :documentId")
+    @Query("SELECT c FROM Comment c WHERE c.parent.id = :documentId AND (c.deleted = false OR c.deleted IS NULL)")
     Page<Comment> findAllForDocument(@Param("documentId") Long documentId, Pageable pageable);
 
-    @Query("SELECT c FROM Comment c WHERE c.parent.id = :commentId")
+    @Query("SELECT c FROM Comment c WHERE c.parent.id = :commentId AND (c.deleted = false OR c.deleted IS NULL)")
     Page<Comment> findAllForComment(@Param("commentId") Long commentId, Pageable pageable);
 }
