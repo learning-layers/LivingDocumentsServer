@@ -47,4 +47,20 @@ public class UserGroup {
             joinColumns = {@JoinColumn(name = "usergroup_id")},
             inverseJoinColumns = {@JoinColumn(name = "subusergroup_id")})
     List<UserGroup> userGroupList;
+
+    public List<User> getUserList() {
+        return userList;
+    }
+
+    public void setUserList(List<User> userList) {
+        this.userList = userList;
+    }
+
+    public List<UserGroup> getUserGroupList() {
+        return userGroupList;
+    }
+
+    public void setUserGroupList(List<UserGroup> userGroupList) {
+        this.userGroupList = userGroupList;
+    }
 }

@@ -65,6 +65,12 @@ public abstract class Content {
             inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private List<Tag> tagList;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "ld_content_access",
+            joinColumns = {@JoinColumn(name = "content_id")},
+            inverseJoinColumns = {@JoinColumn(name = "access_id")})
+    private List<Access> accessList;
+
     @OneToMany(cascade = CascadeType.PERSIST, mappedBy = "parent")
     private List<Comment> commentList;
 
@@ -119,6 +125,18 @@ public abstract class Content {
 
     public void setTagList(List<Tag> tagList) {
         this.tagList = tagList;
+    }
+
+    @JsonIgnore
+    public List<Access> getAccessList() {
+        if (accessList == null) {
+            accessList = new ArrayList<>();
+        }
+        return accessList;
+    }
+
+    public void setAccessList(List<Access> accessList) {
+        this.accessList = accessList;
     }
 
     @JsonProperty("comments")

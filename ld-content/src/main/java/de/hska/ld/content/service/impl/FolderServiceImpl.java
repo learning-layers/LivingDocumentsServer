@@ -1,18 +1,22 @@
 package de.hska.ld.content.service.impl;
 
+import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Folder;
+import de.hska.ld.content.persistence.domain.UserGroup;
 import de.hska.ld.content.persistence.repository.FolderRepository;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.FolderService;
 import de.hska.ld.core.exception.NotFoundException;
-import de.hska.ld.core.service.impl.AbstractService;
+import de.hska.ld.core.persistence.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
-public class FolderServiceImpl extends AbstractService<Folder> implements FolderService {
+public class FolderServiceImpl extends AbstractContentService<Folder> implements FolderService {
 
     @Autowired
     private FolderRepository repository;
@@ -61,6 +65,29 @@ public class FolderServiceImpl extends AbstractService<Folder> implements Folder
         folder.getDocumentList().add(document);
 
         return save(folder);
+    }
+
+    @Override
+    public Folder shareFolder(Long folderId, UserGroup userGroup, Access.Permission permission) {
+        Folder folder = findById(folderId);
+        if (folder == null) {
+            throw new NotFoundException("folderId");
+        }
+        shareFolder(folderId, userGroup.getUserList(), permission);
+        for (UserGroup subUserGroup : userGroup.getUserGroupList()) {
+            shareFolder(folderId, subUserGroup, permission);
+        }
+
+        return folder;
+    }
+
+    @Override
+    public Folder shareFolder(Long folderId, List<User> userList, Access.Permission permission) {
+        Folder folder = findById(folderId);
+        for (User user : userList) {
+            addAccess(folder.getId(), user, permission);
+        }
+        return folder;
     }
 
     @Override

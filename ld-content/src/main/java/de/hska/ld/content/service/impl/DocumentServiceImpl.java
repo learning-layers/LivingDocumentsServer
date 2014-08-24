@@ -191,49 +191,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    @Transactional
-    public Document addAccess(Long id, User user, Access.Permission... permissions) {
-        Document document = findById(id);
-        Access access;
-        try {
-            access = document.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
-            List<Access.Permission> pl = access.getPermissionList();
-            for (Access.Permission p : permissions) {
-                if (!pl.contains(p)) {
-                    pl.add(p);
-                }
-            }
-        } catch (NoSuchElementException e) {
-            access = new Access();
-            document.getAccessList().add(access);
-            access.setUser(user);
-            access.getPermissionList().addAll(Arrays.asList(permissions));
-        }
-        return super.save(document);
-    }
-
-    @Override
-    @Transactional
-    public Document removeAccess(Document document, User user, Access.Permission... permissions) {
-        Access access;
-        try {
-            access = document.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
-            List<Access.Permission> pl = access.getPermissionList();
-            for (Access.Permission p : permissions) {
-                if (pl.contains(p)) {
-                    pl.remove(p);
-                }
-            }
-            if (pl.size() == 0) {
-                document.getAccessList().remove(access);
-            }
-        } catch (NoSuchElementException e) {
-            // do nothing
-        }
-        return super.save(document);
-    }
-
-    @Override
     public Long addAttachment(Long documentId, MultipartFile file, String fileName) {
         try {
             return addAttachment(documentId, file.getInputStream(), fileName);

@@ -22,15 +22,19 @@
 
 package de.hska.ld.content.service.impl;
 
+import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Content;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.ContentService;
+import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.impl.AbstractService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 public abstract class AbstractContentService<T extends Content> extends AbstractService<T> implements ContentService<T> {
@@ -57,6 +61,50 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
             }
         }
         return t;
+    }
+
+    @Override
+    @Transactional
+    public T addAccess(Long contentId, User user, Access.Permission... permissions) {
+        Access access;
+        T t = findById(contentId);
+        try {
+            access = t.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
+            List<Access.Permission> pl = access.getPermissionList();
+            for (Access.Permission p : permissions) {
+                if (!pl.contains(p)) {
+                    pl.add(p);
+                }
+            }
+        } catch (NoSuchElementException e) {
+            access = new Access();
+            t.getAccessList().add(access);
+            access.setUser(user);
+            access.getPermissionList().addAll(Arrays.asList(permissions));
+        }
+        return super.save(t);
+    }
+
+    @Override
+    @Transactional
+    public T removeAccess(Long contentId, User user, Access.Permission... permissions) {
+        Access access;
+        T t = findById(contentId);
+        try {
+            access = t.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
+            List<Access.Permission> pl = access.getPermissionList();
+            for (Access.Permission p : permissions) {
+                if (pl.contains(p)) {
+                    pl.remove(p);
+                }
+            }
+            if (pl.size() == 0) {
+                t.getAccessList().remove(access);
+            }
+        } catch (NoSuchElementException e) {
+            // do nothing
+        }
+        return super.save(t);
     }
 
     public <I> List<? extends Content> filterDeletedListItems(List tList, Class<I> clazz) {

@@ -173,7 +173,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(documentPage.getNumberOfElements() == 1);
 
         setAuthentication(testUser);
-        document = documentService.removeAccess(document, user, Access.Permission.READ);
+        document = documentService.removeAccess(document.getId(), user, Access.Permission.READ);
 
         setAuthentication(user);
         documentPage = documentService.getDocumentsPage(0, 10, "DESC", "createdAt");

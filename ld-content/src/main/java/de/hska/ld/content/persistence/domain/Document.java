@@ -51,12 +51,6 @@ public class Document extends Content {
     private List<Attachment> attachmentList;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "ld_document_access",
-            joinColumns = {@JoinColumn(name = "document_id")},
-            inverseJoinColumns = {@JoinColumn(name = "access_id")})
-    private List<Access> accessList;
-
-    @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ld_discussion",
             joinColumns = {@JoinColumn(name = "discussion_id")},
             inverseJoinColumns = {@JoinColumn(name = "discussion_id_inverse")})
@@ -106,18 +100,6 @@ public class Document extends Content {
 
     public void setAttachmentList(List<Attachment> attachmentList) {
         this.attachmentList = attachmentList;
-    }
-
-    @JsonIgnore
-    public List<Access> getAccessList() {
-        if (accessList == null) {
-            accessList = new ArrayList<>();
-        }
-        return accessList;
-    }
-
-    public void setAccessList(List<Access> accessList) {
-        this.accessList = accessList;
     }
 
     @JsonProperty("discussions")

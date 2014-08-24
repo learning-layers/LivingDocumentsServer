@@ -24,7 +24,6 @@ package de.hska.ld.content.service;
 
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.persistence.domain.*;
-import de.hska.ld.core.persistence.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,10 +45,6 @@ public interface DocumentService extends ContentService<Document> {
     void removeTag(Long id, Long tagId);
 
     Document addDiscussionToDocument(Long id, Document discussion);
-
-    Document addAccess(Long id, User user, Access.Permission... permission);
-
-    Document removeAccess(Document document, User user, Access.Permission... permissions);
 
     Long addAttachment(Long documentId, MultipartFile file, String fileName);
 
