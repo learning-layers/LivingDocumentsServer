@@ -154,7 +154,9 @@ public abstract class Content {
     @PrePersist
     void prePersist() {
         this.createdAt = new Date();
-        this.creator = Core.currentUser();
+        if (this.creator == null) {
+            this.creator = Core.currentUser();
+        }
     }
 
     @PreUpdate

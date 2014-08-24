@@ -19,6 +19,8 @@ public class Folder extends Content {
 
     private String name;
 
+    private boolean sharingFolder;
+
     @ManyToOne
     private Folder parent;
 
@@ -72,5 +74,13 @@ public class Folder extends Content {
 
     public void setDocumentList(List<Document> documentList) {
         this.documentList = documentList;
+    }
+
+    public boolean isSharingFolder() {
+        return sharingFolder;
+    }
+
+    public void setSharingFolder(boolean sharingFolder) {
+        this.sharingFolder = sharingFolder;
     }
 }

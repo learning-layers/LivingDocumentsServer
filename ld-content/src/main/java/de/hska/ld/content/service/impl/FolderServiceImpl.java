@@ -82,12 +82,27 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     }
 
     @Override
+    @Transactional
     public Folder shareFolder(Long folderId, List<User> userList, Access.Permission permission) {
         Folder folder = findById(folderId);
         for (User user : userList) {
+            List<Folder> folders = repository.findByCreatorAndSharingFolderTrue(user);
+            Folder sharedFolder = null;
+            if (folders != null && folders.size() > 0) {
+                sharedFolder = folders.get(0);
+            } else {
+                sharedFolder = createSharedFolder(user);
+            }
+            sharedFolder.getFolderList().add(folder);
             addAccess(folder.getId(), user, permission);
         }
         return folder;
+    }
+
+    private Folder createSharedFolder(User user) {
+        Folder newSharedFolder = new Folder("SharedItems");
+        newSharedFolder.setCreator(user);
+        return newSharedFolder;
     }
 
     @Override
