@@ -19,4 +19,5 @@ public class UserGroup {
             joinColumns = {@JoinColumn(name = "usergroup_id")},
             inverseJoinColumns = {@JoinColumn(name = "user_id")})
     List<User> userList;
+
 }
