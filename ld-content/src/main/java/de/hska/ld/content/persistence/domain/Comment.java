@@ -45,7 +45,7 @@ public class Comment extends Content {
     private String text;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name = "comment_like_user",
+    @JoinTable(name = "ld_comment_like_user",
             joinColumns = {@JoinColumn(name = "comment_id")},
             inverseJoinColumns = {@JoinColumn(name = "user_id")})
     private List<User> likeList;

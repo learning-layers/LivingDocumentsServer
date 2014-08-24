@@ -39,6 +39,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+@Service
 public class DocumentServiceImpl extends AbstractContentService<Document> implements DocumentService {
 
     @Autowired
@@ -502,7 +504,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         List<Subscription> subscriptionList = document.getSubscriptionList();
         subscriptionList.stream().forEach(s -> {
             if (s.getTypeList().contains(type)) {
-                subscriptionService.saveNotification(documentId, s.getUser().getId() , editor.getId(), type);
+                subscriptionService.saveNotification(documentId, s.getUser().getId(), editor.getId(), type);
             }
         });
     }

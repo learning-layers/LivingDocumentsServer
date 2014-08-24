@@ -45,32 +45,32 @@ public class Document extends Content {
     private boolean isPublic;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "document_attachment",
+    @JoinTable(name = "ld_document_attachment",
             joinColumns = {@JoinColumn(name = "document_id")},
             inverseJoinColumns = {@JoinColumn(name = "attachment_id")})
     private List<Attachment> attachmentList;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "document_access",
+    @JoinTable(name = "ld_document_access",
             joinColumns = {@JoinColumn(name = "document_id")},
             inverseJoinColumns = {@JoinColumn(name = "access_id")})
     private List<Access> accessList;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "discussion",
+    @JoinTable(name = "ld_discussion",
             joinColumns = {@JoinColumn(name = "discussion_id")},
             inverseJoinColumns = {@JoinColumn(name = "discussion_id_inverse")})
     private List<Document> discussionList;
 
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "document_subscription",
+    @JoinTable(name = "ld_document_subscription",
             joinColumns = {@JoinColumn(name = "document_id")},
             inverseJoinColumns = {@JoinColumn(name = "subscription_id")})
     private List<Subscription> subscriptionList;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "document_hyperlink",
+    @JoinTable(name = "ld_document_hyperlink",
             joinColumns = {@JoinColumn(name = "document_id")},
             inverseJoinColumns = {@JoinColumn(name = "hyperlink_id")})
     private List<Hyperlink> hyperlinkList;

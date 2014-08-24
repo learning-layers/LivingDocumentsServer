@@ -60,15 +60,12 @@ public abstract class Content {
     private boolean deleted;
 
     @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(name = "content_tag",
+    @JoinTable(name = "ld_content_tag",
             joinColumns = {@JoinColumn(name = "content_id")},
             inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private List<Tag> tagList;
 
     @OneToMany(cascade = CascadeType.PERSIST, mappedBy = "parent")
-    /*@JoinTable(name = "content_comment",
-            joinColumns = {@JoinColumn(name = "content_id")},
-            inverseJoinColumns = {@JoinColumn(name = "comment_id")})*/
     private List<Comment> commentList;
 
     public Long getId() {

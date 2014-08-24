@@ -22,36 +22,10 @@
 
 package de.hska.ld.content.config;
 
-import de.hska.ld.content.service.*;
-import de.hska.ld.content.service.impl.*;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ContentConfig {
 
-    @Bean
-    public DocumentService documentService() {
-        return new DocumentServiceImpl();
-    }
-
-    @Bean
-    public TagService tagService() {
-        return new TagServiceImpl();
-    }
-
-    @Bean
-    public CommentService commentService() {
-        return new CommentServiceImpl();
-    }
-
-    @Bean
-    public SubscriptionService subscriptionService() {
-        return new SubscriptionServiceImpl();
-    }
-
-    @Bean
-    public AttachmentService attachmentService() {
-        return new AttachmentServiceImpl();
-    }
+    //
 }

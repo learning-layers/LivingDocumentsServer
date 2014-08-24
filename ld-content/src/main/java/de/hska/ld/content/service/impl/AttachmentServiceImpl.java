@@ -26,7 +26,9 @@ import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.repository.AttachmentRepository;
 import de.hska.ld.content.service.AttachmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service
 public class AttachmentServiceImpl extends AbstractContentService<Attachment> implements AttachmentService {
 
     @Autowired

@@ -53,7 +53,7 @@ public class Subscription {
     private User user;
 
     @ElementCollection(targetClass = Type.class)
-    @CollectionTable(name = "type", joinColumns = @JoinColumn(name = "id"))
+    @CollectionTable(name = "ld_type", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
     private List<Type> typeList;
