@@ -48,16 +48,11 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         Folder folder = new Folder(folderName);
         if (parent != null) {
             folder.setParent(parent);
-        }
-        folder = save(folder);
-        final Folder finalFolder = folder;
-        if (parent != null) {
-            parent.getFolderList().removeIf(f -> f.getId().equals(finalFolder.getId()));
             parent.getFolderList().add(folder);
             save(parent);
         }
 
-        return folder;
+        return save(folder);
     }
 
     @Override
@@ -81,7 +76,6 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         for (UserGroup subUserGroup : userGroup.getUserGroupList()) {
             shareFolder(folderId, subUserGroup, permission);
         }
-
         return folder;
     }
 
@@ -120,8 +114,8 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
             super.save(sharedItemsFolder);
             addAccess(folder.getId(), user, permission);
         }
-        for (Folder subfolder : folder.getFolderList()) {
-            shareSubFolder(subfolder.getId(), userList, permission);
+        for (Folder subFolder : folder.getFolderList()) {
+            shareSubFolder(subFolder.getId(), userList, permission);
         }
         // TODO add document access
         return folder;

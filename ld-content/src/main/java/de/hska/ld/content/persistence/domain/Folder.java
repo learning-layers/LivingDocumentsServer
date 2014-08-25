@@ -86,4 +86,12 @@ public class Folder extends Content {
     public void setSharingFolder(boolean sharingFolder) {
         this.sharingFolder = sharingFolder;
     }
+
+    @Override
+    public String toString() {
+        return "Folder{" + "id=" + this.getId() +
+                ", sharingFolder=" + sharingFolder +
+                ", name='" + name + '\'' +
+                '}';
+    }
 }
