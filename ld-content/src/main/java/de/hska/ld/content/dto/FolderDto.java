@@ -26,30 +26,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import de.hska.ld.content.persistence.domain.Folder;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 public class FolderDto extends Folder {
-    private List<Long> jsonParentIdList = new ArrayList<>();
+    private Long jsonParentId = null;
 
     @JsonProperty("jsonParentId")
-    public List<Long> getJsonParentIdList() {
-        if (this.getParentFolderList() != null && this.getParentFolderList().size() > 0) {
-            for (Folder parentFolder : this.getParentFolderList()) {
-                jsonParentIdList.add(parentFolder.getId());
-            }
+    public Long getJsonParentId() {
+        if (this.getParent() != null) {
+            jsonParentId = this.getParent().getId();
         }
-        return jsonParentIdList;
+        return jsonParentId;
     }
 
     @JsonProperty("jsonParentId")
-    public void setJsonParentIdList(List<Long> idList) {
-        if (this.getParentFolderList() != null && this.getParentFolderList().size() > 0) {
-            for (Folder parentFolder : this.getParentFolderList()) {
-                jsonParentIdList.add(parentFolder.getId());
-            }
+    public void setJsonParentId(Long id) {
+        if (this.getParent() != null) {
+            jsonParentId = this.getParent().getId();
         } else {
-            jsonParentIdList = idList;
+            jsonParentId = id;
         }
     }
 
@@ -69,6 +63,6 @@ public class FolderDto extends Folder {
         } catch (IllegalAccessException e) {
             //
         }
-        this.getJsonParentIdList();
+        this.getJsonParentId();
     }
 }

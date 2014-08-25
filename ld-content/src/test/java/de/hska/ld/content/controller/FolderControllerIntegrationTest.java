@@ -75,7 +75,7 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
         Folder subFolder = new Folder("Sub Test");
         ResponseEntity<FolderDto> response2 = post().resource(RESOURCE_FOLDER + "/" + folderId + "/folders").asUser().body(subFolder).exec(FolderDto.class);
         Assert.assertEquals(HttpStatus.CREATED, response2.getStatusCode());
-        Assert.assertNotNull(response2.getBody().getJsonParentIdList().get(0));
+        Assert.assertNotNull(response2.getBody().getJsonParentId());
     }
 
     @Test

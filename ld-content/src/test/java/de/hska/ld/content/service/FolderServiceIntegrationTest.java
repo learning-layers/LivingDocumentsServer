@@ -42,9 +42,8 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
 
         Folder subFolder = folderService.createFolder("Subfolder", folder.getId());
         Assert.assertNotNull(subFolder);
-        Assert.assertNotNull(subFolder.getParentFolderList());
-        Assert.assertTrue(subFolder.getParentFolderList().size() > 0);
-        Assert.assertTrue(subFolder.getParentFolderList().get(0).getId().equals(folder.getId()));
+        Assert.assertNotNull(subFolder.getParent());
+        Assert.assertNotNull(subFolder.getParent().getId());
 
         folder = folderService.findById(folder.getId());
 
