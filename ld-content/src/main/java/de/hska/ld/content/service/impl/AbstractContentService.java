@@ -28,7 +28,6 @@ import de.hska.ld.content.persistence.domain.Content;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.ContentService;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
-import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.impl.AbstractService;
@@ -66,11 +65,6 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
             } else if (Comment.class.equals(clazz)) {
                 t.getCommentList().size();
                 t.setCommentList((List<Comment>) filterDeletedListItems(t.getTagList(), clazz));
-            } else if (Access.class.equals(clazz)) {
-                Role adminRole = roleService.findByName(Core.ROLE_ADMIN);
-                if (Core.currentUser().getRoleList().contains(adminRole)) {
-                    t.getAccessList().size();
-                }
             }
         }
         return t;
@@ -83,12 +77,12 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
         T t = findById(contentId);
         try {
             access = t.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
-            /*List<Access.Permission> pl = access.getPermissionList();
+            List<Access.Permission> pl = access.getPermissionList();
             for (Access.Permission p : permissions) {
                 if (!pl.contains(p)) {
                     pl.add(p);
                 }
-            }*/
+            }
         } catch (NoSuchElementException e) {
             access = new Access();
             t.getAccessList().add(access);

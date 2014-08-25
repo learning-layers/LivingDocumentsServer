@@ -96,7 +96,6 @@ public class Folder extends Content {
         Folder folder = (Folder) o;
 
         if (sharingFolder != folder.sharingFolder) return false;
-        if (parent != null ? !parent.equals(folder.parent) : folder.parent != null) return false;
 
         return true;
     }
@@ -105,7 +104,6 @@ public class Folder extends Content {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (sharingFolder ? 1 : 0);
-        result = 31 * result + (parent != null ? parent.hashCode() : 0);
         return result;
     }
 

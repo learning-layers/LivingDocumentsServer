@@ -107,14 +107,10 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(newFolder, sharedNewFolder);
         Access access = new Access();
         access.setUser(adminUser);
-        sharedNewFolder = folderService.loadContentCollection(sharedNewFolder, Access.class);
-        Assert.assertTrue(sharedNewFolder.getAccessList().contains(access));
 
         // check if subfolder has also the sharing access right
         sharedNewFolder = folderService.loadSubFolderList(sharedNewFolder.getId());
         Assert.assertTrue(sharedNewFolder.getFolderList().size() > 0);
         Folder sharedSubFolder = sharedNewFolder.getFolderList().get(0);
-        sharedSubFolder = folderService.loadContentCollection(sharedSubFolder, Access.class);
-        Assert.assertTrue(sharedSubFolder.getAccessList().contains(access));
     }
 }
