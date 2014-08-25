@@ -22,9 +22,10 @@ public class Folder extends Content {
 
     private boolean sharingFolder;
 
-    @ManyToMany(cascade = {CascadeType.ALL}, mappedBy = "folderList")
+    @ManyToOne
+    @JoinColumn(name = "parent_id")
     @JsonIgnore
-    private List<Folder> parentFolderList;
+    private Folder parent;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ld_folder_folder",
@@ -46,15 +47,12 @@ public class Folder extends Content {
         this.name = name;
     }
 
-    public List<Folder> getParentFolderList() {
-        if (this.parentFolderList == null) {
-            this.parentFolderList = new ArrayList<>();
-        }
-        return parentFolderList;
+    public Folder getParent() {
+        return parent;
     }
 
-    public void setParentFolderList(List<Folder> parentFolderList) {
-        this.parentFolderList = parentFolderList;
+    public void setParent(Folder parent) {
+        this.parent = parent;
     }
 
     @JsonProperty("folders")
