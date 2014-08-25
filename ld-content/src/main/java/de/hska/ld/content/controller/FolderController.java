@@ -34,4 +34,11 @@ public class FolderController {
         return new ResponseEntity<>(folderDto, HttpStatus.CREATED);
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{folderId}/documents/{documentId}")
+    public ResponseEntity<Folder> addDocumentToFolder(@PathVariable Long folderId, @PathVariable Long documentId) {
+        Folder folder = folderService.placeDocumentInFolder(folderId, documentId);
+        FolderDto folderDto = new FolderDto(folder);
+        return new ResponseEntity<>(folderDto, HttpStatus.OK);
+    }
 }

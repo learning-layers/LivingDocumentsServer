@@ -23,6 +23,7 @@
 package de.hska.ld.content.controller;
 
 import de.hska.ld.content.dto.FolderDto;
+import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Folder;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
@@ -35,14 +36,22 @@ import org.springframework.http.ResponseEntity;
 public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String RESOURCE_FOLDER = Content.RESOURCE_FOLDER;
+    private static final String RESOURCE_DOCUMENT = Content.RESOURCE_DOCUMENT;
+    private static final String TITLE = "Title";
+    private static final String DESCRIPTION = "Description";
+
+    Document document;
 
     @Before
     public void setUp() throws Exception {
         super.setUp();
+        document = new Document();
+        document.setTitle(TITLE);
+        document.setDescription(DESCRIPTION);
     }
 
     @Test
-    public void thatCreateFolderUsesHttpOkOnPersist() {
+    public void thatCreateFolderUsesHttpCreatedOnPersist() {
         Folder folder = new Folder("Test");
         ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -50,16 +59,34 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatCreateSubFolderUsesHttpOkOnPersist() {
+    public void thatCreateSubFolderUsesHttpCreatedOnPersist() {
         Folder folder = new Folder("Test");
         ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Long folderID = response.getBody().getId();
-        Assert.assertNotNull(response.getBody().getId());
+        Long folderId = response.getBody().getId();
+        Assert.assertNotNull(folderId);
 
         Folder subFolder = new Folder("Sub Test");
-        ResponseEntity<FolderDto> response2 = post().resource(RESOURCE_FOLDER + "/" + folderID + "/folders").asUser().body(subFolder).exec(FolderDto.class);
+        ResponseEntity<FolderDto> response2 = post().resource(RESOURCE_FOLDER + "/" + folderId + "/folders").asUser().body(subFolder).exec(FolderDto.class);
         Assert.assertEquals(HttpStatus.CREATED, response2.getStatusCode());
         Assert.assertNotNull(response2.getBody().getId());
     }
+
+    @Test
+    public void thatAddDocumentToFolderUsesHttpOkOnPersist() {
+        Folder folder = new Folder("Test");
+        ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
+        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Long folderId = response.getBody().getId();
+        Assert.assertNotNull(folderId);
+
+        ResponseEntity<Document> responseDocument = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
+        Assert.assertEquals(HttpStatus.CREATED, responseDocument.getStatusCode());
+        Long documentId = responseDocument.getBody().getId();
+        Assert.assertNotNull(documentId);
+
+        ResponseEntity<FolderDto> responseAddDocument = post().resource(RESOURCE_FOLDER + "/" + folderId + "/documents/" + documentId).asUser().exec(FolderDto.class);
+        Assert.assertEquals(HttpStatus.OK, responseAddDocument.getStatusCode());
+    }
+
 }
