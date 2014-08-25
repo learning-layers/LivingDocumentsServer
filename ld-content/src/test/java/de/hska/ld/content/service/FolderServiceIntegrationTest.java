@@ -98,9 +98,10 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         newFolder = folderService.shareFolder(newFolder.getId(), Arrays.asList(adminUser), Access.Permission.WRITE);
 
         // check if the sharing process was successful
-        Folder sharedItemsFolder = folderService.getSharedItemsFolder(adminUser.getId());
-        Assert.assertNotNull(sharedItemsFolder);
-        sharedItemsFolder = folderService.loadSubFolderList(sharedItemsFolder.getId());
+        Folder beforeLoadSubFolderListSharedItemsFolder = folderService.getSharedItemsFolder(adminUser.getId());
+        Assert.assertNotNull(beforeLoadSubFolderListSharedItemsFolder);
+        Folder sharedItemsFolder = folderService.loadSubFolderList(beforeLoadSubFolderListSharedItemsFolder.getId());
+        Assert.assertEquals(sharedItemsFolder, beforeLoadSubFolderListSharedItemsFolder);
         Assert.assertTrue(sharedItemsFolder.getFolderList().contains(newFolder));
         Folder sharedNewFolder = sharedItemsFolder.getFolderList().get(0);
         Assert.assertEquals(newFolder, sharedNewFolder);
