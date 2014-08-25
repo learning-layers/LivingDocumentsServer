@@ -122,7 +122,6 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         return folder;
     }
 
-    @Transactional
     private Folder createSharedItemsFolder(User user) {
         Folder newSharedItemsFolder = new Folder("SharedItems");
         newSharedItemsFolder.setCreator(user);
