@@ -47,7 +47,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
 
         Folder folder = new Folder(folderName);
         if (parent != null) {
-            folder.setParent(parent);
+            folder.getParentFolderList().add(parent);
         }
         folder = save(folder);
         final Folder finalFolder = folder;
@@ -72,7 +72,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
 
     @Override
     @Transactional
-    public Folder shareFolder(Long folderId, UserGroup userGroup, Access.Permission permission) {
+    public Folder shareFolder(Long folderId, UserGroup userGroup, Access.Permission... permission) {
         Folder folder = findById(folderId);
         if (folder == null) {
             throw new NotFoundException("folderId");
@@ -111,12 +111,13 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
 
     @Override
     @Transactional
-    public Folder shareFolder(Long folderId, List<User> userList, Access.Permission permission) {
+    public Folder shareFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
         for (User user : userList) {
             Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
             sharedItemsFolder.getFolderList().add(folder);
-            sharedItemsFolder = super.save(sharedItemsFolder);
+            folder.getParentFolderList().add(sharedItemsFolder);
+            super.save(sharedItemsFolder);
             addAccess(folder.getId(), user, permission);
         }
         return folder;

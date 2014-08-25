@@ -42,8 +42,9 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
 
         Folder subFolder = folderService.createFolder("Subfolder", folder.getId());
         Assert.assertNotNull(subFolder);
-        Assert.assertNotNull(subFolder.getParent());
-        Assert.assertTrue(subFolder.getParent().getId().equals(folder.getId()));
+        Assert.assertNotNull(subFolder.getParentFolderList());
+        Assert.assertTrue(subFolder.getParentFolderList().size() > 0);
+        Assert.assertTrue(subFolder.getParentFolderList().get(0).getId().equals(folder.getId()));
 
         folder = folderService.findById(folder.getId());
 
@@ -76,6 +77,6 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         Folder sharedItemsFolder = folderService.getSharedItemsFolder(adminUser.getId());
         Assert.assertNotNull(sharedItemsFolder);
         sharedItemsFolder = folderService.loadSubFolderList(sharedItemsFolder.getId());
-        Assert.assertEquals(1, sharedItemsFolder.getFolderList().size());
+        Assert.assertTrue(sharedItemsFolder.getFolderList().size() >= 1);
     }
 }

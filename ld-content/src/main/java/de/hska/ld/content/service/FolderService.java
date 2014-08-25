@@ -15,9 +15,9 @@ public interface FolderService extends ContentService<Folder> {
 
     Folder placeDocumentInFolder(Long folderId, Long documentId);
 
-    Folder shareFolder(Long folderId, UserGroup userGroup, Access.Permission permission);
+    Folder shareFolder(Long folderId, UserGroup userGroup, Access.Permission... permission);
 
-    Folder shareFolder(Long folderId, List<User> userList, Access.Permission permission);
+    Folder shareFolder(Long folderId, List<User> userList, Access.Permission... permission);
 
     Folder getSharedItemsFolder(Long userId);
 

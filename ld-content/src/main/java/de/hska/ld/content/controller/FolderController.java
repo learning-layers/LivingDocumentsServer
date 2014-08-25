@@ -57,7 +57,7 @@ public class FolderController {
     public ResponseEntity<Folder> shareFolder(@PathVariable Long folderId,
                                               @RequestParam(value = "users", defaultValue = "") String usersString,
                                               @RequestParam(value = "permissions", defaultValue = "") String permissionString) {
-        List<Access.Permission> permissionList = null;
+        Access.Permission[] permissionArray = null;
         List<User> userList = null;
         try {
             String[] userIdStringArray = usersString.split(";");
@@ -69,21 +69,20 @@ public class FolderController {
             }
 
             String[] permissionStringArray = permissionString.split(";");
-            permissionList = new ArrayList<>();
+            permissionArray = new Access.Permission[permissionStringArray.length];
+            int i = 0;
             for (String permissionStringItem : permissionStringArray) {
-                Access.Permission permission = Access.Permission.valueOf(permissionStringItem);
-                permissionList.add(permission);
+                permissionArray[i] = Access.Permission.valueOf(permissionStringItem);
+                i++;
             }
-            Folder folder = null;
-            for (Access.Permission permission : permissionList) {
-                folder = folderService.shareFolder(folderId, userList, permission);
-            }
-            if (folder != null) {
-                return new ResponseEntity<>(folder, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
+
         } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        Folder folder = folderService.shareFolder(folderId, userList, permissionArray);
+        if (folder != null) {
+            return new ResponseEntity<>(folder, HttpStatus.OK);
+        } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
