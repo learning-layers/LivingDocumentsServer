@@ -47,13 +47,12 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
 
         Folder folder = new Folder(folderName);
         if (parent != null) {
-            folder.setParent(parent);
+            folder.getParentFolderList().add(parent);
         }
-
         folder = save(folder);
-
+        final Folder finalFolder = folder;
         if (parent != null) {
-            parent.getFolderList().removeIf(s -> s.getName().equals(folderName));
+            parent.getFolderList().removeIf(f -> f.getId().equals(finalFolder.getId()));
             parent.getFolderList().add(folder);
             save(parent);
         }

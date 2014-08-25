@@ -109,7 +109,7 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
         //setAuthentication(adminUser);
 
         ResponseEntity<FolderDto> responseAddDocument = post()
-                .resource(RESOURCE_FOLDER + "/" + folderId + "/share" + "?users=" + adminUser.getId() + "&permissions=" + "WRITE") // TODO add "READ" too
+                .resource(RESOURCE_FOLDER + "/" + folderId + "/share" + "?users=" + adminUser.getId() + "&permissions=" + "WRITE;READ") // TODO add "READ" too
                 .asUser().exec(FolderDto.class);
         Assert.assertEquals(HttpStatus.OK, responseAddDocument.getStatusCode());
     }

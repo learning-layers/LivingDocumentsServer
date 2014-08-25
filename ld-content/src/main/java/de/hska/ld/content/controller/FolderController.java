@@ -74,18 +74,17 @@ public class FolderController {
                 Access.Permission permission = Access.Permission.valueOf(permissionStringItem);
                 permissionList.add(permission);
             }
+            Folder folder = null;
+            for (Access.Permission permission : permissionList) {
+                folder = folderService.shareFolder(folderId, userList, permission);
+            }
+            if (folder != null) {
+                return new ResponseEntity<>(folder, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Folder folder = null;
-        for (Access.Permission permission : permissionList) {
-            folder = folderService.shareFolder(folderId, userList, permission);
-        }
-        if (folder != null) {
-            return new ResponseEntity<>(folder, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
     }
 }

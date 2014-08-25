@@ -72,12 +72,12 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
         T t = findById(contentId);
         try {
             access = t.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
-            List<Access.Permission> pl = access.getPermissionList();
+            /*List<Access.Permission> pl = access.getPermissionList();
             for (Access.Permission p : permissions) {
                 if (!pl.contains(p)) {
                     pl.add(p);
                 }
-            }
+            }*/
         } catch (NoSuchElementException e) {
             access = new Access();
             t.getAccessList().add(access);
