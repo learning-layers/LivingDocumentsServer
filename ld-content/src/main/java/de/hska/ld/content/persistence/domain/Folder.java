@@ -1,5 +1,6 @@
 package de.hska.ld.content.persistence.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
@@ -22,6 +23,7 @@ public class Folder extends Content {
     private boolean sharingFolder;
 
     @ManyToOne
+    @JsonIgnore
     private Folder parent;
 
     @OneToMany(cascade = CascadeType.REMOVE)

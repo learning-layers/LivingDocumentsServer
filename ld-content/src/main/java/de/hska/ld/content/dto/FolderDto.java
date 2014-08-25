@@ -23,12 +23,11 @@
 package de.hska.ld.content.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import de.hska.ld.content.persistence.domain.Comment;
+import de.hska.ld.content.persistence.domain.Folder;
 
 import java.lang.reflect.Field;
 
-public class CommentDto extends Comment {
-
+public class FolderDto extends Folder {
     private Long jsonParentId;
 
     @JsonProperty("jsonParentId")
@@ -48,18 +47,19 @@ public class CommentDto extends Comment {
         }
     }
 
-    public CommentDto() {
+    public FolderDto() {
+
     }
 
-    public CommentDto(Comment comment) {
+    public FolderDto(Folder folder) {
         try {
             // extract and set values per reflection
-            for (Field commentfield : comment.getClass().getDeclaredFields()) {
-                commentfield.setAccessible(true);
-                Object obj = commentfield.get(comment);
-                commentfield.set(this, obj);
+            for (Field folderfield : folder.getClass().getDeclaredFields()) {
+                folderfield.setAccessible(true);
+                Object obj = folderfield.get(folder);
+                folderfield.set(this, obj);
             }
-            this.setId(comment.getId());
+            this.setId(folder.getId());
         } catch (IllegalAccessException e) {
             //
         }

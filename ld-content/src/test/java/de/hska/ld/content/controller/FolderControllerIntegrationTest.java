@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.controller;
 
+import de.hska.ld.content.dto.FolderDto;
 import de.hska.ld.content.persistence.domain.Folder;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
@@ -46,5 +47,19 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
         ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
+    }
+
+    @Test
+    public void thatCreateSubFolderUsesHttpOkOnPersist() {
+        Folder folder = new Folder("Test");
+        ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
+        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Long folderID = response.getBody().getId();
+        Assert.assertNotNull(response.getBody().getId());
+
+        Folder subFolder = new Folder("Sub Test");
+        ResponseEntity<FolderDto> response2 = post().resource(RESOURCE_FOLDER + "/" + folderID + "/folders").asUser().body(subFolder).exec(FolderDto.class);
+        Assert.assertEquals(HttpStatus.CREATED, response2.getStatusCode());
+        Assert.assertNotNull(response2.getBody().getId());
     }
 }
