@@ -27,9 +27,12 @@ import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Folder;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -41,6 +44,9 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String DESCRIPTION = "Description";
 
     Document document;
+
+    @Autowired
+    UserService userService;
 
     @Before
     public void setUp() throws Exception {
@@ -99,7 +105,13 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
         Long folderId = response.getBody().getId();
         Assert.assertNotNull(folderId);
 
+        User adminUser = userService.findByUsername("admin");
+        //setAuthentication(adminUser);
 
+        ResponseEntity<FolderDto> responseAddDocument = post()
+                .resource(RESOURCE_FOLDER + "/" + folderId + "/share" + "?users=" + adminUser.getId() + "&permissions=" + "WRITE") // TODO add "READ" too
+                .asUser().exec(FolderDto.class);
+        Assert.assertEquals(HttpStatus.OK, responseAddDocument.getStatusCode());
     }
 
 }

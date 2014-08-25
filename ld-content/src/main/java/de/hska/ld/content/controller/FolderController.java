@@ -57,32 +57,35 @@ public class FolderController {
     public ResponseEntity<Folder> shareFolder(@PathVariable Long folderId,
                                               @RequestParam(value = "users", defaultValue = "") String usersString,
                                               @RequestParam(value = "permissions", defaultValue = "") String permissionString) {
+        List<Access.Permission> permissionList = null;
+        List<User> userList = null;
         try {
             String[] userIdStringArray = usersString.split(";");
             List<String> userIdList = Arrays.asList(userIdStringArray);
-            List<User> userList = new ArrayList<>();
+            userList = new ArrayList<>();
             for (String userId : userIdList) {
                 User user = userService.findById(Long.parseLong(userId));
                 userList.add(user);
             }
 
             String[] permissionStringArray = permissionString.split(";");
-            List<Access.Permission> permissionList = new ArrayList<>();
-            for (String permisionStringItem : permissionStringArray) {
-                Access.Permission permission = Access.Permission.valueOf(permisionStringItem);
+            permissionList = new ArrayList<>();
+            for (String permissionStringItem : permissionStringArray) {
+                Access.Permission permission = Access.Permission.valueOf(permissionStringItem);
                 permissionList.add(permission);
-            }
-            Folder folder = null;
-            for (Access.Permission permission : permissionList) {
-                folder = folderService.shareFolder(folderId, userList, permission);
-            }
-            if (folder != null) {
-                return new ResponseEntity<>(folder, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        Folder folder = null;
+        for (Access.Permission permission : permissionList) {
+            folder = folderService.shareFolder(folderId, userList, permission);
+        }
+        if (folder != null) {
+            return new ResponseEntity<>(folder, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
     }
 }
