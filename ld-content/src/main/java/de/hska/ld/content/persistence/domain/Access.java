@@ -77,4 +77,21 @@ public class Access {
     public enum Permission {
         READ, WRITE
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Access access = (Access) o;
+
+        if (user != null ? !user.equals(access.user) : access.user != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return user != null ? user.hashCode() : 0;
+    }
 }

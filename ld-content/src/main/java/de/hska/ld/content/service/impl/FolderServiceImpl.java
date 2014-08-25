@@ -121,9 +121,17 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
             addAccess(folder.getId(), user, permission);
         }
         for (Folder subfolder : folder.getFolderList()) {
-            shareFolder(subfolder.getId(), userList, permission);
+            shareSubFolder(subfolder.getId(), userList, permission);
         }
         // TODO add document access
+        return folder;
+    }
+
+    public Folder shareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {
+        Folder folder = findById(folderId);
+        for (User user : userList) {
+            addAccess(folder.getId(), user, permission);
+        }
         return folder;
     }
 

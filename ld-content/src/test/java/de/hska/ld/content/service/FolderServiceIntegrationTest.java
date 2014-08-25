@@ -83,18 +83,33 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testFolderAndSubFolderSharing() {
+        // create folder
         Folder newFolder = folderService.createFolder("New Folder");
         User adminUser = userService.findByUsername("admin");
 
-        folderService.shareFolder(newFolder.getId(), Arrays.asList(adminUser), Access.Permission.WRITE);
+        // create sub folder
+        folderService.createFolder("New Subfolder", newFolder.getId());
 
-        // TODO create sub folder
+        // share the parent folder
+        newFolder = folderService.shareFolder(newFolder.getId(), Arrays.asList(adminUser), Access.Permission.WRITE);
 
+        // check if the sharing process was successful
         setAuthentication(adminUser);
-
         Folder sharedItemsFolder = folderService.getSharedItemsFolder(adminUser.getId());
         Assert.assertNotNull(sharedItemsFolder);
         sharedItemsFolder = folderService.loadSubFolderList(sharedItemsFolder.getId());
         Assert.assertTrue(sharedItemsFolder.getFolderList().size() >= 1);
+        Folder sharedFolder = sharedItemsFolder.getFolderList().get(0);
+        Access access = new Access();
+        access.setUser(adminUser);
+        sharedFolder = folderService.loadContentCollection(sharedFolder, Access.class);
+        Assert.assertTrue(sharedFolder.getAccessList().contains(access));
+
+        // check if subfolder has also the sharing access right
+        sharedFolder = folderService.loadSubFolderList(sharedFolder.getId());
+        Assert.assertTrue(sharedFolder.getFolderList().size() > 0);
+        Folder sharedSubFolder = sharedFolder.getFolderList().get(0);
+        sharedSubFolder = folderService.loadContentCollection(sharedSubFolder, Access.class);
+        Assert.assertTrue(sharedSubFolder.getAccessList().contains(access));
     }
 }

@@ -28,9 +28,12 @@ import de.hska.ld.content.persistence.domain.Content;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.ContentService;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
+import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.impl.AbstractService;
 import de.hska.ld.core.util.Core;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +43,9 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 public abstract class AbstractContentService<T extends Content> extends AbstractService<T> implements ContentService<T> {
+
+    @Autowired
+    private RoleService roleService;
 
     @Override
     @Transactional
@@ -60,6 +66,11 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
             } else if (Comment.class.equals(clazz)) {
                 t.getCommentList().size();
                 t.setCommentList((List<Comment>) filterDeletedListItems(t.getTagList(), clazz));
+            } else if (Access.class.equals(clazz)) {
+                Role adminRole = roleService.findByName(Core.ROLE_ADMIN);
+                if (Core.currentUser().getRoleList().contains(adminRole)) {
+                    t.getAccessList().size();
+                }
             }
         }
         return t;

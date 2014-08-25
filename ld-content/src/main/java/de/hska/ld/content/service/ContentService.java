@@ -32,7 +32,6 @@ public interface ContentService<T> extends Service<T> {
 
     T loadContentCollection(T t, Class... clazz);
 
-
     T addAccess(Long id, User user, Access.Permission... permission);
 
     T removeAccess(Long id, User user, Access.Permission... permissions);
