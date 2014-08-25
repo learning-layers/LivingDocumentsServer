@@ -120,6 +120,10 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
             super.save(sharedItemsFolder);
             addAccess(folder.getId(), user, permission);
         }
+        for (Folder subfolder : folder.getFolderList()) {
+            shareFolder(subfolder.getId(), userList, permission);
+        }
+        // TODO add document access
         return folder;
     }
 

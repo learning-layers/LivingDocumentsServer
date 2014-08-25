@@ -65,11 +65,30 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testFolderSharingFunctionality() {
+    public void testFolderSharing() {
         Folder newFolder = folderService.createFolder("New Folder");
         User adminUser = userService.findByUsername("admin");
 
         folderService.shareFolder(newFolder.getId(), Arrays.asList(adminUser), Access.Permission.WRITE);
+
+        setAuthentication(adminUser);
+
+        Folder sharedItemsFolder = folderService.getSharedItemsFolder(adminUser.getId());
+        Assert.assertNotNull(sharedItemsFolder);
+        sharedItemsFolder = folderService.loadSubFolderList(sharedItemsFolder.getId());
+        Assert.assertTrue(sharedItemsFolder.getFolderList().size() >= 1);
+
+        // TODO check access rights
+    }
+
+    @Test
+    public void testFolderAndSubFolderSharing() {
+        Folder newFolder = folderService.createFolder("New Folder");
+        User adminUser = userService.findByUsername("admin");
+
+        folderService.shareFolder(newFolder.getId(), Arrays.asList(adminUser), Access.Permission.WRITE);
+
+        // TODO create sub folder
 
         setAuthentication(adminUser);
 
