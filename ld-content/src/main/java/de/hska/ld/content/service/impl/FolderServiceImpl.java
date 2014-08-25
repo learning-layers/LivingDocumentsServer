@@ -50,9 +50,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
             folder.setParent(parent);
             parent.getFolderList().add(folder);
             save(parent);
+            return parent.getFolderList().get(parent.getFolderList().size() - 1);
         }
-
-        return save(folder);
+        return null;
     }
 
     @Override

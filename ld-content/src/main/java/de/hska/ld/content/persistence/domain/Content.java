@@ -179,11 +179,10 @@ public abstract class Content {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Content)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
 
         Content content = (Content) o;
 
-        if (version != content.version) return false;
         if (id != null ? !id.equals(content.id) : content.id != null) return false;
 
         return true;
@@ -191,8 +190,6 @@ public abstract class Content {
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + version;
-        return result;
+        return id != null ? id.hashCode() : 0;
     }
 }

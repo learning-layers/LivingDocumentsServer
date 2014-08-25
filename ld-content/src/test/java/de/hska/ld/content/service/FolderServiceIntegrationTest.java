@@ -35,7 +35,6 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Transactional
     public void testCreateSimpleFolderStructure() {
         Folder folder = folderService.createFolder("Folder");
         Assert.assertNotNull(folder);
@@ -46,6 +45,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(subFolder.getParent().getId());
 
         folder = folderService.findById(folder.getId());
+        folder = folderService.loadSubFolderList(folder.getId());
 
         Assert.assertNotNull(folder.getFolderList());
         Assert.assertTrue(folder.getFolderList().size() == 1);
@@ -84,12 +84,13 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testFolderAndSubFolderSharing() {
         // create folder
-        Folder newFolder = folderService.createFolder("New Folder");
+        Folder beforeLoadSubFolderListNewFolder = folderService.createFolder("New Folder");
 
 
         // create sub folder
-        Folder newSubFolder = folderService.createFolder("New Subfolder", newFolder.getId());
-        newFolder = folderService.loadSubFolderList(newFolder.getId());
+        Folder newSubFolder = folderService.createFolder("New Subfolder", beforeLoadSubFolderListNewFolder.getId());
+        Folder newFolder = folderService.loadSubFolderList(beforeLoadSubFolderListNewFolder.getId());
+        Assert.assertEquals(beforeLoadSubFolderListNewFolder, newFolder);
         Assert.assertTrue(newFolder.getFolderList().contains(newSubFolder));
 
         // share the parent folder
@@ -97,7 +98,6 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         newFolder = folderService.shareFolder(newFolder.getId(), Arrays.asList(adminUser), Access.Permission.WRITE);
 
         // check if the sharing process was successful
-        setAuthentication(adminUser);
         Folder sharedItemsFolder = folderService.getSharedItemsFolder(adminUser.getId());
         Assert.assertNotNull(sharedItemsFolder);
         sharedItemsFolder = folderService.loadSubFolderList(sharedItemsFolder.getId());
