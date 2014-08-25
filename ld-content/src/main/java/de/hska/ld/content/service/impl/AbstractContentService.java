@@ -27,8 +27,10 @@ import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Content;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.ContentService;
+import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.impl.AbstractService;
+import de.hska.ld.core.util.Core;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,6 +107,21 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
             // do nothing
         }
         return super.save(t);
+    }
+
+    public void checkPermission(T t, Access.Permission permission) {
+        User user = Core.currentUser();
+        if (!t.isPublic() && !t.getCreator().equals(user)) {
+            try {
+                Access access = t.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
+                Access.Permission result = access.getPermissionList().stream().filter(p -> p.equals(permission)).findFirst().get();
+                if (result == null) {
+                    throw new UserNotAuthorizedException();
+                }
+            } catch (NoSuchElementException e) {
+                throw new UserNotAuthorizedException();
+            }
+        }
     }
 
     public <I> List<? extends Content> filterDeletedListItems(List tList, Class<I> clazz) {

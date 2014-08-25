@@ -1,12 +1,18 @@
 package de.hska.ld.content.service;
 
+import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Folder;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
 
 import static de.hska.ld.content.ContentFixture.newDocument;
 
@@ -17,6 +23,16 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private UserService userService;
+
+    @Override
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        setAuthentication(testUser);
+    }
 
     @Test
     @Transactional
@@ -46,5 +62,20 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(folder);
         Assert.assertTrue(folder.getDocumentList().size() == 1);
         Assert.assertTrue(folder.getDocumentList().get(0).getId().equals(document.getId()));
+    }
+
+    @Test
+    public void testFolderSharingFunctionality() {
+        Folder newFolder = folderService.createFolder("New Folder");
+        User adminUser = userService.findByUsername("admin");
+
+        folderService.shareFolder(newFolder.getId(), Arrays.asList(adminUser), Access.Permission.WRITE);
+
+        setAuthentication(adminUser);
+
+        Folder sharedItemsFolder = folderService.getSharedItemsFolder(adminUser.getId());
+        Assert.assertNotNull(sharedItemsFolder);
+        sharedItemsFolder = folderService.loadSubFolderList(sharedItemsFolder.getId());
+        Assert.assertEquals(1, sharedItemsFolder.getFolderList().size());
     }
 }

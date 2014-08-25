@@ -440,21 +440,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return attachment.getId();
     }
 
-    private void checkPermission(Document document, Access.Permission permission) {
-        User user = Core.currentUser();
-        if (!document.isPublic() && !document.getCreator().equals(user)) {
-            try {
-                Access access = document.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
-                Access.Permission result = access.getPermissionList().stream().filter(p -> p.equals(permission)).findFirst().get();
-                if (result == null) {
-                    throw new UserNotAuthorizedException();
-                }
-            } catch (NoSuchElementException e) {
-                throw new UserNotAuthorizedException();
-            }
-        }
-    }
-
     private void createNotifications(Document document, Subscription.Type type) {
         User editor = Core.currentUser();
         Long documentId = document.getId();

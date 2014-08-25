@@ -41,9 +41,6 @@ public class Document extends Content {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "is_public")
-    private boolean isPublic;
-
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ld_document_attachment",
             joinColumns = {@JoinColumn(name = "document_id")},
@@ -146,11 +143,4 @@ public class Document extends Content {
         this.parent = parent;
     }
 
-    public boolean isPublic() {
-        return isPublic;
-    }
-
-    public void setPublic(boolean isPublic) {
-        this.isPublic = isPublic;
-    }
 }

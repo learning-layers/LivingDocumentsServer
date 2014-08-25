@@ -56,6 +56,9 @@ public abstract class Content {
     @JoinColumn(name = "creator_id")
     private User creator;
 
+    @Column(name = "is_public")
+    private boolean isPublic;
+
     @Column(name = "deleted", nullable = false)
     private boolean deleted;
 
@@ -149,6 +152,15 @@ public abstract class Content {
 
     public void setCommentList(List<Comment> commentList) {
         this.commentList = commentList;
+    }
+
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 
     @PrePersist
