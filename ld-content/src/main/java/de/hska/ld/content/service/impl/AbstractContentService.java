@@ -129,6 +129,15 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
         }
     }
 
+    public boolean checkPermissionResult(T t, Access.Permission permission) {
+        try {
+            checkPermission(t, permission);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
     public <I> List<? extends Content> filterDeletedListItems(List tList, Class<I> clazz) {
         if (Content.class.isAssignableFrom(clazz)) {
             if (tList.size() > 0) {

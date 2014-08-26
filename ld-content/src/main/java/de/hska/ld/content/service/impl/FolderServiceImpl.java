@@ -163,23 +163,33 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     @Transactional
     public Folder shareFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
-        for (User user : userList) {
-            Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
-            sharedItemsFolder.getFolderList().add(folder);
-            super.save(sharedItemsFolder);
-            addAccess(folder.getId(), user, permission);
+        if (checkPermissionResult(folder, Access.Permission.WRITE)) {
+            for (User user : userList) {
+                Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
+                sharedItemsFolder.getFolderList().add(folder);
+                // automatically does folder.getParentFolderList().add(sharedItemsFolder);
+                super.save(sharedItemsFolder);
+                addAccess(folder.getId(), user, permission);
+                for (Document document : folder.getDocumentList()) {
+                    documentService.addAccess(document.getId(), user, permission);
+                }
+            }
+            for (Folder subFolder : folder.getFolderList()) {
+                shareSubFolder(subFolder.getId(), userList, permission);
+            }
         }
-        for (Folder subFolder : folder.getFolderList()) {
-            shareSubFolder(subFolder.getId(), userList, permission);
-        }
-        // TODO add document access
         return folder;
     }
 
     public Folder shareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
-        for (User user : userList) {
-            addAccess(folder.getId(), user, permission);
+        if (checkPermissionResult(folder, Access.Permission.WRITE)) {
+            for (User user : userList) {
+                addAccess(folder.getId(), user, permission);
+                for (Document document : folder.getDocumentList()) {
+                    documentService.addAccess(document.getId(), user, permission);
+                }
+            }
         }
         return folder;
     }
