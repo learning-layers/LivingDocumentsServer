@@ -47,7 +47,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
 
         Folder folder = new Folder(folderName);
         if (parent != null) {
-            folder.setParent(parent);
+            folder.getParentFolderList().add(parent);
             parent.getFolderList().add(folder);
             save(parent);
             return parent.getFolderList().get(parent.getFolderList().size() - 1);
@@ -75,6 +75,50 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         shareFolder(folderId, userGroup.getUserList(), permission);
         for (UserGroup subUserGroup : userGroup.getUserGroupList()) {
             shareFolder(folderId, subUserGroup, permission);
+        }
+        return folder;
+    }
+
+    @Override
+    public Folder revokeShareFolder(Long folderId, UserGroup userGroup, Access.Permission... permission) {
+        Folder folder = findById(folderId);
+        if (folder == null) {
+            throw new NotFoundException("folderId");
+        }
+        revokeShareFolder(folderId, userGroup.getUserList(), permission);
+        for (UserGroup subUserGroup : userGroup.getUserGroupList()) {
+            shareFolder(folderId, subUserGroup, permission);
+        }
+        return folder;
+    }
+
+    @Override
+    public Folder revokeShareFolder(Long folderId, List<User> userList, Access.Permission... permission) {
+        Folder folder = findById(folderId);
+        for (User user : userList) {
+            Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
+            sharedItemsFolder.getFolderList().remove(folder);
+            List<Folder> parentFolderList = folder.getParentFolderList();
+            if (parentFolderList != null && parentFolderList.size() > 0) {
+                parentFolderList.stream().forEach(pf -> {
+                    pf.getFolderList().remove(folder);
+                    folder.getParentFolderList().remove(pf);
+                    super.save(pf);
+                });
+            }
+            removeAccess(folder.getId(), user, permission);
+            super.save(folder);
+        }
+        for (Folder subFolder : folder.getFolderList()) {
+            revokeShareSubFolder(subFolder.getId(), userList, permission);
+        }
+        return folder;
+    }
+
+    private Folder revokeShareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {
+        Folder folder = findById(folderId);
+        for (User user : userList) {
+            removeAccess(folder.getId(), user, permission);
         }
         return folder;
     }
@@ -110,7 +154,6 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         for (User user : userList) {
             Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
             sharedItemsFolder.getFolderList().add(folder);
-            folder.setParent(sharedItemsFolder);
             super.save(sharedItemsFolder);
             addAccess(folder.getId(), user, permission);
         }

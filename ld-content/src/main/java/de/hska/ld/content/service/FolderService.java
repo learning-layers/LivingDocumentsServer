@@ -17,9 +17,14 @@ public interface FolderService extends ContentService<Folder> {
 
     Folder shareFolder(Long folderId, UserGroup userGroup, Access.Permission... permission);
 
+    Folder revokeShareFolder(Long folderId, UserGroup userGroup, Access.Permission... permission);
+
     Folder shareFolder(Long folderId, List<User> userList, Access.Permission... permission);
+
+    Folder revokeShareFolder(Long folderId, List<User> userList, Access.Permission... permission);
 
     Folder getSharedItemsFolder(Long userId);
 
     Folder loadSubFolderList(Long folderId);
+
 }

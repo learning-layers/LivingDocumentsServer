@@ -22,15 +22,14 @@ public class Folder extends Content {
 
     private boolean sharingFolder;
 
-    @ManyToOne
-    @JoinColumn(name = "parent_id")
+    @ManyToMany(mappedBy = "folderList")
     @JsonIgnore
-    private Folder parent;
+    private List<Folder> parentFolderList;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ld_folder_folder",
             joinColumns = {@JoinColumn(name = "folder_id")},
-            inverseJoinColumns = {@JoinColumn(name = "folder_id_inverse")})
+            inverseJoinColumns = {@JoinColumn(name = "parent_folder_id")})
     private List<Folder> folderList;
 
     @OneToMany
@@ -47,13 +46,17 @@ public class Folder extends Content {
         this.name = name;
     }
 
-    public Folder getParent() {
-        return parent;
+    public List<Folder> getParentFolderList() {
+        if (parentFolderList == null) {
+            parentFolderList = new ArrayList<>();
+        }
+        return parentFolderList;
     }
 
-    public void setParent(Folder parent) {
-        this.parent = parent;
+    public void setParentFolderList(List<Folder> parentFolderList) {
+        this.parentFolderList = parentFolderList;
     }
+
 
     @JsonProperty("folders")
     public List<Folder> getFolderList() {

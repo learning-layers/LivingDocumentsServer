@@ -43,8 +43,9 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         // create a subfolder of the folder previously created
         Folder subFolder = folderService.createFolder("Subfolder", folder.getId());
         Assert.assertNotNull(subFolder);
-        Assert.assertNotNull(subFolder.getParent());
-        Assert.assertNotNull(subFolder.getParent().getId());
+        Assert.assertNotNull(subFolder.getParentFolderList());
+        Assert.assertTrue(subFolder.getParentFolderList().size() > 0);
+        Assert.assertNotNull(subFolder.getParentFolderList().get(0).getId());
 
         // load the folder
         folder = folderService.findById(folder.getId());
@@ -90,7 +91,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testFolderAndSubFolderSharing() {
+    public void testFolderAndSubFolderSharingAdd() {
         // create folder
         Folder beforeLoadSubFolderListNewFolder = folderService.createFolder("New Folder");
 
@@ -114,5 +115,36 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(sharedItemsFolder, beforeLoadSubFolderListSharedItemsFolder);
         // 3. Assert that the newFolder is in the shared items folder (so it is shared)
         Assert.assertTrue(sharedItemsFolder.getFolderList().contains(newFolder));
+    }
+
+    @Test
+    public void testFolderAndSubFolderSharingRemove() {
+        // == testFolderAndSubFolderSharingAdd ==
+        // create folder
+        Folder beforeLoadSubFolderListNewFolder = folderService.createFolder("New Folder");
+
+        // create sub folder
+        Folder newSubFolder = folderService.createFolder("New Subfolder", beforeLoadSubFolderListNewFolder.getId());
+        Folder newFolder = folderService.loadSubFolderList(beforeLoadSubFolderListNewFolder.getId());
+        Assert.assertEquals(beforeLoadSubFolderListNewFolder, newFolder);
+        Assert.assertTrue(newFolder.getFolderList().contains(newSubFolder));
+
+        // share the parent folder
+        User adminUser = userService.findByUsername("admin");
+        Folder newFolderAfterSharing = folderService.shareFolder(newFolder.getId(), Arrays.asList(adminUser), Access.Permission.WRITE);
+        Assert.assertEquals(newFolderAfterSharing, newFolder);
+
+        // check if the sharing process was successful
+        // 1. get the shared items folder of the adminUser
+        Folder beforeLoadSubFolderListSharedItemsFolder = folderService.getSharedItemsFolder(adminUser.getId());
+        Assert.assertNotNull(beforeLoadSubFolderListSharedItemsFolder);
+        // 2. load the sub folders list of the shared items folder
+        Folder sharedItemsFolder = folderService.loadSubFolderList(beforeLoadSubFolderListSharedItemsFolder.getId());
+        Assert.assertEquals(sharedItemsFolder, beforeLoadSubFolderListSharedItemsFolder);
+        // 3. Assert that the newFolder is in the shared items folder (so it is shared)
+        Assert.assertTrue(sharedItemsFolder.getFolderList().contains(newFolder));
+
+        // == testFolderAndSubFolderSharingRemove ==
+        //folderService.revokeShareFolder(newFolder.getId(), Arrays.asList(adminUser), Access.Permission.WRITE);
     }
 }
