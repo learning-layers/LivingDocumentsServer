@@ -116,7 +116,7 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
 
     public void checkPermission(T t, Access.Permission permission) {
         User user = Core.currentUser();
-        if (!t.isPublic() && !t.getCreator().equals(user)) {
+        if (!t.isAccessAll() && !t.getCreator().equals(user)) {
             try {
                 Access access = t.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
                 Access.Permission result = access.getPermissionList().stream().filter(p -> p.equals(permission)).findFirst().get();

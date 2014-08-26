@@ -120,8 +120,8 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             dbDocument.setModifiedAt(new Date());
             dbDocument.setTitle(document.getTitle());
             dbDocument.setDescription(document.getDescription());
-            if (document.isPublic()) {
-                dbDocument.setPublic(true);
+            if (document.isAccessAll()) {
+                dbDocument.setAccessAll(true);
             }
             document = dbDocument;
             createNotifications(document, Subscription.Type.MAIN_CONTENT);
@@ -179,9 +179,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
         document.getDiscussionList().add(discussion);
         discussion.setParent(document);
-        if (discussion.isPublic()) {
-            discussion.setPublic(true);
-        }
         this.save(discussion);
         document = super.save(document);
         createNotifications(document, Subscription.Type.DISCUSSION);

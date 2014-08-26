@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 
 import static de.hska.ld.content.ContentFixture.newDocument;
+import static de.hska.ld.core.fixture.CoreFixture.newUser;
 
 public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
 
@@ -156,5 +157,31 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(!sharedItemsFolderAfterRevoke.getFolderList().contains(newFolder));
         newFolder = folderService.loadParentFolderList(newFolder.getId());
         Assert.assertTrue(!newFolder.getParentFolderList().contains(sharedItemsFolderAfterRevoke));
+    }
+
+    @Test
+    @Transactional
+    public void testThatDocumentSharedWhenTheirFolderHasBeenShared() {
+        Folder folder = folderService.createFolder("SharedFolder");
+        Folder subFolder = folderService.createFolder("SharedFolder SubFolder", folder.getId());
+        Document document = documentService.save(newDocument());
+        Document documentInSubFolder = documentService.save(newDocument());
+
+        // create a test folder structure
+        folderService.placeDocumentInFolder(folder.getId(), document.getId());
+        folderService.placeDocumentInFolder(subFolder.getId(), documentInSubFolder.getId());
+
+        // The folder structure will be shared with this user
+        User testUser2 = userService.save(newUser());
+        folder = folderService.shareFolder(folder.getId(), Arrays.asList(testUser2), Access.Permission.READ);
+
+        // assert that the document within the folder is shared
+        Assert.assertTrue(folder.getDocumentList().size() == 1);
+        Assert.assertEquals(testUser2, folder.getDocumentList().get(0).getAccessList().get(0).getUser());
+
+        // assert that the document within the sub folder is shared
+        folder = folderService.loadSubFolderList(folder.getId());
+        Assert.assertTrue(folder.getFolderList().size() == 1);
+        Assert.assertEquals(testUser2, folder.getFolderList().get(0).getDocumentList().get(0).getAccessList().get(0).getUser());
     }
 }
