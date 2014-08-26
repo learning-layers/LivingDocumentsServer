@@ -145,6 +145,16 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(sharedItemsFolder.getFolderList().contains(newFolder));
 
         // == testFolderAndSubFolderSharingRemove ==
-        //folderService.revokeShareFolder(newFolder.getId(), Arrays.asList(adminUser), Access.Permission.WRITE);
+        Folder revokedNewFolder = folderService.revokeShareFolder(newFolder.getId(), Arrays.asList(adminUser), Access.Permission.WRITE);
+
+        // check if the revoke sharing process was successful
+        // 1. get the shared items folder of the adminUser
+        Folder sharedItemsFolderAfterRevoke = folderService.getSharedItemsFolder(adminUser.getId());
+        // 2. load the sub folders list of the shared items folder
+        sharedItemsFolderAfterRevoke = folderService.loadSubFolderList(beforeLoadSubFolderListSharedItemsFolder.getId());
+        // 3. Assert that the newFolder is in the shared items folder (so it is shared)
+        Assert.assertTrue(!sharedItemsFolderAfterRevoke.getFolderList().contains(newFolder));
+        newFolder = folderService.loadParentFolderList(newFolder.getId());
+        Assert.assertTrue(!newFolder.getParentFolderList().contains(sharedItemsFolderAfterRevoke));
     }
 }
