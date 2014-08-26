@@ -95,12 +95,12 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     @Override
     public Folder revokeShareFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
+        List<Folder> parentFolderList = folder.getParentFolderList();
         for (User user : userList) {
             Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
             sharedItemsFolder.getFolderList().remove(folder);
-            List<Folder> parentFolderList = folder.getParentFolderList();
             if (parentFolderList != null && parentFolderList.size() > 0) {
-                parentFolderList.stream().forEach(pf -> {
+                parentFolderList.stream().filter(pf -> user.getId().equals(pf.getCreator().getId())).forEach(pf -> {
                     pf.getFolderList().remove(folder);
                     folder.getParentFolderList().remove(pf);
                     super.save(pf);
