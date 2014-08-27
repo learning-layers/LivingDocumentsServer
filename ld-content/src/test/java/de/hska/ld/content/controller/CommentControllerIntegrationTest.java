@@ -66,20 +66,18 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testAddCommentToCommentHttpOk() {
-        User user = userService.findByUsername("user");
-
         // Add document
         ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
 
         // Add comment to the document
-        String URIAddCommentToDocument = RESOURCE_DOCUMENT + "/" + response.getBody().getId() + "/comment";
+        String URI = RESOURCE_DOCUMENT + "/" + response.getBody().getId() + "/comment";
         Comment comment = new Comment();
         comment.setText("Text");
-        HttpRequestWrapper request = post().resource(URIAddCommentToDocument).asUser().body(comment);
-        ResponseEntity<Comment> responseAddCommentToDocument = request.exec(Comment.class);
-        Assert.assertEquals(HttpStatus.CREATED, responseAddCommentToDocument.getStatusCode());
+        HttpRequestWrapper request = post().resource(URI).asUser().body(comment);
+        ResponseEntity<Comment> response2 = request.exec(Comment.class);
+        Assert.assertEquals(HttpStatus.CREATED, response2.getStatusCode());
 
         // read document comments
         Map varMap = new HashMap<>();
@@ -87,14 +85,15 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
         varMap.put("page-size", 10);
         varMap.put("sort-direction", "DESC");
         varMap.put("sort-property", "createdAt");
-        Map page = getPage(URIAddCommentToDocument, user, varMap);
+        User user = userService.findByUsername("user");
+        Map page = getPage(URI, user, varMap);
         Assert.assertNotNull(page);
         Assert.assertNotNull(page.containsKey("content"));
         Assert.assertTrue(((List) page.get("content")).size() > 0);
 
         // create sub comment
         // Add comment to the existing comment
-        String URIAddCommentToComment = RESOURCE_COMMENT + "/" + responseAddCommentToDocument.getBody().getId() + "/comment";
+        String URIAddCommentToComment = RESOURCE_COMMENT + "/" + response2.getBody().getId() + "/comment";
         Comment subComment = new Comment();
         subComment.setText("Text");
         HttpRequestWrapper requestAddCommentToComment = post().resource(URIAddCommentToComment).asUser().body(subComment);

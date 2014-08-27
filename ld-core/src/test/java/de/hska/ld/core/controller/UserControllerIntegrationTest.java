@@ -47,7 +47,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void thatSaveUserUsesHttpCreatedOnPersist() {
-        ResponseEntity<User> response = post().resource(RESOURCE_USER).body(newUser()).exec(User.class);
+        ResponseEntity<User> response = post().resource(RESOURCE_USER).body(newUser()).asAdmin().exec(User.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
@@ -56,7 +56,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         User user = userService.save(newUser());
         user.setFullName(user.getFullName() + " (updated)");
 
-        ResponseEntity<User> response = post().resource(RESOURCE_USER).as(user).body(user).exec(User.class);
+        ResponseEntity<User> response = post().resource(RESOURCE_USER).asAdmin().body(user).exec(User.class);
         Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
