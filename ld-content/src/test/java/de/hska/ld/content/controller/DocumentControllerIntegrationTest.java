@@ -125,19 +125,17 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testAddCommentHttpOk() {
         // Add document
-        ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Assert.assertNotNull(response.getBody().getId());
+        ResponseEntity<Document> responseCreateDocument = post().resource(RESOURCE_DOCUMENT).as(testUser).body(document).exec(Document.class);
+        Assert.assertEquals(HttpStatus.CREATED, responseCreateDocument.getStatusCode());
+        Assert.assertNotNull(responseCreateDocument.getBody().getId());
 
         // Add comment to the document
-        String URI = RESOURCE_DOCUMENT + "/" + response.getBody().getId() + RESOURCE_COMMENT;
+        String URI = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getBody().getId() + "/comment";
         Comment comment = new Comment();
         comment.setText("Text");
-        HttpRequestWrapper request = post().resource(URI).asUser().body(comment);
-        ResponseEntity<Comment> response2 = request.exec(Comment.class);
-        Assert.assertEquals(HttpStatus.CREATED, response2.getStatusCode());
-
-        User user = userService.findByUsername("user");
+        HttpRequestWrapper requestAddComment = post().resource(URI).as(testUser).body(comment);
+        ResponseEntity<Comment> responseAddComment = requestAddComment.exec(Comment.class);
+        Assert.assertEquals(HttpStatus.CREATED, responseAddComment.getStatusCode());
 
         // read document comments
         Map varMap = new HashMap<>();
@@ -145,7 +143,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         varMap.put("page-size", 10);
         varMap.put("sort-direction", "DESC");
         varMap.put("sort-property", "createdAt");
-        Map page = getPage(URI, user, varMap);
+        Map page = getPage(URI, testUser, varMap);
         Assert.assertNotNull(page);
         Assert.assertNotNull(page.containsKey("content"));
         Assert.assertTrue(((List) page.get("content")).size() > 0);

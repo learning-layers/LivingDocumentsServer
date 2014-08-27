@@ -37,7 +37,6 @@ public class Comment extends Content {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
-    @JsonIgnore
     private Content parent;
 
     @NotBlank
@@ -58,10 +57,12 @@ public class Comment extends Content {
         this.text = text;
     }
 
+    @JsonIgnore
     public Content getParent() {
         return parent;
     }
 
+    @JsonIgnore
     public void setParent(Content parent) {
         this.parent = parent;
     }
@@ -85,5 +86,13 @@ public class Comment extends Content {
     @JsonProperty("likeslength")
     public int getLikeslength() {
         return this.getLikeList().size();
+    }
+
+    public void setSubcommentlength(int size) {
+        return;
+    }
+
+    public void setLikeslength(int size) {
+        return;
     }
 }
