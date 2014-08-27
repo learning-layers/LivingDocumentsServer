@@ -46,13 +46,13 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     private UserService userService;
 
     @Test
-    public void thatSaveUserUsesHttpCreatedOnPersist() {
+    public void testSaveUserUsesHttpCreatedOnPersist() {
         ResponseEntity<User> response = post().resource(RESOURCE_USER).body(newUser()).asAdmin().exec(User.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
-    public void thatSaveUserUsesHttpOkOnUpdate() {
+    public void testSaveUserUsesHttpOkOnUpdate() {
         User user = userService.save(newUser());
         user.setFullName(user.getFullName() + " (updated)");
 
@@ -61,7 +61,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatSaveUserAsAdminUsesHttpOkOnUpdate() {
+    public void testSaveUserAsAdminUsesHttpOkOnUpdate() {
         User user = userService.save(newUser());
         user.setFullName(user.getFullName() + " (updated)");
 
@@ -70,13 +70,13 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatDeleteUserUsesHttpOkOnSuccess() {
+    public void testDeleteUserUsesHttpOkOnSuccess() {
         User user = userService.save(newUser());
         delete().resource(RESOURCE_USER + "/" + user.getId()).asAdmin().exec(IdDto.class);
     }
 
     @Test
-    public void thatDeleteUserUsesHttpForbiddenOnAuthorizationFailure() {
+    public void testDeleteUserUsesHttpForbiddenOnAuthorizationFailure() {
         User user = userService.save(newUser());
         try {
             delete().resource(RESOURCE_USER + "/" + user.getId()).asUser().exec(IdDto.class);
@@ -88,14 +88,14 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatUpdateUsernameUsesHttpConflictIfAlreadyExists() {
+    public void testUpdateUsernameUsesHttpConflictIfAlreadyExists() {
         User user1 = userService.save(newUser());
         User user2 = userService.save(newUser());
 
         byte[] authUser2 = (user2.getUsername() + ":" + PASSWORD).getBytes();
         user2.setUsername(user1.getUsername());
         try {
-            post().resource(RESOURCE_USER).as(authUser2).body(user2).exec(ApplicationError.class);
+            post().resource(RESOURCE_USER).as(authUser2).body(user2).asAdmin().exec(ApplicationError.class);
         } catch (HttpStatusCodeException e) {
             parseApplicationError(e.getResponseBodyAsString());
             expectedClientException = e;
@@ -109,7 +109,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatDeleteUserUsesHttpNotFoundOnEntityLookupFailure() {
+    public void testDeleteUserUsesHttpNotFoundOnEntityLookupFailure() {
         try {
             delete().resource(RESOURCE_USER + "/" + -1).asAdmin().exec(IdDto.class);
         } catch (HttpStatusCodeException e) {
@@ -120,7 +120,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatAuthenticateDoesNotContainPasswordHashInResponseBody() {
+    public void testAuthenticateDoesNotContainPasswordHashInResponseBody() {
         ResponseEntity<User> response = get().asUser().resource(RESOURCE_USER + "/authenticate").exec(User.class);
         User user = response.getBody();
         Assert.assertNull(user.getPassword());

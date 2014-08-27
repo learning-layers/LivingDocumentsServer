@@ -46,13 +46,13 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     RoleService roleService;
 
     @Test
-    public void thatSaveRoleUsesHttpCreatedOnPersist() {
+    public void testSaveRoleUsesHttpCreatedOnPersist() {
         ResponseEntity<IdDto> response = post().asAdmin().resource(RESOURCE_ROLE).body(newRole()).exec(IdDto.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
-    public void thatSaveRoleUsesHttpOkOnUpdate() {
+    public void testSaveRoleUsesHttpOkOnUpdate() {
         Role role = roleService.save(newRole());
         role.setName(UUID.randomUUID().toString());
 
@@ -61,7 +61,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatSaveRoleUsesHttpForbiddenOnAuthorizationFailure() {
+    public void testSaveRoleUsesHttpForbiddenOnAuthorizationFailure() {
         try {
             post().asUser().resource(RESOURCE_ROLE).body(newRole()).exec(IdDto.class);
         } catch (HttpStatusCodeException e) {
@@ -72,13 +72,13 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatDeleteRoleUsesHttpOkOnSuccess() {
+    public void testDeleteRoleUsesHttpOkOnSuccess() {
         Role role = roleService.save(newRole());
         delete().asAdmin().resource(RESOURCE_ROLE + "/" + role.getId()).exec(IdDto.class);
     }
 
     @Test
-    public void thatDeleteRoleUsesHttpForbiddenOnAuthorizationFailure() {
+    public void testDeleteRoleUsesHttpForbiddenOnAuthorizationFailure() {
         Role role = roleService.save(newRole());
         try {
             delete().asUser().resource(RESOURCE_ROLE + "/" + role.getId()).exec(IdDto.class);
@@ -90,7 +90,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatDeleteRoleUsesHttpNotFoundOnEntityLookupFailure() {
+    public void testDeleteRoleUsesHttpNotFoundOnEntityLookupFailure() {
         try {
             delete().asAdmin().resource(RESOURCE_ROLE + "/" + -1).exec(IdDto.class);
         } catch (HttpStatusCodeException e) {
