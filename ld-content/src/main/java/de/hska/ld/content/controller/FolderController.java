@@ -5,6 +5,7 @@ import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Folder;
 import de.hska.ld.content.service.FolderService;
 import de.hska.ld.content.util.Content;
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
@@ -57,7 +58,51 @@ public class FolderController {
     public ResponseEntity<Folder> shareFolder(@PathVariable Long folderId,
                                               @RequestParam(value = "users", defaultValue = "") String usersString,
                                               @RequestParam(value = "permissions", defaultValue = "") String permissionString) {
+        // parse request data
+        List<User> userList = parseUserIdString(usersString);
+        Access.Permission[] permissionArray = parseAccessPermissions(permissionString);
+
+        Folder folder = folderService.shareFolder(folderId, userList, permissionArray);
+        if (folder != null) {
+            return new ResponseEntity<>(folder, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{folderId}/share/revoke")
+    public ResponseEntity<Folder> revokeShareFolder(@PathVariable Long folderId,
+                                                    @RequestParam(value = "users", defaultValue = "") String usersString,
+                                                    @RequestParam(value = "permissions", defaultValue = "") String permissionString) {
+        List<User> userList = parseUserIdString(usersString);
+        Access.Permission[] permissionArray = parseAccessPermissions(permissionString);
+
+        Folder folder = folderService.revokeShareFolder(folderId, userList, permissionArray);
+        if (folder != null) {
+            return new ResponseEntity<>(folder, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private Access.Permission[] parseAccessPermissions(String permissionString) {
         Access.Permission[] permissionArray = null;
+        try {
+            String[] permissionStringArray = permissionString.split(";");
+            permissionArray = new Access.Permission[permissionStringArray.length];
+            int i = 0;
+            for (String permissionStringItem : permissionStringArray) {
+                permissionArray[i] = Access.Permission.valueOf(permissionStringItem);
+                i++;
+            }
+        } catch (Exception e) {
+            throw new ValidationException("permissionString");
+        }
+        return permissionArray;
+    }
+
+    private List<User> parseUserIdString(String usersString) {
         List<User> userList = null;
         try {
             String[] userIdStringArray = usersString.split(";");
@@ -67,23 +112,9 @@ public class FolderController {
                 User user = userService.findById(Long.parseLong(userId));
                 userList.add(user);
             }
-
-            String[] permissionStringArray = permissionString.split(";");
-            permissionArray = new Access.Permission[permissionStringArray.length];
-            int i = 0;
-            for (String permissionStringItem : permissionStringArray) {
-                permissionArray[i] = Access.Permission.valueOf(permissionStringItem);
-                i++;
-            }
-
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            throw new ValidationException("userIdString");
         }
-        Folder folder = folderService.shareFolder(folderId, userList, permissionArray);
-        if (folder != null) {
-            return new ResponseEntity<>(folder, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        return userList;
     }
 }

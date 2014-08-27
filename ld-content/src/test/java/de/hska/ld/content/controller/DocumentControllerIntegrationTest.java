@@ -72,7 +72,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatCreateDocumentUsesHttpOkOnPersist() {
+    public void testCreateDocumentUsesHttpOkOnPersist() {
         ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
