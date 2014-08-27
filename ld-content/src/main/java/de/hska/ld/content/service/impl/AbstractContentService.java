@@ -168,6 +168,7 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
         List<String> differentProperties = new ArrayList<>();
         for (Object propNameObject : map.keySet()) {
             String propertyName = (String) propNameObject;
+            if (propertyName.endsWith("List")) continue;
             try {
                 Object property1 = propUtils.getProperty(oldT, propertyName);
                 Object property2 = propUtils.getProperty(newT, propertyName);
