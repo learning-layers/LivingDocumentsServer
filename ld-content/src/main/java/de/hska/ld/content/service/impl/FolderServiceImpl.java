@@ -146,6 +146,12 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     }
 
     @Override
+    public Folder updateFolder(Long folderId, Folder folder) {
+
+        return null;
+    }
+
+    @Override
     @Transactional
     public Folder getSharedItemsFolder(Long userId) {
         User user = userService.findById(userId);

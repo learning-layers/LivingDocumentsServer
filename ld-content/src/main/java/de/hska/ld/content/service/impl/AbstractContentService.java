@@ -32,19 +32,30 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.impl.AbstractService;
 import de.hska.ld.core.util.Core;
+import org.apache.commons.beanutils.BeanMap;
+import org.apache.commons.beanutils.PropertyUtilsBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AbstractContentService<T extends Content> extends AbstractService<T> implements ContentService<T> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractContentService.class);
+
     @Autowired
     private RoleService roleService;
+
+    @Override
+    @Transactional
+    public T save(T t) {
+        return super.save(t);
+    }
 
     @Override
     @Transactional
@@ -147,6 +158,50 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
             }
         }
         return tList;
+    }
+
+    public List<String> compare(T oldT, T newT) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        BeanMap map = new BeanMap(oldT);
+        PropertyUtilsBean propUtils = new PropertyUtilsBean();
+        //StringBuilder sb = new StringBuilder();
+        //sb.append("UPDATE process: >> object=[class=" + newT.getClass() + ", " + newT.getId() + "]:");
+        List<String> differentProperties = new ArrayList<>();
+        for (Object propNameObject : map.keySet()) {
+            String propertyName = (String) propNameObject;
+            try {
+                Object property1 = propUtils.getProperty(oldT, propertyName);
+                Object property2 = propUtils.getProperty(newT, propertyName);
+                if (property1 != null) {
+                    if (!(property1 instanceof List) && !(property1 instanceof Date)) {
+                        if (property1.equals(property2)) {
+                            //sb.append(" ||" + propertyName + " is equal ||");
+                        } else {
+                            try {
+                                //sb.append(" ||> " + propertyName + " is different (oldValue=\"" + property1 + "\", newValue=\"" + property2 + "\") ||");
+                                differentProperties.add(propertyName);
+                            } catch (Exception e) {
+                                //sb.append(" ||> " + propertyName + " is different (newValue=\"" + property2 + "\") ||");
+                                differentProperties.add(propertyName);
+                            }
+                        }
+                    }
+                } else {
+                    if (property2 == null) {
+                        //sb.append(" ||" + propertyName + " is equal ||");
+                    } else {
+                        if (!(property2 instanceof List) && !(property2 instanceof Date)) {
+                            //sb.append(" ||> " + propertyName + " is different (newValue=\"" + property2 + "\") ||");
+                            differentProperties.add(propertyName);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                //sb.append(" ||> Could not compute difference for property with name=" + propertyName + "||");
+            }
+        }
+        //sb.append(" <<");
+        //LOGGER.info(sb.toString());
+        return differentProperties;
     }
 
     @Override

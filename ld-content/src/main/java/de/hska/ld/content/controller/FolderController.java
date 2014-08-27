@@ -46,12 +46,25 @@ public class FolderController {
     }
 
     @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.PUT, value = "/{folderId}")
+    public ResponseEntity<Folder> updateFolder(@PathVariable Long folderId, @RequestBody Folder folder) {
+        Folder folderResponse = folderService.updateFolder(folderId, folder);
+        // Include jsonParentId
+        FolderDto folderDto = new FolderDto(folderResponse);
+        return new ResponseEntity<>(folderDto, HttpStatus.OK);
+    }
+
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{folderId}/documents/{documentId}")
     public ResponseEntity<Folder> addDocumentToFolder(@PathVariable Long folderId, @PathVariable Long documentId) {
         Folder folder = folderService.placeDocumentInFolder(folderId, documentId);
         FolderDto folderDto = new FolderDto(folder);
         return new ResponseEntity<>(folderDto, HttpStatus.OK);
     }
+
+    /**
+     * ================= Sharing methods ================= *
+     */
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{folderId}/share")

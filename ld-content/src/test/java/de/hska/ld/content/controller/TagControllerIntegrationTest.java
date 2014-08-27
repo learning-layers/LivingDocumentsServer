@@ -81,12 +81,12 @@ public class TagControllerIntegrationTest extends AbstractIntegrationTest {
     public void testEditTagUsesHttpOkOnPersist() {
         ResponseEntity<Tag> responseCreate = post().resource(RESOURCE_TAG).asUser().body(tag).exec(Tag.class);
         Assert.assertEquals(HttpStatus.CREATED, responseCreate.getStatusCode());
-        Long tagId = responseCreate.getBody().getId();
-        Assert.assertNotNull(tagId);
+        Tag createdTag = responseCreate.getBody();
+        Assert.assertNotNull(createdTag);
 
         String updatedName = "updatedName";
-        tag.setName(updatedName);
-        ResponseEntity<Tag> responseUpdate = put().resource(RESOURCE_TAG + "/" + tagId).asUser().body(tag).exec(Tag.class);
+        createdTag.setName(updatedName);
+        ResponseEntity<Tag> responseUpdate = put().resource(RESOURCE_TAG + "/" + createdTag.getId()).asUser().body(createdTag).exec(Tag.class);
         Assert.assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
         Assert.assertNotNull(responseUpdate.getBody().getId());
         Assert.assertEquals(updatedName, responseUpdate.getBody().getName());
