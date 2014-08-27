@@ -51,6 +51,7 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
+        setAuthentication(testUser);
         document = new Document();
         document.setTitle(TITLE);
         document.setDescription(DESCRIPTION);

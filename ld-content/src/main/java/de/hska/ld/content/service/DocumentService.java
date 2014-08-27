@@ -40,9 +40,9 @@ public interface DocumentService extends ContentService<Document> {
 
     Document removeComment(Long id, Comment comment);
 
-    void addTag(Long id, Long tagId);
+    Document addTag(Long id, Long tagId);
 
-    void removeTag(Long id, Long tagId);
+    Document removeTag(Long id, Long tagId);
 
     Document addDiscussionToDocument(Long id, Document discussion);
 

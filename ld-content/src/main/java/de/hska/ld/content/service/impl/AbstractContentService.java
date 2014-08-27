@@ -70,12 +70,13 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
     public T loadContentCollection(T t, Class... clazzArray) {
         t = findById(t.getId());
         for (Class clazz : clazzArray) {
+            List<Content> contentTempList = new ArrayList<>();
             if (Tag.class.equals(clazz)) {
                 t.getTagList().size();
-                t.setTagList((List<Tag>) filterDeletedListItems(t.getTagList(), clazz));
+                t.setTagList(filterDeletedListItems(t.getTagList(), Tag.class));
             } else if (Comment.class.equals(clazz)) {
                 t.getCommentList().size();
-                t.setCommentList((List<Comment>) filterDeletedListItems(t.getTagList(), clazz));
+                t.setCommentList(filterDeletedListItems(t.getCommentList(), Comment.class));
             }
         }
         return t;
@@ -149,15 +150,17 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
         return true;
     }
 
-    public <I> List<? extends Content> filterDeletedListItems(List tList, Class<I> clazz) {
+    @Transactional
+    @SuppressWarnings("unchecked")
+    public <I> List<I> filterDeletedListItems(List tList, Class<I> clazz) {
         if (Content.class.isAssignableFrom(clazz)) {
             if (tList.size() > 0) {
-                List<? extends Content> cList = tList;
-                List<? extends Content> filteredCList = cList.stream().filter(tItem -> !tItem.isDeleted()).collect(Collectors.toList());
+                List<I> cList = tList;
+                List<I> filteredCList = cList.stream().filter(cItem -> !((Content) cItem).isDeleted()).collect(Collectors.toList());
                 return filteredCList;
             }
         }
-        return tList;
+        return new ArrayList<I>(tList);
     }
 
     public List<String> compare(T oldT, T newT) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {

@@ -153,23 +153,23 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Override
     @Transactional
-    public void addTag(Long id, Long tagId) {
+    public Document addTag(Long id, Long tagId) {
         Document document = findById(id);
         Tag tag = tagService.findById(tagId);
         checkPermission(document, Access.Permission.WRITE);
-        if (!document.getAttachmentList().contains(tag)) {
+        if (!document.getTagList().contains(tag)) {
             document.getTagList().add(tag);
         }
-        super.save(document);
+        return super.save(document);
     }
 
     @Override
     @Transactional
-    public void removeTag(Long id, Long tagId) {
+    public Document removeTag(Long id, Long tagId) {
         Document document = findById(id);
         Tag tag = tagService.findById(tagId);
         document.getTagList().remove(tag);
-        super.save(document);
+        return super.save(document);
     }
 
     @Override
@@ -449,12 +449,14 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Transactional
     public Document loadContentCollection(Document document, Class... clazzArray) {
         document = super.loadContentCollection(document, clazzArray);
-        for (Class clazz : clazzArray) {
-            if (Attachment.class.equals(clazz)) {
-                document.getAttachmentList().size();
-                document.setAttachmentList((List<Attachment>) filterDeletedListItems(document.getAttachmentList(), Attachment.class));
+        if (document != null) {
+            for (Class clazz : clazzArray) {
+                if (Attachment.class.equals(clazz)) {
+                    document.setAttachmentList(filterDeletedListItems(document.getAttachmentList(), Attachment.class));
+                }
             }
         }
         return document;
