@@ -77,4 +77,6 @@ public interface DocumentService extends ContentService<Document> {
     List<Attachment> getDocumentAttachmentList(Long documentId);
 
     void removeAttachment(Long documentId, Long attachmentId);
+
+    Document saveContainsList(Document d);
 }

@@ -94,7 +94,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
                 folder.setAccessList(new ArrayList<>(accessList));
                 folder.setAccessAll(newParentFolder.isAccessAll());
                 newParentFolder.getFolderList().add(folder);
-                // TODO set access to sub folders/documents as well
+                propagateAccessSettings(folder.getFolderList(), folder.getDocumentList(), accessList);
             }
             save(parentFolder);
         } else {
@@ -110,10 +110,22 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
                 folder.setAccessList(new ArrayList<>(accessList));
                 folder.setAccessAll(newParentFolder.isAccessAll());
                 newParentFolder.getFolderList().add(folder);
-                // TODO set access to sub folders/documents as well
+                propagateAccessSettings(folder.getFolderList(), folder.getDocumentList(), accessList);
             }
         }
         return save(newParentFolder);
+    }
+
+    private void propagateAccessSettings(List<Folder> folderList, List<Document> documentList, List<Access> accessList) {
+        for (Folder f : folderList) {
+            f.setAccessList(new ArrayList<>(accessList));
+            save(f);
+            propagateAccessSettings(f.getFolderList(), f.getDocumentList(), accessList);
+        }
+        for (Document d : documentList) {
+            d.setAccessList(new ArrayList<>(accessList));
+            documentService.saveContainsList(d);
+        }
     }
 
     @Override

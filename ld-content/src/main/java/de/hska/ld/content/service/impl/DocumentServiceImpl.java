@@ -418,6 +418,11 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         attachmentService.save(attachment);
     }
 
+    @Override
+    public Document saveContainsList(Document d) {
+        return super.save(d);
+    }
+
     @Transactional
     private Long updateAttachment(Long documentId, Long attachmentId, InputStream is, String fileName) {
         Document document = findById(documentId);
