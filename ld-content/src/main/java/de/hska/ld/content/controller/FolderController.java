@@ -111,9 +111,9 @@ public class FolderController {
      * @return <b>200 OK</b> with the renamed or updated folder<br>
      */
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.POST, value = "/{folderId}/documents/{documentId}")
+    @RequestMapping(method = RequestMethod.POST, value = "/{newParentFolderId}/documents/{documentId}")
     public ResponseEntity<Folder> moveDocumentToFolder(@PathVariable Long newParentFolderId, @PathVariable Long documentId,
-                                                       @RequestParam(value = "oldParentFolderId", defaultValue = "") String parentFolderIdString) {
+                                                       @RequestParam(value = "old-parent", defaultValue = "") String parentFolderIdString) {
         // TODO check if the document has been moved
         Long parentFolderId = null;
         try {

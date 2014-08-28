@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -68,8 +69,12 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         if (newParentFolder == null) {
             throw new ValidationException("The new parent folder with id=" + newParentFolderId + " does not exist.");
         }
-        Folder parentFolder = findById(parentFolderId);
-        if (parentFolder != null) {
+
+        if (parentFolderId != -1) {
+            Folder parentFolder = findById(parentFolderId);
+            if (parentFolder == null) {
+                throw new ValidationException("The old parent folder with id=" + parentFolderId + " does not exist.");
+            }
             if (!parentFolder.getDocumentList().contains(document)) {
                 throw new ValidationException("Document is currently not in the given parent folder with id=" + parentFolderId);
             }
@@ -86,7 +91,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
                 parentFolder.getDocumentList().remove(document);
                 // Add document to the new folder
                 List<Access> accessList = newParentFolder.getAccessList();
-                document.setAccessList(accessList);
+                document.setAccessList(new ArrayList<>(accessList));
                 document.setAccessAll(newParentFolder.isAccessAll());
                 newParentFolder.getDocumentList().add(document);
             }
@@ -101,7 +106,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
                 // Move the document in the folder structure of the creator
                 // Add document to the new folder
                 List<Access> accessList = newParentFolder.getAccessList();
-                document.setAccessList(accessList);
+                document.setAccessList(new ArrayList<>(accessList));
                 document.setAccessAll(newParentFolder.isAccessAll());
                 newParentFolder.getDocumentList().add(document);
             }
@@ -143,6 +148,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         Folder folder = findById(folderId);
         List<Folder> parentFolderList = folder.getParentFolderList();
         for (User user : userList) {
+            if (Core.currentUser().getId().equals(user.getId())) {
+                continue;
+            }
             Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
             sharedItemsFolder.getFolderList().size();
             sharedItemsFolder.getFolderList().remove(folder);
@@ -164,6 +172,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     private Folder revokeShareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
         for (User user : userList) {
+            if (Core.currentUser().getId().equals(user.getId())) {
+                continue;
+            }
             removeAccess(folder.getId(), user, permission);
         }
         return folder;
@@ -190,9 +201,14 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     }
 
     @Override
+    @Transactional
     public Folder updateFolder(Long folderId, Folder folder) {
-
-        return null;
+        Folder dbFolder = findById(folderId);
+        if (dbFolder == null) {
+            throw new ValidationException("folderId");
+        }
+        dbFolder.setName(folder.getName());
+        return save(dbFolder);
     }
 
     @Override
@@ -215,6 +231,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         Folder folder = findById(folderId);
         if (checkPermissionResult(folder, Access.Permission.WRITE)) {
             for (User user : userList) {
+                if (Core.currentUser().getId().equals(user.getId())) {
+                    continue;
+                }
                 Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
                 sharedItemsFolder.getFolderList().add(folder);
                 // automatically does folder.getParentFolderList().add(sharedItemsFolder);
@@ -255,6 +274,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         Folder folder = findById(folderId);
         if (checkPermissionResult(folder, Access.Permission.WRITE)) {
             for (User user : userList) {
+                if (Core.currentUser().getId().equals(user.getId())) {
+                    continue;
+                }
                 addAccess(folder.getId(), user, permission);
                 for (Document document : folder.getDocumentList()) {
                     documentService.addAccess(document.getId(), user, permission);

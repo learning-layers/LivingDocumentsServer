@@ -93,7 +93,7 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
         Long documentId = responseDocument.getBody().getId();
         Assert.assertNotNull(documentId);
 
-        ResponseEntity<FolderDto> responseAddDocument = post().resource(RESOURCE_FOLDER + "/" + folderId + "/documents/" + documentId).asUser().exec(FolderDto.class);
+        ResponseEntity<FolderDto> responseAddDocument = post().resource(RESOURCE_FOLDER + "/" + folderId + "/documents/" + documentId + "?old-parent=-1").asUser().exec(FolderDto.class);
         Assert.assertEquals(HttpStatus.OK, responseAddDocument.getStatusCode());
 
         // TODO add check if the document is in the parent folder
