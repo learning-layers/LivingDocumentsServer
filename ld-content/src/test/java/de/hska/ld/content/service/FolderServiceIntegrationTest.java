@@ -184,4 +184,34 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(folder.getFolderList().size() == 1);
         Assert.assertEquals(testUser2, folder.getFolderList().get(0).getDocumentList().get(0).getAccessList().get(0).getUser());
     }
+
+    @Test
+    @Transactional
+    public void testFolderMovingAccessPropagation() {
+        // 1. Create parent folder
+
+        // 2.a) Create folder as sub folder of  the parent folder
+
+        // 2.b) Create a document and put it in the folder
+
+        // 3.a) Create a sub folder of folder
+
+        // 3.b) Create a document and add it to the sub folder
+
+
+        // ======== Sharing ======= //
+        // 4. Share the folder with an other user
+
+        // 5. Assert that the sharing has been successful
+
+        // ======== Move folder ======= //
+        // 6.a) Move the folder as the "other" user
+
+        // 6.b) Assert that the access permissions stay the same
+
+        // 7.a) Move the folder as creator
+
+        // 7.b) Assert that the access propagation works
+
+    }
 }
