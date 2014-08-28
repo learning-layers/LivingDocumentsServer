@@ -13,6 +13,8 @@ public interface FolderService extends ContentService<Folder> {
 
     Folder createFolder(String folderName, Long parentId);
 
+    Folder moveFolderToFolder(Long parentFolderId, Long newParentFolderId, Long folderId);
+
     Folder moveDocumentToFolder(Long parentFolderId, Long newParentFolderId, Long documentId);
 
     Folder shareFolder(Long folderId, UserGroup userGroup, Access.Permission... permission);

@@ -60,6 +60,64 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
 
     @Override
     @Transactional
+    public Folder moveFolderToFolder(Long parentFolderId, Long newParentFolderId, Long folderId) {
+        if (parentFolderId.equals(newParentFolderId)) {
+            throw new ValidationException("id: new parent folder is the same as the old parent folder.");
+        }
+        Folder folder = findById(folderId);
+        Folder newParentFolder = findById(newParentFolderId);
+        if (newParentFolder == null) {
+            throw new ValidationException("The new parent folder with id=" + newParentFolderId + " does not exist.");
+        }
+
+        if (parentFolderId != -1) {
+            Folder parentFolder = findById(parentFolderId);
+            if (parentFolder == null) {
+                throw new ValidationException("The old parent folder with id=" + parentFolderId + " does not exist.");
+            }
+            if (!parentFolder.getFolderList().contains(folder)) {
+                throw new ValidationException("Folder is currently not in the given parent folder with id=" + parentFolderId);
+            }
+            if (parentFolder.getCreator() != Core.currentUser()
+                    && newParentFolder.getCreator() != parentFolder.getCreator()) {
+                // Move the document in the folder structure of the current user
+                // Remove document from the current folder
+                parentFolder.getFolderList().remove(folder);
+                // Add document to the new folder
+                newParentFolder.getFolderList().add(folder);
+            } else {
+                // Move the document in the folder structure of the creator
+                // Remove document from the current folder
+                parentFolder.getFolderList().remove(folder);
+                // Add document to the new folder
+                List<Access> accessList = newParentFolder.getAccessList();
+                folder.setAccessList(new ArrayList<>(accessList));
+                folder.setAccessAll(newParentFolder.isAccessAll());
+                newParentFolder.getFolderList().add(folder);
+                // TODO set access to sub folders/documents as well
+            }
+            save(parentFolder);
+        } else {
+            if (folder.getCreator() != Core.currentUser()
+                    && newParentFolder.getCreator() != folder.getCreator()) {
+                // Move the document in the folder structure of the current user
+                // Add document to the new folder
+                newParentFolder.getFolderList().add(folder);
+            } else {
+                // Move the document in the folder structure of the creator
+                // Add document to the new folder
+                List<Access> accessList = newParentFolder.getAccessList();
+                folder.setAccessList(new ArrayList<>(accessList));
+                folder.setAccessAll(newParentFolder.isAccessAll());
+                newParentFolder.getFolderList().add(folder);
+                // TODO set access to sub folders/documents as well
+            }
+        }
+        return save(newParentFolder);
+    }
+
+    @Override
+    @Transactional
     public Folder moveDocumentToFolder(Long parentFolderId, Long newParentFolderId, Long documentId) {
         if (parentFolderId.equals(newParentFolderId)) {
             throw new ValidationException("id: new parent folder is the same as the old parent folder.");
