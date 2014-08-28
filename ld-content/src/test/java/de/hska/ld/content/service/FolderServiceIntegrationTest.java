@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static de.hska.ld.content.ContentFixture.newDocument;
 
@@ -156,5 +157,20 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(!sharedItemsFolderAfterRevoke.getFolderList().contains(newFolder));
         newFolder = folderService.loadParentFolderList(newFolder.getId());
         Assert.assertTrue(!newFolder.getParentFolderList().contains(sharedItemsFolderAfterRevoke));
+    }
+
+    @Test
+    public void testFindFoldersByChildFolderId() {
+        // Create a simple folder structure
+        Folder folder = folderService.createFolder("Folder");
+        Folder subfolder = folderService.createFolder("Subfolder", folder.getId());
+        folder = folderService.loadSubFolderList(folder.getId());
+        Assert.assertTrue(folder.getFolderList().contains(subfolder));
+
+        List<Folder> folderList = folderService.findFoldersByChildFolderId(subfolder.getId());
+
+        Assert.assertNotNull(folderList);
+        Assert.assertTrue(folderList.size() == 1);
+        Assert.assertEquals(folder, folderList.get(0));
     }
 }

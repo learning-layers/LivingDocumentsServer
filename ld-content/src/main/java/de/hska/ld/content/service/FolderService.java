@@ -28,4 +28,6 @@ public interface FolderService extends ContentService<Folder> {
     Folder loadSubFolderList(Long folderId);
 
     Folder loadParentFolderList(Long id);
+
+    List<Folder> findFoldersByChildFolderId(Long childFolderId);
 }
