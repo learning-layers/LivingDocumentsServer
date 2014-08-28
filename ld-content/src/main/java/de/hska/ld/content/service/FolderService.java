@@ -30,4 +30,6 @@ public interface FolderService extends ContentService<Folder> {
     Folder loadParentFolderList(Long id);
 
     Folder updateFolder(Long folderId, Folder folder);
+
+    void markAsDeleted(Long folderId, boolean force);
 }

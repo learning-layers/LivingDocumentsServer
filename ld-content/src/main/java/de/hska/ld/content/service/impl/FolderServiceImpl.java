@@ -228,6 +228,26 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         return folder;
     }
 
+    @Override
+    @Transactional
+    public void markAsDeleted(Long folderId, boolean force) {
+        Folder folder = findById(folderId);
+        if (folder == null) {
+            throw new ValidationException("folderId");
+        }
+        folder.setDeleted(true);
+        if (force) {
+            // delete documents and folders within the folder as well
+            for (Document document : folder.getDocumentList()) {
+                documentService.markAsDeleted(document.getId());
+            }
+            for (Folder f : folder.getFolderList()) {
+                markAsDeleted(f.getId(), true);
+            }
+        }
+        save(folder);
+    }
+
     public Folder shareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
         if (checkPermissionResult(folder, Access.Permission.WRITE)) {
