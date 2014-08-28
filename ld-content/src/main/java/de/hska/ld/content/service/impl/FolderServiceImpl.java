@@ -8,8 +8,10 @@ import de.hska.ld.content.persistence.repository.FolderRepository;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.FolderService;
 import de.hska.ld.core.exception.NotFoundException;
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
+import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,13 +58,52 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     }
 
     @Override
-    public Folder placeDocumentInFolder(Long folderId, Long documentId) {
+    @Transactional
+    public Folder moveDocumentToFolder(Long parentFolderId, Long newParentFolderId, Long documentId) {
         Document document = documentService.findById(documentId);
-        Folder folder = findById(folderId);
-
-        folder.getDocumentList().add(document);
-
-        return save(folder);
+        Folder parentFolder = findById(parentFolderId);
+        Folder newParentFolder = findById(newParentFolderId);
+        if (newParentFolder == null) {
+            throw new ValidationException("The new parent folder with id=" + newParentFolderId + " does not exist.");
+        }
+        if (parentFolder != null) {
+            if (!parentFolder.getDocumentList().contains(document)) {
+                throw new ValidationException("Document is currently not in the given parent folder with id=" + parentFolderId);
+            }
+            if (parentFolder.getCreator() != Core.currentUser()
+                    && newParentFolder.getCreator() != parentFolder.getCreator()) {
+                // Move the document in the folder structure of the current user
+                // Remove document from the current folder
+                parentFolder.getDocumentList().remove(document);
+                // Add document to the new folder
+                newParentFolder.getDocumentList().add(document);
+            } else {
+                // Move the document in the folder structure of the creator
+                // Remove document from the current folder
+                parentFolder.getDocumentList().remove(document);
+                // Add document to the new folder
+                List<Access> accessList = newParentFolder.getAccessList();
+                document.setAccessList(accessList);
+                document.setAccessAll(newParentFolder.isAccessAll());
+                newParentFolder.getDocumentList().add(document);
+            }
+            save(parentFolder);
+        } else {
+            if (document.getCreator() != Core.currentUser()
+                    && newParentFolder.getCreator() != document.getCreator()) {
+                // Move the document in the folder structure of the current user
+                // Add document to the new folder
+                newParentFolder.getDocumentList().add(document);
+            } else {
+                // Move the document in the folder structure of the creator
+                // Add document to the new folder
+                List<Access> accessList = newParentFolder.getAccessList();
+                document.setAccessList(accessList);
+                document.setAccessAll(newParentFolder.isAccessAll());
+                newParentFolder.getDocumentList().add(document);
+            }
+        }
+        return save(newParentFolder);
     }
 
     @Override

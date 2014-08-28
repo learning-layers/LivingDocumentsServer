@@ -111,9 +111,16 @@ public class FolderController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{folderId}/documents/{documentId}")
-    public ResponseEntity<Folder> addDocumentToFolder(@PathVariable Long folderId, @PathVariable Long documentId) {
+    public ResponseEntity<Folder> moveDocumentToFolder(@PathVariable Long newParentFolderId, @PathVariable Long documentId,
+                                                       @RequestParam(value = "oldParentFolderId", defaultValue = "") String parentFolderIdString) {
         // TODO check if the document has been moved
-        Folder folder = folderService.placeDocumentInFolder(folderId, documentId);
+        Long parentFolderId = null;
+        try {
+            parentFolderId = Long.parseLong(parentFolderIdString);
+        } catch (Exception e) {
+            throw new ValidationException("parentFolderId");
+        }
+        Folder folder = folderService.moveDocumentToFolder(parentFolderId, newParentFolderId, documentId);
         FolderDto folderDto = new FolderDto(folder);
         return new ResponseEntity<>(folderDto, HttpStatus.OK);
     }

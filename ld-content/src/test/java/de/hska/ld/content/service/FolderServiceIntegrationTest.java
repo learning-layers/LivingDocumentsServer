@@ -67,7 +67,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         // create a new document
         Document document = documentService.save(newDocument());
         // put the document in the folder
-        folder = folderService.placeDocumentInFolder(folder.getId(), document.getId());
+        folder = folderService.moveDocumentToFolder(-1L, folder.getId(), document.getId());
         // assert that the process has been successful
         Assert.assertNotNull(folder);
         Assert.assertTrue(folder.getDocumentList().size() == 1);
@@ -168,8 +168,8 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         Document documentInSubFolder = documentService.save(newDocument());
 
         // create a test folder structure
-        folderService.placeDocumentInFolder(folder.getId(), document.getId());
-        folderService.placeDocumentInFolder(subFolder.getId(), documentInSubFolder.getId());
+        folderService.moveDocumentToFolder(-1L, folder.getId(), document.getId());
+        folderService.moveDocumentToFolder(-1L, subFolder.getId(), documentInSubFolder.getId());
 
         // The folder structure will be shared with this user
         User testUser2 = userService.save(newUser());
