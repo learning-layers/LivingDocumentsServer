@@ -29,6 +29,18 @@ public class FolderController {
     @Autowired
     private UserService userService;
 
+    /**
+     * This resource allows it to create a folder that has no parent folder (Folder below root folder).
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST /api/folders
+     * </pre>
+     *
+     * @param folder A folder object containing the folder name. Example:<br>
+     *               {name: "&lt;folderName&gt;}
+     * @return <b>200 OK</b> with the generated folder<br>
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Folder> createFolder(@RequestBody Folder folder) {
@@ -36,6 +48,20 @@ public class FolderController {
         return new ResponseEntity<>(folder, HttpStatus.CREATED);
     }
 
+    /**
+     * This resource allows it to create a folder that is put into a parent folder.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST /api/folders/{parentId}/folders
+     * </pre>
+     *
+     * @param parentId The id of the parent folder
+     * @param folder A folder object containing the folder name. Example:<br>
+     *               {name: "&lt;folderName&gt;}
+     *
+     * @return <b>200 OK</b> with the generated folder<br>
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{parentId}/folders")
     public ResponseEntity<Folder> createSubFolder(@PathVariable Long parentId, @RequestBody Folder folder) {
@@ -45,6 +71,21 @@ public class FolderController {
         return new ResponseEntity<>(folderDto, HttpStatus.CREATED);
     }
 
+    /**
+     * This resource allows it to update a folder.
+     *
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> PUT /api/folders/{folderId}
+     * </pre>
+     *
+     * @param folderId The id of the folder.
+     * @param folder A folder object containing the folder name. Example:<br>
+     *               {name: "&lt;folderName&gt;}
+     *
+     * @return <b>200 OK</b> with the renamed or updated folder<br>
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/{folderId}")
     public ResponseEntity<Folder> updateFolder(@PathVariable Long folderId, @RequestBody Folder folder) {
@@ -54,9 +95,24 @@ public class FolderController {
         return new ResponseEntity<>(folderDto, HttpStatus.OK);
     }
 
+    /**
+     * This resource allows it to move a document to a specific folder.
+     *
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST /api/folders/{folderId}/documents/{documentId}
+     * </pre>
+     *
+     * @param folderId The folder id of the folder the document should be added to.
+     * @param documentId The id of the document that shall be placed into the folder.
+     *
+     * @return <b>200 OK</b> with the renamed or updated folder<br>
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{folderId}/documents/{documentId}")
     public ResponseEntity<Folder> addDocumentToFolder(@PathVariable Long folderId, @PathVariable Long documentId) {
+        // TODO check if the document has been moved
         Folder folder = folderService.placeDocumentInFolder(folderId, documentId);
         FolderDto folderDto = new FolderDto(folder);
         return new ResponseEntity<>(folderDto, HttpStatus.OK);
@@ -66,6 +122,25 @@ public class FolderController {
      * ================= Sharing methods ================= *
      */
 
+    /**
+     * This resource allows it to share a folder.
+     *
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> PUT /api/folders/{folderId}/share?users=1;2;3;4&permissions=READ,WRITE
+     * </pre>
+     *
+     * @param folderId The folder id of the folder the document should be added to.
+     * @param usersString The string that contains the user ids of the users this folder shall be shared with.<br>
+     *                    Example:<br>
+     *                    usersString: 1;2;3;4
+     * @param permissionString The string containing the permissions to set on the folder.<br>
+     *                         Example:<br>
+     *                         permissionString: READ;WRITE
+     *
+     * @return <b>200 OK</b> with the renamed or updated folder<br>
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{folderId}/share")
     public ResponseEntity<Folder> shareFolder(@PathVariable Long folderId,
@@ -83,6 +158,25 @@ public class FolderController {
         }
     }
 
+    /**
+     * This resource allows it to revoke the sharing of a folder.
+     *
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> PUT /api/folders/{folderId}/share/revoke?users=1;2;3;4&permissions=READ,WRITE
+     * </pre>
+     *
+     * @param folderId The folder id of the folder the document should be added to.
+     * @param usersString The string that contains the user ids of the users this folder shall be shared with.<br>
+     *                    Example:<br>
+     *                    usersString: 1;2;3;4
+     * @param permissionString The string containing the permissions to set on the folder.<br>
+     *                         Example:<br>
+     *                         permissionString: READ;WRITE
+     *
+     * @return <b>200 OK</b> with the renamed or updated folder<br>
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{folderId}/share/revoke")
     public ResponseEntity<Folder> revokeShareFolder(@PathVariable Long folderId,
@@ -130,4 +224,6 @@ public class FolderController {
         }
         return userList;
     }
+
+    // TODO move folder to an other folder
 }
