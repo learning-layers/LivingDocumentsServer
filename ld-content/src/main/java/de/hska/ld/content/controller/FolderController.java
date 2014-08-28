@@ -104,7 +104,8 @@ public class FolderController {
      *     <b>Path:</b> POST /api/folders/{folderId}/documents/{documentId}
      * </pre>
      *
-     * @param folderId The folder id of the folder the document should be added to.
+     * @param parentFolderIdString The current parent folder or -1 if no parent folder is set.
+     * @param newParentFolderId The folder id of the folder the document should be added to.
      * @param documentId The id of the document that shall be placed into the folder.
      *
      * @return <b>200 OK</b> with the renamed or updated folder<br>
@@ -231,6 +232,4 @@ public class FolderController {
         }
         return userList;
     }
-
-    // TODO move folder to an other folder
 }
