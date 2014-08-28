@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface FolderRepository extends CrudRepository<Folder, Long> {
 
-    List<Folder> findByCreatorAndSharingFolderTrue(User user);
+    List<Folder> findByCreatorAndSharingFolderTrue(User creator);
 
     @Query("SELECT f FROM Folder f INNER JOIN f.folderList c WHERE c.id = :childFolderId")
     public List<Folder> findFoldersByChildFolderId(@Param("childFolderId") Long childFolderId);

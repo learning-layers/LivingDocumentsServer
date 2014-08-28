@@ -13,7 +13,9 @@ public interface FolderService extends ContentService<Folder> {
 
     Folder createFolder(String folderName, Long parentId);
 
-    Folder placeDocumentInFolder(Long folderId, Long documentId);
+    Folder moveFolderToFolder(Long parentFolderId, Long newParentFolderId, Long folderId);
+
+    Folder moveDocumentToFolder(Long parentFolderId, Long newParentFolderId, Long documentId);
 
     Folder shareFolder(Long folderId, UserGroup userGroup, Access.Permission... permission);
 
@@ -28,6 +30,10 @@ public interface FolderService extends ContentService<Folder> {
     Folder loadSubFolderList(Long folderId);
 
     Folder loadParentFolderList(Long id);
+
+    Folder updateFolder(Long folderId, Folder folder);
+
+    void markAsDeleted(Long folderId, boolean force);
 
     List<Folder> findFoldersByChildFolderId(Long childFolderId);
 }

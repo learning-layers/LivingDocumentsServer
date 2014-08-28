@@ -61,6 +61,7 @@ public class TagControllerIntegrationTest extends AbstractIntegrationTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
+        setAuthentication(testUser);
         User user = userService.findByUsername("user");
         document = new Document();
         document.setTitle(TITLE);
@@ -71,22 +72,22 @@ public class TagControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void thatCreateTagUsesHttpCreatedOnPersist() {
+    public void testCreateTagUsesHttpCreatedOnPersist() {
         ResponseEntity<Tag> response = post().resource(RESOURCE_TAG).asUser().body(tag).exec(Tag.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
     }
 
     @Test
-    public void thatEditTagUsesHttpOkOnPersist() {
+    public void testEditTagUsesHttpOkOnPersist() {
         ResponseEntity<Tag> responseCreate = post().resource(RESOURCE_TAG).asUser().body(tag).exec(Tag.class);
         Assert.assertEquals(HttpStatus.CREATED, responseCreate.getStatusCode());
-        Long tagId = responseCreate.getBody().getId();
-        Assert.assertNotNull(tagId);
+        Tag createdTag = responseCreate.getBody();
+        Assert.assertNotNull(createdTag);
 
         String updatedName = "updatedName";
-        tag.setName(updatedName);
-        ResponseEntity<Tag> responseUpdate = put().resource(RESOURCE_TAG + "/" + tagId).asUser().body(tag).exec(Tag.class);
+        createdTag.setName(updatedName);
+        ResponseEntity<Tag> responseUpdate = put().resource(RESOURCE_TAG + "/" + createdTag.getId()).asUser().body(createdTag).exec(Tag.class);
         Assert.assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
         Assert.assertNotNull(responseUpdate.getBody().getId());
         Assert.assertEquals(updatedName, responseUpdate.getBody().getName());

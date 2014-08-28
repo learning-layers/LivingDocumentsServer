@@ -108,6 +108,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testAddTag() {
+        setAuthentication(testUser);
         Document document = documentService.save(newDocument());
         Assert.assertNotNull(document);
 
@@ -122,9 +123,12 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
             userNotAuthorizedException = e;
         }
         Assert.assertNotNull(userNotAuthorizedException);
+        document = documentService.loadContentCollection(document, Tag.class);
+        Assert.assertTrue(!document.getTagList().contains(tag));
 
         setAuthentication(testUser);
-        documentService.addTag(document.getId(), tag.getId());
+        document = documentService.addTag(document.getId(), tag.getId());
+        Assert.assertTrue(document.getTagList().contains(tag));
 
         document = documentService.findById(document.getId());
         Assert.assertNotNull(document);

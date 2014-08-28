@@ -32,7 +32,7 @@ public class Folder extends Content {
             inverseJoinColumns = {@JoinColumn(name = "parent_folder_id")})
     private List<Folder> folderList;
 
-    @OneToMany
+    @ManyToMany
     @JoinTable(name = "ld_folder_document",
             joinColumns = {@JoinColumn(name = "folder_id")},
             inverseJoinColumns = {@JoinColumn(name = "document_id")})

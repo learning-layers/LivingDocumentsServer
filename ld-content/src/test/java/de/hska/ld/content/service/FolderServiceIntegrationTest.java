@@ -13,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static de.hska.ld.content.ContentFixture.newDocument;
+import static de.hska.ld.core.fixture.CoreFixture.newUser;
 
 public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
 
@@ -67,7 +67,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         // create a new document
         Document document = documentService.save(newDocument());
         // put the document in the folder
-        folder = folderService.placeDocumentInFolder(folder.getId(), document.getId());
+        folder = folderService.moveDocumentToFolder(-1L, folder.getId(), document.getId());
         // assert that the process has been successful
         Assert.assertNotNull(folder);
         Assert.assertTrue(folder.getDocumentList().size() == 1);
@@ -160,17 +160,58 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testFindFoldersByChildFolderId() {
-        // Create a simple folder structure
-        Folder folder = folderService.createFolder("Folder");
-        Folder subfolder = folderService.createFolder("Subfolder", folder.getId());
+    @Transactional
+    public void testThatDocumentSharedWhenTheirFolderHasBeenShared() {
+        Folder folder = folderService.createFolder("SharedFolder");
+        Folder subFolder = folderService.createFolder("SharedFolder SubFolder", folder.getId());
+        Document document = documentService.save(newDocument());
+        Document documentInSubFolder = documentService.save(newDocument());
+
+        // create a test folder structure
+        folderService.moveDocumentToFolder(-1L, folder.getId(), document.getId());
+        folderService.moveDocumentToFolder(-1L, subFolder.getId(), documentInSubFolder.getId());
+
+        // The folder structure will be shared with this user
+        User testUser2 = userService.save(newUser());
+        folder = folderService.shareFolder(folder.getId(), Arrays.asList(testUser2), Access.Permission.READ);
+
+        // assert that the document within the folder is shared
+        Assert.assertTrue(folder.getDocumentList().size() == 1);
+        Assert.assertEquals(testUser2, folder.getDocumentList().get(0).getAccessList().get(0).getUser());
+
+        // assert that the document within the sub folder is shared
         folder = folderService.loadSubFolderList(folder.getId());
-        Assert.assertTrue(folder.getFolderList().contains(subfolder));
+        Assert.assertTrue(folder.getFolderList().size() == 1);
+        Assert.assertEquals(testUser2, folder.getFolderList().get(0).getDocumentList().get(0).getAccessList().get(0).getUser());
+    }
 
-        List<Folder> folderList = folderService.findFoldersByChildFolderId(subfolder.getId());
+    @Test
+    @Transactional
+    public void testFolderMovingAccessPropagation() {
+        // 1. Create parent folder
 
-        Assert.assertNotNull(folderList);
-        Assert.assertTrue(folderList.size() == 1);
-        Assert.assertEquals(folder, folderList.get(0));
+        // 2.a) Create folder as sub folder of  the parent folder
+
+        // 2.b) Create a document and put it in the folder
+
+        // 3.a) Create a sub folder of folder
+
+        // 3.b) Create a document and add it to the sub folder
+
+
+        // ======== Sharing ======= //
+        // 4. Share the folder with an other user
+
+        // 5. Assert that the sharing has been successful
+
+        // ======== Move folder ======= //
+        // 6.a) Move the folder as the "other" user
+
+        // 6.b) Assert that the access permissions stay the same
+
+        // 7.a) Move the folder as creator
+
+        // 7.b) Assert that the access propagation works
+
     }
 }

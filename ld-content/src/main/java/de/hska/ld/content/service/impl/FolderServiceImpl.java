@@ -8,12 +8,15 @@ import de.hska.ld.content.persistence.repository.FolderRepository;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.FolderService;
 import de.hska.ld.core.exception.NotFoundException;
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
+import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -56,13 +59,129 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     }
 
     @Override
-    public Folder placeDocumentInFolder(Long folderId, Long documentId) {
-        Document document = documentService.findById(documentId);
+    @Transactional
+    public Folder moveFolderToFolder(Long parentFolderId, Long newParentFolderId, Long folderId) {
+        if (parentFolderId.equals(newParentFolderId)) {
+            throw new ValidationException("id: new parent folder is the same as the old parent folder.");
+        }
         Folder folder = findById(folderId);
+        Folder newParentFolder = findById(newParentFolderId);
+        if (newParentFolder == null) {
+            throw new ValidationException("The new parent folder with id=" + newParentFolderId + " does not exist.");
+        }
 
-        folder.getDocumentList().add(document);
+        if (parentFolderId != -1) {
+            Folder parentFolder = findById(parentFolderId);
+            if (parentFolder == null) {
+                throw new ValidationException("The old parent folder with id=" + parentFolderId + " does not exist.");
+            }
+            if (!parentFolder.getFolderList().contains(folder)) {
+                throw new ValidationException("Folder is currently not in the given parent folder with id=" + parentFolderId);
+            }
+            if (parentFolder.getCreator() != Core.currentUser()
+                    && newParentFolder.getCreator() != parentFolder.getCreator()) {
+                // Move the document in the folder structure of the current user
+                // Remove document from the current folder
+                parentFolder.getFolderList().remove(folder);
+                // Add document to the new folder
+                newParentFolder.getFolderList().add(folder);
+            } else {
+                // Move the document in the folder structure of the creator
+                // Remove document from the current folder
+                parentFolder.getFolderList().remove(folder);
+                // Add document to the new folder
+                List<Access> accessList = newParentFolder.getAccessList();
+                folder.setAccessList(new ArrayList<>(accessList));
+                folder.setAccessAll(newParentFolder.isAccessAll());
+                newParentFolder.getFolderList().add(folder);
+                propagateAccessSettings(folder.getFolderList(), folder.getDocumentList(), accessList);
+            }
+            save(parentFolder);
+        } else {
+            if (folder.getCreator() != Core.currentUser()
+                    && newParentFolder.getCreator() != folder.getCreator()) {
+                // Move the document in the folder structure of the current user
+                // Add document to the new folder
+                newParentFolder.getFolderList().add(folder);
+            } else {
+                // Move the document in the folder structure of the creator
+                // Add document to the new folder
+                List<Access> accessList = newParentFolder.getAccessList();
+                folder.setAccessList(new ArrayList<>(accessList));
+                folder.setAccessAll(newParentFolder.isAccessAll());
+                newParentFolder.getFolderList().add(folder);
+                propagateAccessSettings(folder.getFolderList(), folder.getDocumentList(), accessList);
+            }
+        }
+        return save(newParentFolder);
+    }
 
-        return save(folder);
+    private void propagateAccessSettings(List<Folder> folderList, List<Document> documentList, List<Access> accessList) {
+        for (Folder f : folderList) {
+            f.setAccessList(new ArrayList<>(accessList));
+            save(f);
+            propagateAccessSettings(f.getFolderList(), f.getDocumentList(), accessList);
+        }
+        for (Document d : documentList) {
+            d.setAccessList(new ArrayList<>(accessList));
+            documentService.saveContainsList(d);
+        }
+    }
+
+    @Override
+    @Transactional
+    public Folder moveDocumentToFolder(Long parentFolderId, Long newParentFolderId, Long documentId) {
+        if (parentFolderId.equals(newParentFolderId)) {
+            throw new ValidationException("id: new parent folder is the same as the old parent folder.");
+        }
+        Document document = documentService.findById(documentId);
+        Folder newParentFolder = findById(newParentFolderId);
+        if (newParentFolder == null) {
+            throw new ValidationException("The new parent folder with id=" + newParentFolderId + " does not exist.");
+        }
+
+        if (parentFolderId != -1) {
+            Folder parentFolder = findById(parentFolderId);
+            if (parentFolder == null) {
+                throw new ValidationException("The old parent folder with id=" + parentFolderId + " does not exist.");
+            }
+            if (!parentFolder.getDocumentList().contains(document)) {
+                throw new ValidationException("Document is currently not in the given parent folder with id=" + parentFolderId);
+            }
+            if (parentFolder.getCreator() != Core.currentUser()
+                    && newParentFolder.getCreator() != parentFolder.getCreator()) {
+                // Move the document in the folder structure of the current user
+                // Remove document from the current folder
+                parentFolder.getDocumentList().remove(document);
+                // Add document to the new folder
+                newParentFolder.getDocumentList().add(document);
+            } else {
+                // Move the document in the folder structure of the creator
+                // Remove document from the current folder
+                parentFolder.getDocumentList().remove(document);
+                // Add document to the new folder
+                List<Access> accessList = newParentFolder.getAccessList();
+                document.setAccessList(new ArrayList<>(accessList));
+                document.setAccessAll(newParentFolder.isAccessAll());
+                newParentFolder.getDocumentList().add(document);
+            }
+            save(parentFolder);
+        } else {
+            if (document.getCreator() != Core.currentUser()
+                    && newParentFolder.getCreator() != document.getCreator()) {
+                // Move the document in the folder structure of the current user
+                // Add document to the new folder
+                newParentFolder.getDocumentList().add(document);
+            } else {
+                // Move the document in the folder structure of the creator
+                // Add document to the new folder
+                List<Access> accessList = newParentFolder.getAccessList();
+                document.setAccessList(new ArrayList<>(accessList));
+                document.setAccessAll(newParentFolder.isAccessAll());
+                newParentFolder.getDocumentList().add(document);
+            }
+        }
+        return save(newParentFolder);
     }
 
     @Override
@@ -99,6 +218,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         Folder folder = findById(folderId);
         List<Folder> parentFolderList = folder.getParentFolderList();
         for (User user : userList) {
+            if (Core.currentUser().getId().equals(user.getId())) {
+                continue;
+            }
             Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
             sharedItemsFolder.getFolderList().size();
             sharedItemsFolder.getFolderList().remove(folder);
@@ -120,6 +242,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     private Folder revokeShareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
         for (User user : userList) {
+            if (Core.currentUser().getId().equals(user.getId())) {
+                continue;
+            }
             removeAccess(folder.getId(), user, permission);
         }
         return folder;
@@ -147,6 +272,17 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
 
     @Override
     @Transactional
+    public Folder updateFolder(Long folderId, Folder folder) {
+        Folder dbFolder = findById(folderId);
+        if (dbFolder == null) {
+            throw new ValidationException("folderId");
+        }
+        dbFolder.setName(folder.getName());
+        return save(dbFolder);
+    }
+
+    @Override
+    @Transactional
     public Folder getSharedItemsFolder(Long userId) {
         User user = userService.findById(userId);
         List<Folder> folders = repository.findByCreatorAndSharingFolderTrue(user);
@@ -163,28 +299,59 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     @Transactional
     public Folder shareFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
-        for (User user : userList) {
-            Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
-            sharedItemsFolder.getFolderList().add(folder);
-            super.save(sharedItemsFolder);
-            addAccess(folder.getId(), user, permission);
+        if (checkPermissionResult(folder, Access.Permission.WRITE)) {
+            for (User user : userList) {
+                if (Core.currentUser().getId().equals(user.getId())) {
+                    continue;
+                }
+                Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
+                sharedItemsFolder.getFolderList().add(folder);
+                // automatically does folder.getParentFolderList().add(sharedItemsFolder);
+                super.save(sharedItemsFolder);
+                addAccess(folder.getId(), user, permission);
+                for (Document document : folder.getDocumentList()) {
+                    documentService.addAccess(document.getId(), user, permission);
+                }
+            }
+            for (Folder subFolder : folder.getFolderList()) {
+                shareSubFolder(subFolder.getId(), userList, permission);
+            }
         }
-        for (Folder subFolder : folder.getFolderList()) {
-            shareSubFolder(subFolder.getId(), userList, permission);
-        }
-        // TODO add document access
         return folder;
     }
 
     @Override
-    public List<Folder> findFoldersByChildFolderId(Long childFolderId) {
-        return repository.findFoldersByChildFolderId(childFolderId);
+    @Transactional
+    public void markAsDeleted(Long folderId, boolean force) {
+        Folder folder = findById(folderId);
+        if (folder == null) {
+            throw new ValidationException("folderId");
+        }
+        folder.setDeleted(true);
+        if (force) {
+            // delete documents and folders within the folder as well
+            for (Document document : folder.getDocumentList()) {
+                documentService.markAsDeleted(document.getId());
+            }
+            for (Folder f : folder.getFolderList()) {
+                markAsDeleted(f.getId(), true);
+            }
+        }
+        save(folder);
     }
 
     public Folder shareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
-        for (User user : userList) {
-            addAccess(folder.getId(), user, permission);
+        if (checkPermissionResult(folder, Access.Permission.WRITE)) {
+            for (User user : userList) {
+                if (Core.currentUser().getId().equals(user.getId())) {
+                    continue;
+                }
+                addAccess(folder.getId(), user, permission);
+                for (Document document : folder.getDocumentList()) {
+                    documentService.addAccess(document.getId(), user, permission);
+                }
+            }
         }
         return folder;
     }

@@ -32,19 +32,30 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.impl.AbstractService;
 import de.hska.ld.core.util.Core;
+import org.apache.commons.beanutils.BeanMap;
+import org.apache.commons.beanutils.PropertyUtilsBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AbstractContentService<T extends Content> extends AbstractService<T> implements ContentService<T> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractContentService.class);
+
     @Autowired
     private RoleService roleService;
+
+    @Override
+    @Transactional
+    public T save(T t) {
+        return super.save(t);
+    }
 
     @Override
     @Transactional
@@ -59,12 +70,13 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
     public T loadContentCollection(T t, Class... clazzArray) {
         t = findById(t.getId());
         for (Class clazz : clazzArray) {
+            List<Content> contentTempList = new ArrayList<>();
             if (Tag.class.equals(clazz)) {
                 t.getTagList().size();
-                t.setTagList((List<Tag>) filterDeletedListItems(t.getTagList(), clazz));
+                t.setTagList(filterDeletedListItems(t.getTagList(), Tag.class));
             } else if (Comment.class.equals(clazz)) {
                 t.getCommentList().size();
-                t.setCommentList((List<Comment>) filterDeletedListItems(t.getTagList(), clazz));
+                t.setCommentList(filterDeletedListItems(t.getCommentList(), Comment.class));
             }
         }
         return t;
@@ -116,7 +128,7 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
 
     public void checkPermission(T t, Access.Permission permission) {
         User user = Core.currentUser();
-        if (!t.isPublic() && !t.getCreator().equals(user)) {
+        if (!t.isAccessAll() && !t.getCreator().equals(user)) {
             try {
                 Access access = t.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
                 Access.Permission result = access.getPermissionList().stream().filter(p -> p.equals(permission)).findFirst().get();
@@ -129,15 +141,71 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
         }
     }
 
-    public <I> List<? extends Content> filterDeletedListItems(List tList, Class<I> clazz) {
+    public boolean checkPermissionResult(T t, Access.Permission permission) {
+        try {
+            checkPermission(t, permission);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    @Transactional
+    @SuppressWarnings("unchecked")
+    public <I> List<I> filterDeletedListItems(List tList, Class<I> clazz) {
         if (Content.class.isAssignableFrom(clazz)) {
             if (tList.size() > 0) {
-                List<? extends Content> cList = tList;
-                List<? extends Content> filteredCList = cList.stream().filter(tItem -> !tItem.isDeleted()).collect(Collectors.toList());
+                List<I> cList = tList;
+                List<I> filteredCList = cList.stream().filter(cItem -> !((Content) cItem).isDeleted()).collect(Collectors.toList());
                 return filteredCList;
             }
         }
-        return tList;
+        return new ArrayList<I>(tList);
+    }
+
+    public List<String> compare(T oldT, T newT) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        BeanMap map = new BeanMap(oldT);
+        PropertyUtilsBean propUtils = new PropertyUtilsBean();
+        //StringBuilder sb = new StringBuilder();
+        //sb.append("UPDATE process: >> object=[class=" + newT.getClass() + ", " + newT.getId() + "]:");
+        List<String> differentProperties = new ArrayList<>();
+        for (Object propNameObject : map.keySet()) {
+            String propertyName = (String) propNameObject;
+            if (propertyName.endsWith("List")) continue;
+            try {
+                Object property1 = propUtils.getProperty(oldT, propertyName);
+                Object property2 = propUtils.getProperty(newT, propertyName);
+                if (property1 != null) {
+                    if (!(property1 instanceof List) && !(property1 instanceof Date)) {
+                        if (property1.equals(property2)) {
+                            //sb.append(" ||" + propertyName + " is equal ||");
+                        } else {
+                            try {
+                                //sb.append(" ||> " + propertyName + " is different (oldValue=\"" + property1 + "\", newValue=\"" + property2 + "\") ||");
+                                differentProperties.add(propertyName);
+                            } catch (Exception e) {
+                                //sb.append(" ||> " + propertyName + " is different (newValue=\"" + property2 + "\") ||");
+                                differentProperties.add(propertyName);
+                            }
+                        }
+                    }
+                } else {
+                    if (property2 == null) {
+                        //sb.append(" ||" + propertyName + " is equal ||");
+                    } else {
+                        if (!(property2 instanceof List) && !(property2 instanceof Date)) {
+                            //sb.append(" ||> " + propertyName + " is different (newValue=\"" + property2 + "\") ||");
+                            differentProperties.add(propertyName);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                //sb.append(" ||> Could not compute difference for property with name=" + propertyName + "||");
+            }
+        }
+        //sb.append(" <<");
+        //LOGGER.info(sb.toString());
+        return differentProperties;
     }
 
     @Override

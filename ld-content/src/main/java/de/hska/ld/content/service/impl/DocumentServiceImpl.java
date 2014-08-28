@@ -120,8 +120,8 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             dbDocument.setModifiedAt(new Date());
             dbDocument.setTitle(document.getTitle());
             dbDocument.setDescription(document.getDescription());
-            if (document.isPublic()) {
-                dbDocument.setPublic(true);
+            if (document.isAccessAll()) {
+                dbDocument.setAccessAll(true);
             }
             document = dbDocument;
             createNotifications(document, Subscription.Type.MAIN_CONTENT);
@@ -153,23 +153,23 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Override
     @Transactional
-    public void addTag(Long id, Long tagId) {
+    public Document addTag(Long id, Long tagId) {
         Document document = findById(id);
         Tag tag = tagService.findById(tagId);
         checkPermission(document, Access.Permission.WRITE);
-        if (!document.getAttachmentList().contains(tag)) {
+        if (!document.getTagList().contains(tag)) {
             document.getTagList().add(tag);
         }
-        super.save(document);
+        return super.save(document);
     }
 
     @Override
     @Transactional
-    public void removeTag(Long id, Long tagId) {
+    public Document removeTag(Long id, Long tagId) {
         Document document = findById(id);
         Tag tag = tagService.findById(tagId);
         document.getTagList().remove(tag);
-        super.save(document);
+        return super.save(document);
     }
 
     @Override
@@ -179,9 +179,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
         document.getDiscussionList().add(discussion);
         discussion.setParent(document);
-        if (discussion.isPublic()) {
-            discussion.setPublic(true);
-        }
         this.save(discussion);
         document = super.save(document);
         createNotifications(document, Subscription.Type.DISCUSSION);
@@ -421,6 +418,11 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         attachmentService.save(attachment);
     }
 
+    @Override
+    public Document saveContainsList(Document d) {
+        return super.save(d);
+    }
+
     @Transactional
     private Long updateAttachment(Long documentId, Long attachmentId, InputStream is, String fileName) {
         Document document = findById(documentId);
@@ -452,12 +454,14 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Transactional
     public Document loadContentCollection(Document document, Class... clazzArray) {
         document = super.loadContentCollection(document, clazzArray);
-        for (Class clazz : clazzArray) {
-            if (Attachment.class.equals(clazz)) {
-                document.getAttachmentList().size();
-                document.setAttachmentList((List<Attachment>) filterDeletedListItems(document.getAttachmentList(), Attachment.class));
+        if (document != null) {
+            for (Class clazz : clazzArray) {
+                if (Attachment.class.equals(clazz)) {
+                    document.setAttachmentList(filterDeletedListItems(document.getAttachmentList(), Attachment.class));
+                }
             }
         }
         return document;
