@@ -340,6 +340,11 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         save(folder);
     }
 
+    @Override
+    public List<Folder> findFoldersByChildFolderId(Long childFolderId) {
+        return repository.findFoldersByChildFolderId(childFolderId);
+    }
+
     public Folder shareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
         if (checkPermissionResult(folder, Access.Permission.WRITE)) {

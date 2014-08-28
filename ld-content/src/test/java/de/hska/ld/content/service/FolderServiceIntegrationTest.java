@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static de.hska.ld.content.ContentFixture.newDocument;
 import static de.hska.ld.core.fixture.CoreFixture.newUser;
@@ -183,6 +184,21 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         folder = folderService.loadSubFolderList(folder.getId());
         Assert.assertTrue(folder.getFolderList().size() == 1);
         Assert.assertEquals(testUser2, folder.getFolderList().get(0).getDocumentList().get(0).getAccessList().get(0).getUser());
+    }
+
+    @Test
+    public void testFindFoldersByChildFolderId() {
+        // Create a simple folder structure
+        Folder folder = folderService.createFolder("Folder");
+        Folder subfolder = folderService.createFolder("Subfolder", folder.getId());
+        folder = folderService.loadSubFolderList(folder.getId());
+        Assert.assertTrue(folder.getFolderList().contains(subfolder));
+
+        List<Folder> folderList = folderService.findFoldersByChildFolderId(subfolder.getId());
+
+        Assert.assertNotNull(folderList);
+        Assert.assertTrue(folderList.size() == 1);
+        Assert.assertEquals(folder, folderList.get(0));
     }
 
     @Test
