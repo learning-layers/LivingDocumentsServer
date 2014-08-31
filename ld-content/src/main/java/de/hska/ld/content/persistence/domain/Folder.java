@@ -1,6 +1,5 @@
 package de.hska.ld.content.persistence.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
@@ -22,9 +21,8 @@ public class Folder extends Content {
 
     private boolean sharingFolder;
 
-    @ManyToMany(mappedBy = "folderList")
-    @JsonIgnore
-    private List<Folder> parentFolderList;
+    @ManyToOne
+    private Folder parent;
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ld_folder_folder",
@@ -44,17 +42,6 @@ public class Folder extends Content {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<Folder> getParentFolderList() {
-        if (parentFolderList == null) {
-            parentFolderList = new ArrayList<>();
-        }
-        return parentFolderList;
-    }
-
-    public void setParentFolderList(List<Folder> parentFolderList) {
-        this.parentFolderList = parentFolderList;
     }
 
 
@@ -88,6 +75,14 @@ public class Folder extends Content {
 
     public void setSharingFolder(boolean sharingFolder) {
         this.sharingFolder = sharingFolder;
+    }
+
+    public Folder getParent() {
+        return parent;
+    }
+
+    public void setParent(Folder parent) {
+        this.parent = parent;
     }
 
     @Override

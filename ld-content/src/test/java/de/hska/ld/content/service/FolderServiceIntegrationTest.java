@@ -45,9 +45,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         // create a subfolder of the folder previously created
         Folder subFolder = folderService.createFolder("Subfolder", folder.getId());
         Assert.assertNotNull(subFolder);
-        Assert.assertNotNull(subFolder.getParentFolderList());
-        Assert.assertTrue(subFolder.getParentFolderList().size() > 0);
-        Assert.assertNotNull(subFolder.getParentFolderList().get(0).getId());
+        Assert.assertNotNull(subFolder.getParent());
 
         // load the folder
         folder = folderService.findById(folder.getId());
@@ -156,8 +154,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         sharedItemsFolderAfterRevoke = folderService.loadSubFolderList(beforeLoadSubFolderListSharedItemsFolder.getId());
         // 3. Assert that the newFolder is in the shared items folder (so it is shared)
         Assert.assertTrue(!sharedItemsFolderAfterRevoke.getFolderList().contains(newFolder));
-        newFolder = folderService.loadParentFolderList(newFolder.getId());
-        Assert.assertTrue(!newFolder.getParentFolderList().contains(sharedItemsFolderAfterRevoke));
+        Assert.assertTrue(!newFolder.getParent().equals(sharedItemsFolderAfterRevoke));
     }
 
     @Test
@@ -195,6 +192,21 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(folder.getFolderList().contains(subfolder));
 
         List<Folder> folderList = folderService.findFoldersByChildFolderId(subfolder.getId());
+
+        Assert.assertNotNull(folderList);
+        Assert.assertTrue(folderList.size() == 1);
+        Assert.assertEquals(folder, folderList.get(0));
+    }
+
+    @Test
+    public void testFindFoldersByChildFolderIdAndCreatorId() {
+        // Create a simple folder structure
+        Folder folder = folderService.createFolder("Folder");
+        Folder subfolder = folderService.createFolder("Subfolder", folder.getId());
+        folder = folderService.loadSubFolderList(folder.getId());
+        Assert.assertTrue(folder.getFolderList().contains(subfolder));
+
+        List<Folder> folderList = folderService.findFoldersByParentCreatorId(subfolder.getId(), testUser.getId());
 
         Assert.assertNotNull(folderList);
         Assert.assertTrue(folderList.size() == 1);
