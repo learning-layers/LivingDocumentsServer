@@ -305,10 +305,56 @@ public class UserController {
             List<byte[]> avatars = userService.getAvatars(userIdString);
             if (avatars != null && avatars.size() > 0) {
                 byte[] source = avatars.get(0);
-                InputStream is = new ByteArrayInputStream(source);
-                //response.setContentType(attachment.getMimeType());
-                OutputStream outputStream = response.getOutputStream();
-                IOUtils.copy(is, outputStream);
+                if (source != null) {
+                    InputStream is = new ByteArrayInputStream(source);
+                    //response.setContentType(attachment.getMimeType());
+                    OutputStream outputStream = response.getOutputStream();
+                    IOUtils.copy(is, outputStream);
+                } else {
+                    String fileName = "Portrait_placeholder.pdf";
+                    InputStream is = null;
+                    try {
+                        is = UserController.class.getResourceAsStream("/" + fileName);
+                        //response.setContentType(attachment.getMimeType());
+                        OutputStream outputStream = response.getOutputStream();
+                        IOUtils.copy(is, outputStream);
+                    } finally {
+                        IOUtils.closeQuietly(is);
+                    }
+                }
+            } else {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } catch (IOException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/avatar/{id}")
+    public void loadAvatarForUser(@PathVariable Long id, HttpServletResponse response) {
+        try {
+            String userIdString = id.toString();
+            List<byte[]> avatars = userService.getAvatars(userIdString);
+            if (avatars != null && avatars.size() > 0) {
+                byte[] source = avatars.get(0);
+                if (source != null) {
+                    InputStream is = new ByteArrayInputStream(source);
+                    //response.setContentType(attachment.getMimeType());
+                    OutputStream outputStream = response.getOutputStream();
+                    IOUtils.copy(is, outputStream);
+                } else {
+                    String fileName = "Portrait_placeholder.png";
+                    InputStream is = null;
+                    try {
+                        is = UserController.class.getResourceAsStream("/" + fileName);
+                        //response.setContentType(attachment.getMimeType());
+                        OutputStream outputStream = response.getOutputStream();
+                        IOUtils.copy(is, outputStream);
+                    } finally {
+                        IOUtils.closeQuietly(is);
+                    }
+                }
             } else {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
