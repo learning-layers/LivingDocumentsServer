@@ -27,6 +27,7 @@ import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -37,7 +38,12 @@ import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -288,6 +294,27 @@ public class UserController {
     @RequestMapping(method = RequestMethod.GET, value = "/avatars")
     public List<byte[]> loadAvatars(@RequestParam String userIdsString) {
         return userService.getAvatars(userIdsString);
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/avatar")
+    public void loadAvatar(HttpServletResponse response) {
+        try {
+            User user = Core.currentUser();
+            String userIdString = user.getId().toString();
+            List<byte[]> avatars = userService.getAvatars(userIdString);
+            if (avatars != null && avatars.size() > 0) {
+                byte[] source = avatars.get(0);
+                InputStream is = new ByteArrayInputStream(source);
+                //response.setContentType(attachment.getMimeType());
+                OutputStream outputStream = response.getOutputStream();
+                IOUtils.copy(is, outputStream);
+            } else {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } catch (IOException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Secured(Core.ROLE_USER)
