@@ -50,8 +50,8 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
 
         Folder folder = new Folder(folderName);
         if (parent != null) {
-            folder.getParentFolderList().add(parent);
             parent.getFolderList().add(folder);
+            folder.setParent(parent);
             save(parent);
             return parent.getFolderList().get(parent.getFolderList().size() - 1);
         }
@@ -216,7 +216,6 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     @Transactional
     public Folder revokeShareFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
-        List<Folder> parentFolderList = folder.getParentFolderList();
         for (User user : userList) {
             if (Core.currentUser().getId().equals(user.getId())) {
                 continue;
@@ -224,6 +223,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
             Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
             sharedItemsFolder.getFolderList().size();
             sharedItemsFolder.getFolderList().remove(folder);
+            List<Folder> parentFolderList = findFoldersByParentCreatorId(folderId, user.getId());
             if (parentFolderList != null && parentFolderList.size() > 0) {
                 parentFolderList.stream().filter(pf -> user.getId().equals(pf.getCreator().getId())).forEach(pf -> {
                     pf.getFolderList().remove(folder);
@@ -257,16 +257,6 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         // TODO add permission check
         //checkPermission(folder, Access.Permission.READ);
         folder.getFolderList().size();
-        return folder;
-    }
-
-    @Override
-    @Transactional
-    public Folder loadParentFolderList(Long folderId) {
-        Folder folder = findById(folderId);
-        // TODO add permission check
-        //checkPermission(folder, Access.Permission.READ);
-        folder.getParentFolderList().size();
         return folder;
     }
 
@@ -343,6 +333,11 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     @Override
     public List<Folder> findFoldersByChildFolderId(Long childFolderId) {
         return repository.findFoldersByChildFolderId(childFolderId);
+    }
+
+    @Override
+    public List<Folder> findFoldersByParentCreatorId(Long childFolderId, Long creatorId) {
+        return repository.findFoldersByChildFolderIdAndCreatorId(childFolderId, creatorId);
     }
 
     public Folder shareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {

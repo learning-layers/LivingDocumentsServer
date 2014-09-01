@@ -29,11 +29,11 @@ public interface FolderService extends ContentService<Folder> {
 
     Folder loadSubFolderList(Long folderId);
 
-    Folder loadParentFolderList(Long id);
-
     Folder updateFolder(Long folderId, Folder folder);
 
     void markAsDeleted(Long folderId, boolean force);
 
     List<Folder> findFoldersByChildFolderId(Long childFolderId);
+
+    List<Folder> findFoldersByParentCreatorId(Long childFolderId, Long creatorId);
 }

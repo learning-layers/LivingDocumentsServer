@@ -14,4 +14,7 @@ public interface FolderRepository extends CrudRepository<Folder, Long> {
 
     @Query("SELECT f FROM Folder f INNER JOIN f.folderList c WHERE c.id = :childFolderId")
     public List<Folder> findFoldersByChildFolderId(@Param("childFolderId") Long childFolderId);
+
+    @Query("SELECT f FROM Folder f INNER JOIN f.folderList c WHERE c.id = :childFolderId AND f.creator.id = :creatorId")
+    public List<Folder> findFoldersByChildFolderIdAndCreatorId(@Param("childFolderId") Long childFolderId, @Param("creatorId") Long creatorId);
 }
