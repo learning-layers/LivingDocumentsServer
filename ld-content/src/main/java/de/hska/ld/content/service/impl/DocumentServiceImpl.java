@@ -247,6 +247,28 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Transactional
+    public Attachment updateAttachment(Long documentId, Long attachmentId, Attachment attachment) {
+        Document document = findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        }
+        document.getAttachmentList().size();
+        boolean found = false;
+        for (Attachment attachmentItem : document.getAttachmentList()) {
+            if (attachmentItem.getId().equals(attachmentId)) {
+                found = true;
+            }
+        }
+        if (!found) {
+            throw new NotFoundException("attachmentId");
+        }
+        Attachment dbAttachment = attachmentService.findById(attachmentId);
+        dbAttachment.setName(attachment.getName());
+        return attachmentService.save(dbAttachment);
+    }
+
+    @Override
     public List<Tag> getDocumentTagsList(Long documentId) {
         Document document = findById(documentId);
         return document.getTagList();

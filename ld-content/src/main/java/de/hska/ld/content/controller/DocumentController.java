@@ -577,6 +577,13 @@ public class DocumentController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.PUT, value = "/{documentId}/attachment/{attachmentId}")
+    public ResponseEntity updateAttachmentInfo(@PathVariable Long documentId, @PathVariable Long attachmentId, @RequestBody Attachment attachment) {
+        documentService.updateAttachment(documentId, attachmentId, attachment);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 
 //    @Secured(Core.ROLE_USER)
 //    @RequestMapping(method = RequestMethod.GET, value = "/search")
