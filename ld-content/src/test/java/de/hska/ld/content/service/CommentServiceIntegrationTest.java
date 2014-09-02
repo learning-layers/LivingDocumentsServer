@@ -23,16 +23,22 @@
 package de.hska.ld.content.service;
 
 import de.hska.ld.content.persistence.domain.Comment;
+import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.core.AbstractIntegrationTest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static de.hska.ld.content.ContentFixture.newDocument;
+
 public class CommentServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     CommentService commentService;
+
+    @Autowired
+    DocumentService documentService;
 
     @Override
     @Before
@@ -43,8 +49,11 @@ public class CommentServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testSaveCommentWithContent() {
+        Document document = documentService.save(newDocument());
+
         Comment comment = new Comment();
-        comment.setText("TestText");
+        comment.setParent(document);
+        comment.setText("Test Text @admin ...");
 
         Comment savedComment = commentService.save(comment);
 
@@ -62,7 +71,10 @@ public class CommentServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testReplyToComment() {
+        Document document = documentService.save(newDocument());
+
         Comment comment = new Comment();
+        comment.setParent(document);
         comment.setText("TestText");
 
         Comment savedComment = commentService.save(comment);

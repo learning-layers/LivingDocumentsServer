@@ -22,12 +22,11 @@
 
 package de.hska.ld.content.service.impl;
 
-import de.hska.ld.content.persistence.domain.Access;
-import de.hska.ld.content.persistence.domain.Comment;
-import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.persistence.repository.CommentRepository;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.content.service.SubscriptionService;
 import de.hska.ld.core.exception.AlreadyExistsException;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
@@ -43,10 +42,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Date;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class CommentServiceImpl extends AbstractContentService<Comment> implements CommentService {
@@ -59,6 +57,9 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     @Override
     public Page<Comment> getDocumentCommentsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
@@ -139,7 +140,11 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
             dbComment.setText(comment.getText());
             comment = dbComment;
         }
-        return super.save(comment);
+        comment = super.save(comment);
+
+        sentMentionNotifications(comment);
+
+        return comment;
     }
 
     @Override
@@ -149,7 +154,11 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
             throw new ValidationException("id");
         }
         dbComment.setText(comment.getText());
-        return super.save(dbComment);
+        dbComment = super.save(dbComment);
+
+        sentMentionNotifications(comment);
+
+        return dbComment;
     }
 
     @Override
@@ -168,13 +177,51 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
             comment.setCreatedAt(new Date());
             comment.setCreator(currentUser);
         }
-        super.save(dbParentComment);
+        comment = super.save(dbParentComment);
+
+        sentMentionNotifications(comment);
+
         return comment;
     }
+
+    private void sentMentionNotifications(Comment comment) {
+        Content tempParent = comment.getParent();
+        while (!(tempParent instanceof Document)) {
+            tempParent = ((Comment) tempParent).getParent();
+        }
+
+        final Document document = (Document) tempParent;
+
+        List<User> userList = filterUserMentions(comment.getText());
+        userList.forEach(u -> {
+            subscriptionService.saveNotification(document.getId(), u.getId(), comment.getCreator().getId(), Subscription.Type.COMMENT);
+        });
+    }
+
+    private List<User> filterUserMentions(String text) {
+        List<User> userList = new ArrayList<>();
+
+        Pattern pattern = Pattern.compile("\\s@(.[^\\s]*)");
+        Matcher matcher = pattern.matcher(text);
+
+        while (matcher.find()) {
+            String userString = matcher.group(1);
+            if (userString.startsWith(" ")) {
+                continue;
+            }
+            User user = userService.findByUsername(userString);
+            if (user != null) {
+                userList.add(user);
+            }
+        }
+
+        return userList;
+    }
+
+
 
     @Override
     public CommentRepository getRepository() {
         return repository;
     }
-
 }
