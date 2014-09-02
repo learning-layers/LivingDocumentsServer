@@ -311,7 +311,7 @@ public class UserController {
                     OutputStream outputStream = response.getOutputStream();
                     IOUtils.copy(is, outputStream);
                 } else {
-                    String fileName = "Portrait_placeholder.pdf";
+                    String fileName = "Portrait_placeholder.png";
                     InputStream is = null;
                     try {
                         is = UserController.class.getResourceAsStream("/" + fileName);
