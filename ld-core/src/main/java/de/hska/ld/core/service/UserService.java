@@ -58,4 +58,6 @@ public interface UserService extends UserDetailsService, Service<User> {
     Page<User> getUsersDisabledPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
     User activateUser(Long userid);
+
+    List<User> getMentionSuggestions(String term);
 }

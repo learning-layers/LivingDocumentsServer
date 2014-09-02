@@ -239,6 +239,12 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     }
 
     @Override
+    public List<User> getMentionSuggestions(String term) {
+        List<User> userList = repository.findMentionSuggestions(term + "%");
+        return userList;
+    }
+
+    @Override
     public List<byte[]> getAvatars(String userIdsString) {
         List<byte[]> avatarList = new ArrayList<>();
         if (userIdsString != null) {
