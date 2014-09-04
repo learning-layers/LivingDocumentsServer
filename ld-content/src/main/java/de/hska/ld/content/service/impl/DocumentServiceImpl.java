@@ -33,6 +33,7 @@ import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.annotation.Logging;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -87,6 +88,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Logging("Save document auditing example")
     @Transactional
     public Document save(Document document) {
         if (document.getTitle() == null) {

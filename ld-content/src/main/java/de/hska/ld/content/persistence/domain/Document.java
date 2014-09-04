@@ -24,6 +24,7 @@ package de.hska.ld.content.persistence.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.hska.ld.core.persistence.domain.User;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
@@ -53,7 +54,6 @@ public class Document extends Content {
             inverseJoinColumns = {@JoinColumn(name = "discussion_id_inverse")})
     private List<Document> discussionList;
 
-
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ld_document_subscription",
             joinColumns = {@JoinColumn(name = "document_id")},
@@ -65,6 +65,12 @@ public class Document extends Content {
             joinColumns = {@JoinColumn(name = "document_id")},
             inverseJoinColumns = {@JoinColumn(name = "hyperlink_id")})
     private List<Hyperlink> hyperlinkList;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "ld_document_expert",
+            joinColumns = {@JoinColumn(name = "document_id")},
+            inverseJoinColumns = {@JoinColumn(name = "user_id")})
+    private List<User> expertList;
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
@@ -125,6 +131,17 @@ public class Document extends Content {
             hyperlinkList = new ArrayList<>();
         }
         return hyperlinkList;
+    }
+
+    public List<User> getExpertList() {
+        if (expertList == null) {
+            expertList = new ArrayList<>();
+        }
+        return expertList;
+    }
+
+    public void setExpertList(List<User> expertList) {
+        this.expertList = expertList;
     }
 
     public void setHyperlinkList(List<Hyperlink> hyperlinkList) {
