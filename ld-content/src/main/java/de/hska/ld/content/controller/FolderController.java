@@ -69,7 +69,7 @@ public class FolderController {
         // Include jsonParentId
         //FolderDto folderDto = new FolderDto(folder);
         if (newSubFolder != null) {
-            return new ResponseEntity<>(newSubFolder, HttpStatus.CREATED);
+            return new ResponseEntity<>(HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

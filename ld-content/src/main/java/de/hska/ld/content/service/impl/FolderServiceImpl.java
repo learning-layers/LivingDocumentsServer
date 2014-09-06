@@ -346,11 +346,10 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     }
 
     @Override
-    @Transactional
     public List<Folder> getSubFoldersByFolderId(Long folderId) {
-        Folder folder = findById(folderId);
-        folder.getFolderList().size();
-        return folder.getFolderList();
+        //Folder folder = findById(folderId);
+        //folder.getFolderList().size();
+        return repository.getSubFoldersByFolderId(folderId);
     }
 
     public Folder shareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {
