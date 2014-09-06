@@ -345,6 +345,14 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         return repository.findCreatorRootFolders(user.getId());
     }
 
+    @Override
+    @Transactional
+    public List<Folder> getSubFoldersByFolderId(Long folderId) {
+        Folder folder = findById(folderId);
+        folder.getFolderList().size();
+        return folder.getFolderList();
+    }
+
     public Folder shareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
         if (checkPermissionResult(folder, Access.Permission.WRITE)) {

@@ -38,4 +38,6 @@ public interface FolderService extends ContentService<Folder> {
     List<Folder> findFoldersByParentCreatorId(Long childFolderId, Long creatorId);
 
     List<Folder> getFoldersByUser(User user);
+
+    List<Folder> getSubFoldersByFolderId(Long folderId);
 }
