@@ -202,7 +202,7 @@ public class FolderController {
     }
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/folders")
+    @RequestMapping(method = RequestMethod.GET, value = "/list")
     public ResponseEntity<List<Folder>> getFolderList() {
         List<Folder> rootFolderList = folderService.getFoldersByUser(Core.currentUser());
         if (rootFolderList != null) {
