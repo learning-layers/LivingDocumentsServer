@@ -214,6 +214,18 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void testRootFolderRetrieval() {
+        Folder rootFolder1 = folderService.createFolder("rootFolder1");
+        Folder rootFolder2 = folderService.createFolder("rootFolder2");
+
+        List<Folder> rootFolderList = folderService.getFoldersByUser(testUser);
+        Assert.assertNotNull(rootFolderList);
+        Assert.assertTrue(rootFolderList.size() >= 2);
+        Assert.assertTrue(rootFolderList.contains(rootFolder1));
+        Assert.assertTrue(rootFolderList.contains(rootFolder2));
+    }
+
+    @Test
     @Transactional
     public void testFolderMovingAccessPropagation() {
         // 1. Create parent folder

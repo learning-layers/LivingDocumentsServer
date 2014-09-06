@@ -201,6 +201,17 @@ public class FolderController {
         }
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/folders")
+    public ResponseEntity<List<Folder>> getFolderList() {
+        List<Folder> rootFolderList = folderService.getFoldersByUser(Core.currentUser());
+        if (rootFolderList != null) {
+            return new ResponseEntity<>(rootFolderList, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
     private Access.Permission[] parseAccessPermissions(String permissionString) {
         Access.Permission[] permissionArray = null;
         try {
