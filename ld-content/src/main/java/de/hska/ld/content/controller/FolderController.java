@@ -65,10 +65,14 @@ public class FolderController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{parentId}/folders")
     public ResponseEntity<Folder> createSubFolder(@PathVariable Long parentId, @RequestBody Folder folder) {
-        folder = folderService.createFolder(folder.getName(), parentId);
+        Folder newSubFolder = folderService.createFolder(folder.getName(), parentId);
         // Include jsonParentId
-        FolderDto folderDto = new FolderDto(folder);
-        return new ResponseEntity<>(folderDto, HttpStatus.CREATED);
+        //FolderDto folderDto = new FolderDto(folder);
+        if (newSubFolder != null) {
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -196,6 +200,28 @@ public class FolderController {
         Folder folder = folderService.revokeShareFolder(folderId, userList, permissionArray);
         if (folder != null) {
             return new ResponseEntity<>(folder, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/list")
+    public ResponseEntity<List<Folder>> getFolderList() {
+        List<Folder> rootFolderList = folderService.getFoldersByUser(Core.currentUser());
+        if (rootFolderList != null) {
+            return new ResponseEntity<>(rootFolderList, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "{folderId}/folders/list")
+    public ResponseEntity<List<Folder>> getSubFolderList(@PathVariable Long folderId) {
+        List<Folder> subFolderList = folderService.getSubFoldersByFolderId(folderId);
+        if (subFolderList != null) {
+            return new ResponseEntity<>(subFolderList, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
