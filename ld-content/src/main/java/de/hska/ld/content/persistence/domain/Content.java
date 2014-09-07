@@ -191,4 +191,17 @@ public abstract class Content {
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
     }
+
+    @Override
+    public String toString() {
+        return "Content{" +
+                "id=" + id +
+                ", version=" + version +
+                ", createdAt=" + createdAt +
+                ", modifiedAt=" + modifiedAt +
+                ", creator=" + creator +
+                ", accessAll=" + accessAll +
+                ", deleted=" + deleted +
+                '}';
+    }
 }

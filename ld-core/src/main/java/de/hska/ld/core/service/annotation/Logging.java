@@ -11,5 +11,5 @@ public @interface Logging {
 
     String[] value() default "";
 
-    Class referenceClass() default Void.class;
+    Class[] references() default Void.class;
 }
