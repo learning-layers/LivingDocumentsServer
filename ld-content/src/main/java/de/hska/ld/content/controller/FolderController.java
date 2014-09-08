@@ -64,12 +64,12 @@ public class FolderController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{parentId}/folders")
-    public ResponseEntity<Folder> createSubFolder(@PathVariable Long parentId, @RequestBody Folder folder) {
+    public ResponseEntity<FolderDto> createSubFolder(@PathVariable Long parentId, @RequestBody Folder folder) {
         Folder newSubFolder = folderService.createFolder(folder.getName(), parentId);
-        // Include jsonParentId
-        //FolderDto folderDto = new FolderDto(folder);
         if (newSubFolder != null) {
-            return new ResponseEntity<>(HttpStatus.CREATED);
+            // Include jsonParentId
+            FolderDto folderDto = new FolderDto(newSubFolder);
+            return new ResponseEntity<>(folderDto, HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -219,9 +219,9 @@ public class FolderController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "{folderId}/folders/list")
     public ResponseEntity<List<Folder>> getSubFolderList(@PathVariable Long folderId) {
-        List<Folder> subFolderList = folderService.getSubFoldersByFolderId(folderId);
-        if (subFolderList != null) {
-            return new ResponseEntity<>(subFolderList, HttpStatus.OK);
+        Folder folder = folderService.loadSubFolderList(folderId);
+        if (folder != null) {
+            return new ResponseEntity<>(folder.getFolderList(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
