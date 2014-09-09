@@ -40,4 +40,6 @@ public interface FolderService extends ContentService<Folder> {
     List<Folder> getFoldersByUser(User user);
 
     List<Folder> getSubFoldersByFolderId(Long folderId);
+
+    Folder loadSubDocumentList(Long folderId);
 }

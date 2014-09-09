@@ -2,6 +2,7 @@ package de.hska.ld.content.controller;
 
 import de.hska.ld.content.dto.FolderDto;
 import de.hska.ld.content.persistence.domain.Access;
+import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Folder;
 import de.hska.ld.content.service.FolderService;
 import de.hska.ld.content.util.Content;
@@ -226,6 +227,17 @@ public class FolderController {
         Folder folder = folderService.loadSubFolderList(folderId);
         if (folder != null) {
             return new ResponseEntity<>(folder.getFolderList(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "{folderId}/documents/list")
+    public ResponseEntity<List<Document>> getSubDocumentList(@PathVariable Long folderId) {
+        Folder folder = folderService.loadSubDocumentList(folderId);
+        if (folder != null) {
+            return new ResponseEntity<>(folder.getDocumentList(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
