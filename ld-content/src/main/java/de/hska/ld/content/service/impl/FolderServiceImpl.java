@@ -256,6 +256,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         Folder folder = findById(folderId);
         // TODO add permission check
         //checkPermission(folder, Access.Permission.READ);
+        if (folder == null) {
+            throw new NotFoundException("folderId");
+        }
         folder.getFolderList().size();
         return folder;
     }
@@ -356,6 +359,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     @Transactional
     public Folder loadSubDocumentList(Long folderId) {
         Folder folder = findById(folderId);
+        if (folder == null) {
+            throw new NotFoundException("folderId");
+        }
         // TODO add permission check
         //checkPermission(folder, Access.Permission.READ);
         folder.getDocumentList().size();
