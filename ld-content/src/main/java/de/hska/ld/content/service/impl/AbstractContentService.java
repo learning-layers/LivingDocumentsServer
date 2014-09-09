@@ -153,12 +153,10 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
     @Transactional
     @SuppressWarnings("unchecked")
     public <I> List<I> filterDeletedListItems(List tList, Class<I> clazz) {
-        if (Content.class.isAssignableFrom(clazz)) {
-            if (tList.size() > 0) {
-                List<I> cList = tList;
-                List<I> filteredCList = cList.stream().filter(cItem -> !((Content) cItem).isDeleted()).collect(Collectors.toList());
-                return filteredCList;
-            }
+        if (Content.class.isAssignableFrom(clazz) && tList.size() > 0) {
+            List<I> cList = tList;
+            List<I> filteredCList = cList.stream().filter(cItem -> !((Content) cItem).isDeleted()).collect(Collectors.toList());
+            return filteredCList;
         }
         return new ArrayList<I>(tList);
     }

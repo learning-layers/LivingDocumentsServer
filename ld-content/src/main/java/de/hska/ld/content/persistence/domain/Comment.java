@@ -89,10 +89,8 @@ public class Comment extends Content {
     }
 
     public void setSubcommentlength(int size) {
-        return;
     }
 
     public void setLikeslength(int size) {
-        return;
     }
 }
