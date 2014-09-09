@@ -62,10 +62,8 @@ public class Tag extends Content {
 
         Tag tag = (Tag) o;
 
-        if (description != null ? !description.equals(tag.description) : tag.description != null) return false;
-        if (name != null ? !name.equals(tag.name) : tag.name != null) return false;
-
-        return true;
+        return !(description != null ? !description.equals(tag.description) : tag.description != null) &&
+                !(name != null ? !name.equals(tag.name) : tag.name != null);
     }
 
     @Override

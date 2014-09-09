@@ -52,6 +52,7 @@ public class InfoController {
             info = new Info(infoProp.getProperty("info.title") + sandbox, infoProp.getProperty("info.version"),
                     infoProp.getProperty("info.organization"));
         } catch (IOException exception) {
+            //
         }
     }
 

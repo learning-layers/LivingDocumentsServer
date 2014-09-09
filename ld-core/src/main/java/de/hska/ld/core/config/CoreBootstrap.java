@@ -55,14 +55,6 @@ public class CoreBootstrap {
         }
     }
 
-    /**
-     * Creates a new bootstrap user.
-     *
-     * @param username the username
-     * @param fullName the full name
-     * @param roles    the user roles
-     * @return
-     */
     public User getUser(String username, String fullName, Role... roles) {
         User user = new User();
         user.setUsername(username);

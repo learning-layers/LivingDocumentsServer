@@ -95,9 +95,7 @@ public class Folder extends Content {
 
         Folder folder = (Folder) o;
 
-        if (sharingFolder != folder.sharingFolder) return false;
-
-        return true;
+        return sharingFolder == folder.sharingFolder;
     }
 
     @Override

@@ -58,9 +58,8 @@ public class FolderController {
      * </pre>
      *
      * @param parentId The id of the parent folder
-     * @param folder A folder object containing the folder name. Example:<br>
-     *               {name: "&lt;folderName&gt;}
-     *
+     * @param folder   A folder object containing the folder name. Example:<br>
+     *                 {name: "&lt;folderName&gt;}
      * @return <b>200 OK</b> with the generated folder<br>
      */
     @Secured(Core.ROLE_USER)
@@ -78,7 +77,7 @@ public class FolderController {
 
     /**
      * This resource allows it to update a folder.
-     *
+     * <p>
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
@@ -86,9 +85,8 @@ public class FolderController {
      * </pre>
      *
      * @param folderId The id of the folder.
-     * @param folder A folder object containing the folder name. Example:<br>
-     *               {name: "&lt;folderName&gt;}
-     *
+     * @param folder   A folder object containing the folder name. Example:<br>
+     *                 {name: "&lt;folderName&gt;}
      * @return <b>200 OK</b> with the renamed or updated folder<br>
      */
     @Secured(Core.ROLE_USER)
@@ -102,7 +100,7 @@ public class FolderController {
 
     /**
      * This resource allows it to move a document to a specific folder.
-     *
+     * <p>
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
@@ -110,9 +108,8 @@ public class FolderController {
      * </pre>
      *
      * @param parentFolderIdString The current parent folder or -1 if no parent folder is set.
-     * @param newParentFolderId The folder id of the folder the document should be added to.
-     * @param documentId The id of the document that shall be placed into the folder.
-     *
+     * @param newParentFolderId    The folder id of the folder the document should be added to.
+     * @param documentId           The id of the document that shall be placed into the folder.
      * @return <b>200 OK</b> with the renamed or updated folder<br>
      */
     @Secured(Core.ROLE_USER)
@@ -120,7 +117,7 @@ public class FolderController {
     public ResponseEntity<Folder> moveDocumentToFolder(@PathVariable Long newParentFolderId, @PathVariable Long documentId,
                                                        @RequestParam(value = "old-parent", defaultValue = "") String parentFolderIdString) {
         // TODO check if the document has been moved
-        Long parentFolderId = null;
+        Long parentFolderId;
         if (!"".equals(parentFolderIdString)) {
             try {
                 parentFolderId = Long.parseLong(parentFolderIdString);
@@ -141,21 +138,20 @@ public class FolderController {
 
     /**
      * This resource allows it to share a folder.
-     *
+     * <p>
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> PUT /api/folders/{folderId}/share?users=1;2;3;4&permissions=READ,WRITE
      * </pre>
      *
-     * @param folderId The folder id of the folder the document should be added to.
-     * @param usersString The string that contains the user ids of the users this folder shall be shared with.<br>
-     *                    Example:<br>
-     *                    usersString: 1;2;3;4
+     * @param folderId         The folder id of the folder the document should be added to.
+     * @param usersString      The string that contains the user ids of the users this folder shall be shared with.<br>
+     *                         Example:<br>
+     *                         usersString: 1;2;3;4
      * @param permissionString The string containing the permissions to set on the folder.<br>
      *                         Example:<br>
      *                         permissionString: READ;WRITE
-     *
      * @return <b>200 OK</b> with the renamed or updated folder<br>
      */
     @Secured(Core.ROLE_USER)
@@ -177,21 +173,20 @@ public class FolderController {
 
     /**
      * This resource allows it to revoke the sharing of a folder.
-     *
+     * <p>
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
      *     <b>Path:</b> PUT /api/folders/{folderId}/share/revoke?users=1;2;3;4&permissions=READ,WRITE
      * </pre>
      *
-     * @param folderId The folder id of the folder the document should be added to.
-     * @param usersString The string that contains the user ids of the users this folder shall be shared with.<br>
-     *                    Example:<br>
-     *                    usersString: 1;2;3;4
+     * @param folderId         The folder id of the folder the document should be added to.
+     * @param usersString      The string that contains the user ids of the users this folder shall be shared with.<br>
+     *                         Example:<br>
+     *                         usersString: 1;2;3;4
      * @param permissionString The string containing the permissions to set on the folder.<br>
      *                         Example:<br>
      *                         permissionString: READ;WRITE
-     *
      * @return <b>200 OK</b> with the renamed or updated folder<br>
      */
     @Secured(Core.ROLE_USER)
@@ -244,7 +239,7 @@ public class FolderController {
     }
 
     private Access.Permission[] parseAccessPermissions(String permissionString) {
-        Access.Permission[] permissionArray = null;
+        Access.Permission[] permissionArray;
         try {
             String[] permissionStringArray = permissionString.split(";");
             permissionArray = new Access.Permission[permissionStringArray.length];
@@ -260,7 +255,7 @@ public class FolderController {
     }
 
     private List<User> parseUserIdString(String usersString) {
-        List<User> userList = null;
+        List<User> userList;
         try {
             String[] userIdStringArray = usersString.split(";");
             List<String> userIdList = Arrays.asList(userIdStringArray);

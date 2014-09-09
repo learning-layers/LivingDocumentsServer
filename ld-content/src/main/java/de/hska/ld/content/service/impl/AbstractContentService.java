@@ -70,7 +70,6 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
     public T loadContentCollection(T t, Class... clazzArray) {
         t = findById(t.getId());
         for (Class clazz : clazzArray) {
-            List<Content> contentTempList = new ArrayList<>();
             if (Tag.class.equals(clazz)) {
                 t.getTagList().size();
                 t.setTagList(filterDeletedListItems(t.getTagList(), Tag.class));

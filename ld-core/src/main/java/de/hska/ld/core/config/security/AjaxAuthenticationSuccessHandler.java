@@ -24,11 +24,8 @@ package de.hska.ld.core.config.security;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
-import de.hska.ld.core.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 
@@ -42,9 +39,6 @@ public class AjaxAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
     private static final Logger LOGGER = LoggerFactory.getLogger(AjaxAuthenticationSuccessHandler.class);
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    @Autowired
-    private UserService userService;
-
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
@@ -56,7 +50,11 @@ public class AjaxAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
             LOGGER.error(e.getMessage());
         }
 
-        response.getWriter().write(userJson);
-        response.setStatus(HttpServletResponse.SC_OK);
+        if (userJson != null) {
+            response.getWriter().write(userJson);
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
     }
 }

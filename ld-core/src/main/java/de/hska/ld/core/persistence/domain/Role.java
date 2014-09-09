@@ -77,9 +77,7 @@ public class Role implements GrantedAuthority {
 
         Role role = (Role) o;
 
-        if (name != null ? !name.equals(role.name) : role.name != null) return false;
-
-        return true;
+        return !(name != null ? !name.equals(role.name) : role.name != null);
     }
 
     @Override

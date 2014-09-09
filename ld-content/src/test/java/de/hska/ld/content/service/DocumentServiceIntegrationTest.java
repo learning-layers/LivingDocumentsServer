@@ -206,7 +206,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
     public void testAddAndRemoveSubscription() {
         Document document = documentService.save(newDocument());
 
-        User user = userService.save(newUser());
+        userService.save(newUser());
         document = documentService.addSubscription(document.getId(), Subscription.Type.COMMENT, Subscription.Type.DISCUSSION);
 
         Assert.assertNotNull(document.getSubscriptionList());

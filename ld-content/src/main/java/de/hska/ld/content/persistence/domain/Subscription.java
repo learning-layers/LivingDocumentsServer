@@ -104,9 +104,7 @@ public class Subscription {
 
         Subscription that = (Subscription) o;
 
-        if (user != null ? !user.equals(that.user) : that.user != null) return false;
-
-        return true;
+        return !(user != null ? !user.equals(that.user) : that.user != null);
     }
 
     @Override

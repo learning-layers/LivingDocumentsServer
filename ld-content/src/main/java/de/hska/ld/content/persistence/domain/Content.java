@@ -182,9 +182,7 @@ public abstract class Content {
 
         Content content = (Content) o;
 
-        if (id != null ? !id.equals(content.id) : content.id != null) return false;
-
-        return true;
+        return !(id != null ? !id.equals(content.id) : content.id != null);
     }
 
     @Override

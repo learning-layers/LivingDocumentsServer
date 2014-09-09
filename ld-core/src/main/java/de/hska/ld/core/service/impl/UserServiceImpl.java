@@ -141,9 +141,8 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             throw new ValidationException("username");
         }
         List<Role> filteredRoleList = filterRolesFromClient(roleNames);
-        filteredRoleList.stream().filter(role -> !hasRole(user, role.getName())).forEach(role -> {
-            user.getRoleList().add(role);
-        });
+        filteredRoleList.stream().filter(role -> !hasRole(user, role.getName()))
+                .forEach(role -> user.getRoleList().add(role));
         return save(user);
     }
 
