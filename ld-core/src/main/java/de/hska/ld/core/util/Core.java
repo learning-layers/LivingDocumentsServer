@@ -35,6 +35,7 @@ public class Core {
     public static final String RESOURCE_USER = RESOURCE_API + "/users";
     public static final String RESOURCE_ROLE = RESOURCE_API + "/roles";
     public static final String RESOURCE_INFO = RESOURCE_API + "/info";
+    public static final String RESOURCE_LOG = RESOURCE_API + "/log";
 
     public static final String BOOTSTRAP_USER = "user";
     public static final String BOOTSTRAP_ADMIN = "admin";

@@ -1,5 +1,8 @@
 package de.hska.ld.core.persistence.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
 import java.util.Arrays;
 
@@ -26,6 +29,7 @@ public class LogEntry {
         this.action = action;
     }
 
+    @JsonIgnore
     public Class[] getReferences() {
         return references;
     }
@@ -40,6 +44,18 @@ public class LogEntry {
 
     public void setIds(Long[] ids) {
         this.ids = ids;
+    }
+
+    @JsonProperty
+    public String[] getRefs() {
+        String[] refs = new String[references.length];
+        for (int idx = 0; idx < references.length; idx++) {
+            refs[idx] = references[0].getSimpleName();
+        }
+        return refs;
+    }
+
+    public void setRefs(String[] refs) {
     }
 
     @Override
