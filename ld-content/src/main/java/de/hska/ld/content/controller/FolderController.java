@@ -120,10 +120,14 @@ public class FolderController {
                                                        @RequestParam(value = "old-parent", defaultValue = "") String parentFolderIdString) {
         // TODO check if the document has been moved
         Long parentFolderId = null;
-        try {
-            parentFolderId = Long.parseLong(parentFolderIdString);
-        } catch (Exception e) {
-            throw new ValidationException("parentFolderId");
+        if (!"".equals(parentFolderIdString)) {
+            try {
+                parentFolderId = Long.parseLong(parentFolderIdString);
+            } catch (Exception e) {
+                throw new ValidationException("parentFolderId");
+            }
+        } else {
+            parentFolderId = -1L;
         }
         Folder folder = folderService.moveDocumentToFolder(parentFolderId, newParentFolderId, documentId);
         FolderDto folderDto = new FolderDto(folder);

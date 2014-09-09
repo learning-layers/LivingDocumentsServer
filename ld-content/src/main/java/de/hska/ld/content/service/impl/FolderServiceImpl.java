@@ -131,7 +131,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     @Override
     @Transactional
     public Folder moveDocumentToFolder(Long parentFolderId, Long newParentFolderId, Long documentId) {
-        if (parentFolderId.equals(newParentFolderId)) {
+        if (parentFolderId != null && parentFolderId.equals(newParentFolderId)) {
             throw new ValidationException("id: new parent folder is the same as the old parent folder.");
         }
         Document document = documentService.findById(documentId);
