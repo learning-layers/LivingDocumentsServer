@@ -112,7 +112,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
 
         boolean exceptionOccured = false;
         try {
-            ResponseEntity<Document> response3 = get().resource(URI).asUser().exec(Document.class);
+            get().resource(URI).asUser().exec(Document.class);
         } catch (HttpClientErrorException e) {
             Assert.assertTrue(e.toString().contains("404 Not Found"));
             exceptionOccured = true;

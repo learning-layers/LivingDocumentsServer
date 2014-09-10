@@ -20,18 +20,22 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.service.annotation;
+package de.hska.ld.core.service.impl;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import de.hska.ld.core.persistence.domain.LogEntry;
+import de.hska.ld.core.persistence.repository.LogEntryRepository;
+import de.hska.ld.core.service.LogEntryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface Logging {
+@Service
+public class LogEntryServiceImpl extends AbstractService<LogEntry> implements LogEntryService {
 
-    String[] value() default "";
+    @Autowired
+    private LogEntryRepository repository;
 
-    Class[] references() default Void.class;
+    @Override
+    public LogEntryRepository getRepository() {
+        return repository;
+    }
 }

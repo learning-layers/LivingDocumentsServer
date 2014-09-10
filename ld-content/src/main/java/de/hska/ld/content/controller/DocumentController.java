@@ -109,9 +109,9 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/discussions")
     public ResponseEntity<Page<Document>> getDiscussionsPage(@PathVariable Long documentId,
                                                              @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
-                                                           @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
-                                                           @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                           @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+                                                             @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                             @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                             @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
         Page<Document> documentsPage = documentService.getDiscussionDocumentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
         if (documentsPage != null) {
             return new ResponseEntity<>(documentsPage, HttpStatus.OK);
@@ -149,14 +149,13 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId the document id of the document one wants to append the discussion to.
-     * @param document Contains title and optional description of the new document. Example:
-     *                 {title: 'New Document', description: '&lt;optional&gt;'}
-     *
+     * @param document   Contains title and optional description of the new document. Example:
+     *                   {title: 'New Document', description: '&lt;optional&gt;'}
      * @return <b>200 OK</b> with the generated discussion<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.POST, value="/{documentId}/discussion")
+    @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/discussion")
     public ResponseEntity<Document> createDiscussion(@PathVariable Long documentId, @RequestBody Document document) {
         document = documentService.addDiscussionToDocument(documentId, document);
         return new ResponseEntity<>(document, HttpStatus.CREATED);
@@ -171,9 +170,9 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId the document id of the document which shall be updated
-     * @param document Contains title and optional description of the new document. Example:
-     *                 {title: 'New Document', description: '&lt;optional&gt;'}
-     * @param cmd default=all, describes which section of a document shall be updated
+     * @param document   Contains title and optional description of the new document. Example:
+     *                   {title: 'New Document', description: '&lt;optional&gt;'}
+     * @param cmd        default=all, describes which section of a document shall be updated
      * @return the updated document
      */
     @Secured(Core.ROLE_USER)
@@ -183,21 +182,25 @@ public class DocumentController {
         if (dbDocument.isDeleted()) {
             throw new NotFoundException("id");
         }
-        if ("title".equals(cmd)) {
-            if (document.getTitle() == null || "".equals(document.getTitle())) {
-                throw new ValidationException("title");
-            }
-            dbDocument.setTitle(document.getTitle());
-        } else if ("description".equals(cmd)) {
-            if (document.getDescription() == null || "".equals(document.getDescription())) {
-                throw new ValidationException("description");
-            }
-            dbDocument.setDescription(document.getDescription());
-        } else if ("all".equals(cmd)) {
-            dbDocument.setTitle(document.getTitle());
-            dbDocument.setDescription(document.getDescription());
-        } else {
-            throw new ValidationException("command");
+        switch (cmd) {
+            case "title":
+                if (document.getTitle() == null || "".equals(document.getTitle())) {
+                    throw new ValidationException("title");
+                }
+                dbDocument.setTitle(document.getTitle());
+                break;
+            case "description":
+                if (document.getDescription() == null || "".equals(document.getDescription())) {
+                    throw new ValidationException("description");
+                }
+                dbDocument.setDescription(document.getDescription());
+                break;
+            case "all":
+                dbDocument.setTitle(document.getTitle());
+                dbDocument.setDescription(document.getDescription());
+                break;
+            default:
+                throw new ValidationException("command");
         }
         dbDocument = documentService.save(dbDocument);
         return new ResponseEntity<>(dbDocument, HttpStatus.OK);
@@ -280,8 +283,8 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId The document id one wants to append the comment to.
-     * @param comment The comment one want to append to a document. Example: <br>
-     *                {text: '&lt;comment text&gt;'}
+     * @param comment    The comment one want to append to a document. Example: <br>
+     *                   {text: '&lt;comment text&gt;'}
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
@@ -301,7 +304,7 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId The document id of the document one want to add the tag to.
-     * @param tagId the tag id of the tag one wants to add to the document.
+     * @param tagId      the tag id of the tag one wants to add to the document.
      * @return <b>200 OK</b> with the generated document<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
@@ -321,7 +324,7 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId The document id of the document one want to remove the tag from.
-     * @param tagId the tag id of the tag one wants to remove.
+     * @param tagId      the tag id of the tag one wants to remove.
      * @return <b>200 OK</b> if successful.
      */
     @Secured(Core.ROLE_USER)
@@ -340,8 +343,8 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId the document id one wants to a hyperlink to.
-     * @param hyperlink the hyperlink that shall be added to the document. Example: <br>
-     *                  {url:'&lt;url&gt;', description:'&lt;description&gt;'}
+     * @param hyperlink  the hyperlink that shall be added to the document. Example: <br>
+     *                   {url:'&lt;url&gt;', description:'&lt;description&gt;'}
      * @return <b>200 OK</b> if successful.
      */
     @Secured(Core.ROLE_USER)
@@ -363,13 +366,13 @@ public class DocumentController {
      * @return <b>200 OK</b> the requested tags page
      * <b>404 NOT FOUND</b> if there is no tag present
      */
-     @Secured(Core.ROLE_USER)
-     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags")
-     public ResponseEntity<Page<Tag>> getTagsPage(@PathVariable Long documentId,
-                                                  @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
-                                                  @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
-                                                  @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                  @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags")
+    public ResponseEntity<Page<Tag>> getTagsPage(@PathVariable Long documentId,
+                                                 @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                 @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                 @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                 @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
         Page<Tag> tagsPage = documentService.getDocumentTagsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
         if (tagsPage != null && tagsPage.getNumberOfElements() > 0) {
             return new ResponseEntity<>(tagsPage, HttpStatus.OK);
@@ -408,10 +411,9 @@ public class DocumentController {
      *     <b>Path:</b> POST /api/documents/upload/{attachmentId}
      * </pre>
      *
-     * @param file       the Multipart file that has been uploaded
-     * @param documentId the document ID to which the file shall be attached
+     * @param file         the Multipart file that has been uploaded
+     * @param documentId   the document ID to which the file shall be attached
      * @param attachmentId the attachment id of the attachment that shall be updated
-     *
      * @return <b>200 OK</b> if the upload has been successfully performed<br>
      * <b>400 BAD REQUEST</b> if empty file parameter<br>
      */
@@ -437,7 +439,6 @@ public class DocumentController {
      *
      * @param file       the Multipart file that has been uploaded
      * @param documentId the document ID to which the file shall be attached
-     *
      * @return <b>200 OK</b> if the upload has been successfully performed<br>
      * <b>400 BAD REQUEST</b> if empty file parameter<br>
      */
@@ -493,13 +494,13 @@ public class DocumentController {
      *     <b>Path</b> GET /api/documents/{documentId}/download/{attachmentId}
      * </pre>
      *
-     * @param documentId the ID of the document that contains the needed attachment
+     * @param documentId   the ID of the document that contains the needed attachment
      * @param attachmentId the attachment id of the attachment that shall be retrieved
-     * @param response   <b>FILE DOWNLOAD INITIATED</b> if the attachment could be found, and the download is starting<br>
-     *                   <b>400 BAD REQUEST</b><br>
-     *                   <b>403 FORBIDDEN</b> if the access to this attachment has been denied<br>
-     *                   <b>404 NOT FOUND</b> if no attachment has been found for the given document ID or attachment position<br>
-     *                   <b>500 Internal Server Error</b> if there occurred any other server side issue
+     * @param response     <b>FILE DOWNLOAD INITIATED</b> if the attachment could be found, and the download is starting<br>
+     *                     <b>400 BAD REQUEST</b><br>
+     *                     <b>403 FORBIDDEN</b> if the access to this attachment has been denied<br>
+     *                     <b>404 NOT FOUND</b> if no attachment has been found for the given document ID or attachment position<br>
+     *                     <b>500 Internal Server Error</b> if there occurred any other server side issue
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/download/{attachmentId}")
@@ -524,7 +525,7 @@ public class DocumentController {
      *     <b>Path:</b> GET /api/documents/{documentId}/attachment?attachment-types=image/png&amp;page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt
      * </pre>
      *
-     * @param documentId the document id of the document the tag shall be fetched for.
+     * @param documentId      the document id of the document the tag shall be fetched for.
      * @param attachmentTypes the mime types of the attachments that shall be retrieved.
      * @return <b>200 OK</b> the requested tags page
      * <b>404 NOT FOUND</b> if there is no attachment with the given mime type present
@@ -532,13 +533,13 @@ public class DocumentController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/attachment")
     public ResponseEntity<Page<Attachment>> getDocumentAttachmentPage(
-                                                           @PathVariable Long documentId,
-                                                           @RequestParam(value = "attachment-types", defaultValue = "all") String attachmentTypes,
-                                                           @RequestParam(value = "excluded-attachment-types", defaultValue = "") String excludedAttachmentTypes,
-                                                           @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
-                                                           @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
-                                                           @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                           @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+            @PathVariable Long documentId,
+            @RequestParam(value = "attachment-types", defaultValue = "all") String attachmentTypes,
+            @RequestParam(value = "excluded-attachment-types", defaultValue = "") String excludedAttachmentTypes,
+            @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+            @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+            @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
         Page<Attachment> attachmentPage = documentService.getDocumentAttachmentPage(documentId, attachmentTypes, excludedAttachmentTypes, pageNumber, pageSize, sortDirection, sortProperty);
         if (attachmentPage != null) {
             return new ResponseEntity<>(attachmentPage, HttpStatus.OK);

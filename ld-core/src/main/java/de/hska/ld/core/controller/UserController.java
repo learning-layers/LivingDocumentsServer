@@ -378,7 +378,7 @@ public class UserController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/suggestions")
     public ResponseEntity<List<User>> getMentionSuggestions(@RequestParam String term) {
-        if (term != "" || term.contains("%")) {
+        if (!"".equals(term) || term.contains("%")) {
             List<User> userSuggestionList = userService.getMentionSuggestions(term);
             return new ResponseEntity<>(userSuggestionList, HttpStatus.OK);
         } else {

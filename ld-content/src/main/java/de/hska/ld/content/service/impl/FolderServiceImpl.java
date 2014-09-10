@@ -144,7 +144,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
             throw new ValidationException("The new parent folder with id=" + newParentFolderId + " does not exist.");
         }
 
-        if (parentFolderId != -1) {
+        if (parentFolderId != null && parentFolderId != -1) {
             Folder parentFolder = findById(parentFolderId);
             if (parentFolder == null) {
                 throw new ValidationException("The old parent folder with id=" + parentFolderId + " does not exist.");
@@ -283,7 +283,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     public Folder getSharedItemsFolder(Long userId) {
         User user = userService.findById(userId);
         List<Folder> folders = repository.findByCreatorAndSharingFolderTrue(user);
-        Folder sharedFolder = null;
+        Folder sharedFolder;
         if (folders != null && folders.size() > 0) {
             sharedFolder = folders.get(0);
         } else {

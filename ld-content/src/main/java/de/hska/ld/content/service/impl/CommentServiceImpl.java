@@ -193,9 +193,8 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         final Document document = (Document) tempParent;
 
         List<User> userList = filterUserMentions(comment.getText());
-        userList.forEach(u -> {
-            subscriptionService.saveNotification(document.getId(), u.getId(), comment.getCreator().getId(), Subscription.Type.COMMENT);
-        });
+        userList.forEach(u -> subscriptionService.saveNotification(document.getId(), u.getId(),
+                comment.getCreator().getId(), Subscription.Type.COMMENT));
     }
 
     private List<User> filterUserMentions(String text) {
@@ -217,7 +216,6 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
 
         return userList;
     }
-
 
 
     @Override

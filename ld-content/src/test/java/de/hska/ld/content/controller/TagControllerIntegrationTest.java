@@ -28,7 +28,6 @@ import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
-import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,7 +61,7 @@ public class TagControllerIntegrationTest extends AbstractIntegrationTest {
     public void setUp() throws Exception {
         super.setUp();
         setAuthentication(testUser);
-        User user = userService.findByUsername("user");
+        userService.findByUsername("user");
         document = new Document();
         document.setTitle(TITLE);
         document.setDescription(DESCRIPTION);

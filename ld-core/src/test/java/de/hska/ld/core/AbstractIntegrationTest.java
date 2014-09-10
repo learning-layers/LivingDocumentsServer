@@ -60,8 +60,8 @@ import static de.hska.ld.core.fixture.CoreFixture.newUser;
 public abstract class AbstractIntegrationTest {
 
     private static final String BASE_URL = "http://localhost:9000";
-    private static final byte[] AUTH_USER = ("user" + ":pass").getBytes();
-    private static final byte[] AUTH_ADMIN = ("admin" + ":pass").getBytes();
+    private static final byte[] AUTH_USER = "user:pass".getBytes();
+    private static final byte[] AUTH_ADMIN = "admin:pass".getBytes();
 
     @Autowired
     private UserService userService;

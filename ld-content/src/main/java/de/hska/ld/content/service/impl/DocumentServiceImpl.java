@@ -377,7 +377,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         List<String> attachmentTypes = Arrays.asList(attachmentType.split(";"));
-        List<String> excludedAttachmentTypesList = null;
+        List<String> excludedAttachmentTypesList;
         if (!"".equals(excludedAttachmentTypes)) {
             excludedAttachmentTypesList = Arrays.asList(excludedAttachmentTypes.split(";"));
         } else {

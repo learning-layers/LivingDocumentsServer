@@ -20,18 +20,9 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.service.annotation;
+package de.hska.ld.core.service;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import de.hska.ld.core.persistence.domain.LogEntry;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface Logging {
-
-    String[] value() default "";
-
-    Class[] references() default Void.class;
+public interface LogEntryService extends Service<LogEntry> {
 }

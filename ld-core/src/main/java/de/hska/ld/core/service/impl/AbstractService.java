@@ -74,5 +74,5 @@ public abstract class AbstractService<T> implements Service<T> {
         return list;
     }
 
-    public abstract <T> CrudRepository<T, Long> getRepository();
+    public abstract <E> CrudRepository<E, Long> getRepository();
 }

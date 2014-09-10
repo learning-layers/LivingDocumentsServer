@@ -85,9 +85,7 @@ public class Access {
 
         Access access = (Access) o;
 
-        if (user != null ? !user.equals(access.user) : access.user != null) return false;
-
-        return true;
+        return !(user != null ? !user.equals(access.user) : access.user != null);
     }
 
     @Override
