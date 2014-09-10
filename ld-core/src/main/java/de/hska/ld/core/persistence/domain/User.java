@@ -81,6 +81,7 @@ public class User implements UserDetails {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "avatar")
+    @JsonIgnore
     private byte[] avatar;
 
     @ManyToMany(fetch = FetchType.EAGER)
