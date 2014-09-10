@@ -13,6 +13,10 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -366,6 +370,22 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         //checkPermission(folder, Access.Permission.READ);
         folder.getDocumentList().size();
         return folder;
+    }
+
+    @Override
+    public Page<Document> getSubDocumentsPage(Long folderId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Folder folder = findById(folderId);
+        if (folder == null) {
+            throw new NotFoundException();
+        }
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        return repository.getSubDocumentsPage(folderId, pageable);
     }
 
     public Folder shareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {

@@ -1,7 +1,10 @@
 package de.hska.ld.content.persistence.repository;
 
+import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Folder;
 import de.hska.ld.core.persistence.domain.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -23,4 +26,7 @@ public interface FolderRepository extends CrudRepository<Folder, Long> {
 
     @Query("SELECT f FROM Folder f WHERE f.parent.id = :folderId")
     List<Folder> getSubFoldersByFolderId(@Param("folderId") Long folderId);
+
+    @Query("SELECT dl FROM Folder f INNER JOIN f.documentList dl WHERE f.id = :folderId")
+    Page<Document> getSubDocumentsPage(@Param("folderId") Long folderId, Pageable pageable);
 }

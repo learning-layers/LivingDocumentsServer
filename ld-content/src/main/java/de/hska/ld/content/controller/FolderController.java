@@ -11,6 +11,7 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -240,6 +241,21 @@ public class FolderController {
             return new ResponseEntity<>(folder.getDocumentList(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "{folderId}/documents")
+    public ResponseEntity<Page<Document>> getSubDocumentsPage(@PathVariable Long folderId,
+                                                              @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                              @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                              @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                              @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        Page<Document> documentsPage = folderService.getSubDocumentsPage(folderId, pageNumber, pageSize, sortDirection, sortProperty);
+        if (documentsPage != null) {
+            return new ResponseEntity<>(documentsPage, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 

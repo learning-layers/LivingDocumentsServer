@@ -1,9 +1,11 @@
 package de.hska.ld.content.service;
 
 import de.hska.ld.content.persistence.domain.Access;
+import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Folder;
 import de.hska.ld.content.persistence.domain.UserGroup;
 import de.hska.ld.core.persistence.domain.User;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -42,4 +44,6 @@ public interface FolderService extends ContentService<Folder> {
     List<Folder> getSubFoldersByFolderId(Long folderId);
 
     Folder loadSubDocumentList(Long folderId);
+
+    Page<Document> getSubDocumentsPage(Long folderId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 }
