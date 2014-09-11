@@ -33,6 +33,7 @@ import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.service.annotation.Logging;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Autowired
     private SubscriptionService subscriptionService;
+
+    @Autowired
+    private UserService userService;
 
     private Comparator<Content> byDateTime = (c1, c2) -> {
         if (c1.getCreatedAt() == null) {
@@ -443,6 +447,34 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     @Override
     public Document saveContainsList(Document d) {
         return super.save(d);
+    }
+
+    @Override
+    public Document addAccess(Long documentId, String combinedUserIdString, String combinedPermissionString) {
+        Document document = findById(documentId);
+        String[] userIdStringArray = combinedUserIdString.split(";");
+        List<User> userList = new ArrayList<>();
+        for (String userIdString : userIdStringArray) {
+            Long userId = Long.valueOf(userIdString);
+            User user = userService.findById(userId);
+            userList.add(user);
+        }
+        String[] permissionStringArrray = combinedUserIdString.split(";");
+        List<Access.Permission> permissionList = new ArrayList<>();
+        for (String permissionString : permissionStringArrray) {
+            Access.Permission permission = Access.Permission.valueOf(permissionString);
+            permissionList.add(permission);
+        }
+        addAccess(documentId, userList, permissionList);
+        return document;
+    }
+
+    public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {
+        Document document = findById(documentId);
+        for (User user : userList) {
+            Access.Permission[] permissionArray = permissionList.toArray(new Access.Permission[permissionList.size()]);
+            addAccess(document.getId(), user, permissionArray);
+        }
     }
 
     @Transactional

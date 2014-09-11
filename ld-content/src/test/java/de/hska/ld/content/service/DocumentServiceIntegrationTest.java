@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.util.List;
@@ -292,5 +293,24 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         // retrieve notifications after the notification has been delivered
         notificationList = documentService.getNotifications();
         Assert.assertTrue(notificationList.size() == 0);
+    }
+
+    @Test
+    @Transactional
+    public void testAddDocumentAccessOneUser() {
+        Document document = documentService.save(newDocument());
+
+        User user = userService.findByUsername("user");
+        Access.Permission[] permissionArray = new Access.Permission[1];
+        permissionArray[0] = Access.Permission.READ;
+        documentService.addAccess(document.getId(), user, permissionArray);
+
+        boolean found = false;
+        for (Access access : document.getAccessList()) {
+            if (access.getUser().getId().equals(user.getId()) && access.getPermissionList().contains(Access.Permission.READ)) {
+                found = true;
+            }
+        }
+        Assert.assertTrue(found);
     }
 }

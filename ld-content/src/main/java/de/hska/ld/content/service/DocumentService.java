@@ -81,4 +81,6 @@ public interface DocumentService extends ContentService<Document> {
     void removeAttachment(Long documentId, Long attachmentId);
 
     Document saveContainsList(Document d);
+
+    Document addAccess(Long documentId, String userIds, String permissions);
 }

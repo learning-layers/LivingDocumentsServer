@@ -661,4 +661,11 @@ public class DocumentController {
         List<Notification> notificationList = documentService.getNotifications();
         return new ResponseEntity<>(notificationList, HttpStatus.OK);
     }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/share")
+    public ResponseEntity<List<Notification>> shareDocumentWithUser(@PathVariable Long documentId, @RequestParam String userIds, @RequestParam String permissions) {
+        documentService.addAccess(documentId, userIds, permissions);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }
