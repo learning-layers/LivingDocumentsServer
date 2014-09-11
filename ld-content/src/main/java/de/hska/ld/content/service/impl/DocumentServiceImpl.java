@@ -452,18 +452,28 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     @Override
     public Document addAccess(Long documentId, String combinedUserIdString, String combinedPermissionString) {
         Document document = findById(documentId);
-        String[] userIdStringArray = combinedUserIdString.split(";");
-        List<User> userList = new ArrayList<>();
-        for (String userIdString : userIdStringArray) {
-            Long userId = Long.valueOf(userIdString);
-            User user = userService.findById(userId);
-            userList.add(user);
+        List<User> userList;
+        try {
+            String[] userIdStringArray = combinedUserIdString.split(";");
+            userList = new ArrayList<>();
+            for (String userIdString : userIdStringArray) {
+                Long userId = Long.valueOf(userIdString);
+                User user = userService.findById(userId);
+                userList.add(user);
+            }
+        } catch (Exception e) {
+            throw new ValidationException("userIdString");
         }
-        String[] permissionStringArrray = combinedUserIdString.split(";");
-        List<Access.Permission> permissionList = new ArrayList<>();
-        for (String permissionString : permissionStringArrray) {
-            Access.Permission permission = Access.Permission.valueOf(permissionString);
-            permissionList.add(permission);
+        List<Access.Permission> permissionList;
+        try {
+            String[] permissionStringArray = combinedPermissionString.split(";");
+            permissionList = new ArrayList<>();
+            for (String permissionString : permissionStringArray) {
+                Access.Permission permission = Access.Permission.valueOf(permissionString);
+                permissionList.add(permission);
+            }
+        } catch (Exception e) {
+            throw new ValidationException("permissionString");
         }
         addAccess(documentId, userList, permissionList);
         return document;

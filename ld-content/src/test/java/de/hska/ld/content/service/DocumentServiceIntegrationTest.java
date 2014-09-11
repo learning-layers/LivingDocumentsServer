@@ -313,4 +313,33 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         }
         Assert.assertTrue(found);
     }
+
+    @Test
+    @Transactional
+    public void testAddDocumentAccessMultiplesUsers() {
+        Document document = documentService.save(newDocument());
+
+        User user = userService.findByUsername("user");
+        User user2 = userService.save(newUser());
+        String combinedUserIdString = user.getId().toString() + ";" + user2.getId().toString();
+        String combinedPermissionString = "READ;WRITE";
+        documentService.addAccess(document.getId(), combinedUserIdString, combinedPermissionString);
+
+        int count = 0;
+        for (Access access : document.getAccessList()) {
+            if (access.getUser().getId().equals(user.getId()) && access.getPermissionList().contains(Access.Permission.READ)) {
+                count++;
+            }
+            if (access.getUser().getId().equals(user.getId()) && access.getPermissionList().contains(Access.Permission.WRITE)) {
+                count++;
+            }
+            if (access.getUser().getId().equals(user2.getId()) && access.getPermissionList().contains(Access.Permission.READ)) {
+                count++;
+            }
+            if (access.getUser().getId().equals(user2.getId()) && access.getPermissionList().contains(Access.Permission.WRITE)) {
+                count++;
+            }
+        }
+        Assert.assertTrue(count == 4);
+    }
 }
