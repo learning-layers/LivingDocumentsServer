@@ -133,6 +133,25 @@ public class FolderController {
         return new ResponseEntity<>(folderDto, HttpStatus.OK);
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{newParentFolderId}/folders/{folderId}")
+    public ResponseEntity<Folder> moveFolderToFolder(@PathVariable Long newParentFolderId, @PathVariable Long folderId,
+                                                     @RequestParam(value = "old-parent", defaultValue = "") String parentFolderIdString) {
+        Long parentFolderId;
+        if (!"".equals(parentFolderIdString)) {
+            try {
+                parentFolderId = Long.parseLong(parentFolderIdString);
+            } catch (Exception e) {
+                throw new ValidationException("parentFolderId");
+            }
+        } else {
+            throw new ValidationException("parentFolderId");
+        }
+        Folder folder = folderService.moveFolderToFolder(parentFolderId, newParentFolderId, folderId);
+        FolderDto folderDto = new FolderDto(folder);
+        return new ResponseEntity<>(folderDto, HttpStatus.OK);
+    }
+
     /**
      * ================= Sharing methods ================= *
      */

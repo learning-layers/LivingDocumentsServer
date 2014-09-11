@@ -75,6 +75,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         }
 
         if (parentFolderId != -1) {
+            // the current parent folder is not the root node
             Folder parentFolder = findById(parentFolderId);
             if (parentFolder == null) {
                 throw new ValidationException("The old parent folder with id=" + parentFolderId + " does not exist.");
@@ -102,6 +103,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
             }
             save(parentFolder);
         } else {
+            // the current parent folder is the root node
             if (folder.getCreator() != Core.currentUser()
                     && newParentFolder.getCreator() != folder.getCreator()) {
                 // Move the document in the folder structure of the current user
@@ -139,6 +141,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
             throw new ValidationException("id: new parent folder is the same as the old parent folder.");
         }
         Document document = documentService.findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        }
         Folder newParentFolder = findById(newParentFolderId);
         if (newParentFolder == null) {
             throw new ValidationException("The new parent folder with id=" + newParentFolderId + " does not exist.");
