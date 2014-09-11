@@ -116,6 +116,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
                 folder.setAccessList(new ArrayList<>(accessList));
                 folder.setAccessAll(newParentFolder.isAccessAll());
                 newParentFolder.getFolderList().add(folder);
+                folder.setParent(newParentFolder);
                 propagateAccessSettings(folder.getFolderList(), folder.getDocumentList(), accessList);
             }
         }
