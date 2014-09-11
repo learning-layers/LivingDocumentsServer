@@ -663,7 +663,7 @@ public class DocumentController {
     }
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/share")
+    @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/share")
     public ResponseEntity<List<Notification>> shareDocumentWithUser(@PathVariable Long documentId, @RequestParam String userIds, @RequestParam String permissions) {
         documentService.addAccess(documentId, userIds, permissions);
         return new ResponseEntity<>(HttpStatus.OK);

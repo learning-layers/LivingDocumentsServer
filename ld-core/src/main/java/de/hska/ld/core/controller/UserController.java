@@ -23,6 +23,7 @@
 package de.hska.ld.core.controller;
 
 import de.hska.ld.core.dto.UserRoleDto;
+import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
@@ -385,5 +386,15 @@ public class UserController {
             List<User> userSuggestionList = userService.getMentionSuggestions(term);
             return new ResponseEntity<>(userSuggestionList, HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/username")
+    public ResponseEntity<User> getUserByUserName(@RequestParam String term) {
+        User user = userService.findByUsername(term);
+        if (user == null) {
+            throw new NotFoundException();
+        }
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 }
