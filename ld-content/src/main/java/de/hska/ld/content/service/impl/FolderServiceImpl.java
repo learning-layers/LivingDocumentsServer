@@ -69,20 +69,68 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
             throw new ValidationException("id: new parent folder is the same as the old parent folder.");
         }
         Folder folder = findById(folderId);
-        Folder newParentFolder = findById(newParentFolderId);
-        if (newParentFolder == null) {
-            throw new ValidationException("The new parent folder with id=" + newParentFolderId + " does not exist.");
+        Folder newParentFolder = null;
+        boolean isRootIsNewParentFolder = false;
+        if (newParentFolderId != -1) {
+            // not moved to the root folder
+            newParentFolder = findById(newParentFolderId);
+            if (newParentFolder == null) {
+                throw new ValidationException("The new parent folder with id=" + newParentFolderId + " does not exist.");
+            }
+        } else {
+            isRootIsNewParentFolder = true;
         }
 
         if (parentFolderId != -1) {
             // the current parent folder is not the root node
-            Folder parentFolder = findById(parentFolderId);
-            if (parentFolder == null) {
-                throw new ValidationException("The old parent folder with id=" + parentFolderId + " does not exist.");
+            moveFolderParentNotRoot(parentFolderId, folder, newParentFolder);
+        } else {
+            // the current parent folder is the root node
+            moveFolderParentRoot(folder, newParentFolder);
+        }
+        if (isRootIsNewParentFolder) {
+            return null;
+        } else {
+            return save(newParentFolder);
+        }
+    }
+
+    private void moveFolderParentRoot(Folder folder, Folder newParentFolder) {
+        if (newParentFolder != null) {
+            // new parent is not the root folder
+            if (folder.getCreator() != Core.currentUser()
+                    && newParentFolder.getCreator() != folder.getCreator()) {
+                // Move the document in the folder structure of the current user
+                // Add document to the new folder
+                newParentFolder.getFolderList().add(folder);
+            } else {
+                // Move the document in the folder structure of the creator
+                // Add document to the new folder
+                List<Access> accessList = newParentFolder.getAccessList();
+                folder.setAccessList(new ArrayList<>(accessList));
+                folder.setAccessAll(newParentFolder.isAccessAll());
+                newParentFolder.getFolderList().add(folder);
+                folder.setParent(newParentFolder);
+                propagateAccessSettings(folder.getFolderList(), folder.getDocumentList(), accessList);
             }
-            if (!parentFolder.getFolderList().contains(folder)) {
-                throw new ValidationException("Folder is currently not in the given parent folder with id=" + parentFolderId);
-            }
+        } else {
+            // set new parent folder to root
+            folder.setParent(null);
+            save(folder);
+        }
+    }
+
+    private void moveFolderParentNotRoot(Long parentFolderId, Folder folder, Folder newParentFolder) {
+        Folder parentFolder = findById(parentFolderId);
+        if (parentFolder == null) {
+            throw new ValidationException("The old parent folder with id=" + parentFolderId + " does not exist.");
+        }
+        if (!parentFolder.getFolderList().contains(folder)) {
+            throw new ValidationException("Folder is currently not in the given parent folder with id=" + parentFolderId);
+        }
+
+        if (newParentFolder != null) {
+            // new parent is not the root folder
             if (parentFolder.getCreator() != Core.currentUser()
                     && newParentFolder.getCreator() != parentFolder.getCreator()) {
                 // Move the document in the folder structure of the current user
@@ -101,26 +149,26 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
                 newParentFolder.getFolderList().add(folder);
                 propagateAccessSettings(folder.getFolderList(), folder.getDocumentList(), accessList);
             }
-            save(parentFolder);
         } else {
-            // the current parent folder is the root node
-            if (folder.getCreator() != Core.currentUser()
-                    && newParentFolder.getCreator() != folder.getCreator()) {
+            // new parent is the root folder
+            if (parentFolder.getCreator() != Core.currentUser()) {
                 // Move the document in the folder structure of the current user
-                // Add document to the new folder
-                newParentFolder.getFolderList().add(folder);
+                // Remove document from the current folder
+                parentFolder.getFolderList().remove(folder);
+                // set new parent folder to root
+                folder.setParent(null);
+                save(folder);
             } else {
                 // Move the document in the folder structure of the creator
-                // Add document to the new folder
-                List<Access> accessList = newParentFolder.getAccessList();
-                folder.setAccessList(new ArrayList<>(accessList));
-                folder.setAccessAll(newParentFolder.isAccessAll());
-                newParentFolder.getFolderList().add(folder);
-                folder.setParent(newParentFolder);
-                propagateAccessSettings(folder.getFolderList(), folder.getDocumentList(), accessList);
+                // Remove document from the current folder
+                parentFolder.getFolderList().remove(folder);
+                // set new parent folder to root
+                folder.setParent(null);
+                // TODO reset access settings
+                save(folder);
             }
         }
-        return save(newParentFolder);
+        save(parentFolder);
     }
 
     private void propagateAccessSettings(List<Folder> folderList, List<Document> documentList, List<Access> accessList) {
