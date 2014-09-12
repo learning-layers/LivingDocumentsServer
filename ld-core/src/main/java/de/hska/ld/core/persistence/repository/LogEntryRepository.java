@@ -23,7 +23,11 @@
 package de.hska.ld.core.persistence.repository;
 
 import de.hska.ld.core.persistence.domain.LogEntry;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 
 public interface LogEntryRepository extends CrudRepository<LogEntry, Long> {
+
+    Page<LogEntry> findAll(Pageable pageable);
 }
