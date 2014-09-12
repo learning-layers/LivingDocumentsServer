@@ -222,7 +222,8 @@ public class DocumentController {
     public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
         Document document = documentService.findById(documentId);
         documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class);
-        documentService.loadCurrentUserPermissions(document);
+        Access access = documentService.getCurrentUserPermissions(documentId, "all");
+        document.getAccessList().add(access);
         if (document.isDeleted()) {
             throw new NotFoundException("id");
         }

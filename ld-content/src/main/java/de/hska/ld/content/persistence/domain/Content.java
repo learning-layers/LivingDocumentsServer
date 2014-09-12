@@ -130,7 +130,6 @@ public abstract class Content {
         this.tagList = tagList;
     }
 
-    @JsonIgnore
     public List<Access> getAccessList() {
         if (accessList == null) {
             accessList = new ArrayList<>();
