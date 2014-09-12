@@ -381,11 +381,15 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         List<String> attachmentTypes = Arrays.asList(attachmentType.split(";"));
+        if (attachmentTypes.size() == 0) {
+            attachmentTypes.add("NoValue");
+        }
         List<String> excludedAttachmentTypesList;
         if (!"".equals(excludedAttachmentTypes)) {
             excludedAttachmentTypesList = Arrays.asList(excludedAttachmentTypes.split(";"));
         } else {
             excludedAttachmentTypesList = new ArrayList<>();
+            excludedAttachmentTypesList.add("NoValue");
         }
         if ("all".equals(attachmentType)) {
             return repository.findAttachmentsWithTypeExclusionForDocument(documentId, excludedAttachmentTypesList, pageable);
