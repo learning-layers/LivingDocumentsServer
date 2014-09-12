@@ -44,6 +44,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.List;
 
 /**
@@ -481,6 +483,10 @@ public class DocumentController {
             byte[] source = attachment.getSource();
             InputStream is = new ByteArrayInputStream(source);
             response.setContentType(attachment.getMimeType());
+            String fileName = URLEncoder.encode(attachment.getName(), "UTF-8");
+            fileName = URLDecoder.decode(fileName, "ISO8859_1");
+            //response.setContentType("application/x-msdownload");
+            response.setHeader("Content-disposition", "attachment; filename=" + fileName);
             OutputStream outputStream = response.getOutputStream();
             IOUtils.copy(is, outputStream);
         } catch (IOException e) {
@@ -512,6 +518,10 @@ public class DocumentController {
             byte[] source = attachment.getSource();
             InputStream is = new ByteArrayInputStream(source);
             response.setContentType(attachment.getMimeType());
+            String fileName = URLEncoder.encode(attachment.getName(), "UTF-8");
+            fileName = URLDecoder.decode(fileName, "ISO8859_1");
+            //response.setContentType("application/x-msdownload");
+            response.setHeader("Content-disposition", "attachment; filename=" + fileName);
             OutputStream outputStream = response.getOutputStream();
             IOUtils.copy(is, outputStream);
         } catch (IOException e) {
