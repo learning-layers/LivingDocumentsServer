@@ -479,6 +479,34 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return document;
     }
 
+    @Override
+    public List<User> getUsersByPermissions(Long documentId, String combinedPermissionString) {
+        Document document = findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        }
+        List<Access.Permission> permissionList = new ArrayList<>();
+        try {
+            String[] permissionStringArray = combinedPermissionString.split(";");
+            permissionList = new ArrayList<>();
+            for (String permissionString : permissionStringArray) {
+                Access.Permission permission = Access.Permission.valueOf(permissionString);
+                permissionList.add(permission);
+            }
+        } catch (Exception e) {
+            throw new ValidationException("permissionString");
+        }
+        List<User> resultUsers = new ArrayList<>();
+        for (Access access : document.getAccessList()) {
+            for (Access.Permission permission : permissionList) {
+                if (access.getPermissionList().contains(permission)) {
+                    resultUsers.add(access.getUser());
+                }
+            }
+        }
+        return resultUsers;
+    }
+
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {
         Document document = findById(documentId);
         for (User user : userList) {

@@ -29,6 +29,7 @@ import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
+import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -667,5 +668,12 @@ public class DocumentController {
     public ResponseEntity<List<Notification>> shareDocumentWithUser(@PathVariable Long documentId, @RequestParam String userIds, @RequestParam String permissions) {
         documentService.addAccess(documentId, userIds, permissions);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/users/permission")
+    public ResponseEntity<List<User>> getUsersByDocumentPermission(@PathVariable Long documentId, @RequestParam String permissions) {
+        List<User> userList = documentService.getUsersByPermissions(documentId, permissions);
+        return new ResponseEntity<>(userList, HttpStatus.OK);
     }
 }

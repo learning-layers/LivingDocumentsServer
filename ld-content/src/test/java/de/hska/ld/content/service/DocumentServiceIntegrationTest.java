@@ -342,4 +342,27 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         }
         Assert.assertTrue(count == 4);
     }
+
+    @Test
+    @Transactional
+    public void testGetUsersByDocumentPermission() {
+        Document document = documentService.save(newDocument());
+
+        User user = userService.findByUsername("user");
+        Access.Permission[] permissionArray = new Access.Permission[1];
+        permissionArray[0] = Access.Permission.READ;
+        document = documentService.addAccess(document.getId(), user, permissionArray);
+
+        boolean found = false;
+        for (Access access : document.getAccessList()) {
+            if (access.getUser().getId().equals(user.getId()) && access.getPermissionList().contains(Access.Permission.READ)) {
+                found = true;
+            }
+        }
+        Assert.assertTrue(found);
+
+        String combinedPermissionString = "READ";
+        List<User> userList = documentService.getUsersByPermissions(document.getId(), combinedPermissionString);
+        Assert.assertTrue(userList.size() == 1);
+    }
 }
