@@ -23,6 +23,10 @@
 package de.hska.ld.core.service;
 
 import de.hska.ld.core.persistence.domain.LogEntry;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 
 public interface LogEntryService extends Service<LogEntry> {
+
+    Page<LogEntry> findLogEntryPage(Integer pageNumber, Integer pageSize, Sort.Direction sortDirection, String sortProperty);
 }

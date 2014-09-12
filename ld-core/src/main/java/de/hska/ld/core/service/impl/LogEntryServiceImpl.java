@@ -26,6 +26,10 @@ import de.hska.ld.core.persistence.domain.LogEntry;
 import de.hska.ld.core.persistence.repository.LogEntryRepository;
 import de.hska.ld.core.service.LogEntryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,6 +37,12 @@ public class LogEntryServiceImpl extends AbstractService<LogEntry> implements Lo
 
     @Autowired
     private LogEntryRepository repository;
+
+    @Override
+    public Page<LogEntry> findLogEntryPage(Integer pageNumber, Integer pageSize, Sort.Direction sortDirection, String sortProperty) {
+        Pageable pageable = new PageRequest(pageNumber, pageSize, sortDirection, sortProperty);
+        return repository.findAll(pageable);
+    }
 
     @Override
     public LogEntryRepository getRepository() {

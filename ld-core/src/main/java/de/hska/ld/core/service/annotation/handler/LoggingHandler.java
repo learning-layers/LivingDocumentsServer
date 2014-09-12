@@ -25,6 +25,7 @@ package de.hska.ld.core.service.annotation.handler;
 import de.hska.ld.core.persistence.domain.LogEntry;
 import de.hska.ld.core.service.LogEntryService;
 import de.hska.ld.core.service.annotation.Logging;
+import de.hska.ld.core.util.Core;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Component;
 import javax.persistence.Entity;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Aspect
@@ -79,6 +81,8 @@ public class LoggingHandler {
 
         LogEntry logEntry = extractArgs(args, logging);
         logEntry.setAction(action);
+        logEntry.setUser(Core.currentUser());
+        logEntry.setDate(new Date());
 
         //logEntryService.save(logEntry);
 
