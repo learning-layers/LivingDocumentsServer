@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
 import java.util.Arrays;
+import java.util.Date;
 
 @Entity
 @Table(name = "log_entry")
@@ -20,6 +21,20 @@ public class LogEntry {
     private Class[] references;
 
     private Long[] ids;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    private Date date;
+
+    public Long[] getIds() {
+        return ids;
+    }
+
+    public void setIds(Long[] ids) {
+        this.ids = ids;
+    }
 
     public String getAction() {
         return action;
@@ -38,12 +53,28 @@ public class LogEntry {
         this.references = references;
     }
 
-    public Long[] getIds() {
-        return ids;
+    public User getUser() {
+        return user;
     }
 
-    public void setIds(Long[] ids) {
-        this.ids = ids;
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     @JsonProperty
