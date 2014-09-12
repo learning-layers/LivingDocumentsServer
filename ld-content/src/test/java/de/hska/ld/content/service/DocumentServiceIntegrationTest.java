@@ -362,7 +362,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(found);
 
         String combinedPermissionString = "READ";
-        List<User> userList = documentService.getUsersByPermissions(document.getId(), combinedPermissionString);
+        List<Access> userList = documentService.getUsersByPermissions(document.getId(), combinedPermissionString);
         Assert.assertTrue(userList.size() == 1);
     }
 }

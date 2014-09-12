@@ -480,12 +480,12 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    public List<User> getUsersByPermissions(Long documentId, String combinedPermissionString) {
+    public List<Access> getUsersByPermissions(Long documentId, String combinedPermissionString) {
         Document document = findById(documentId);
         if (document == null) {
             throw new NotFoundException("documentId");
         }
-        List<Access.Permission> permissionList = new ArrayList<>();
+        List<Access.Permission> permissionList;
         try {
             String[] permissionStringArray = combinedPermissionString.split(";");
             permissionList = new ArrayList<>();
@@ -496,15 +496,27 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         } catch (Exception e) {
             throw new ValidationException("permissionString");
         }
-        List<User> resultUsers = new ArrayList<>();
+        List<Access> resultUsers = createUserAccessDtoList(document, permissionList);
+        return resultUsers;
+    }
+
+    private List<Access> createUserAccessDtoList(Document document, List<Access.Permission> permissionList) {
+        List<Access> resultAccess = new ArrayList<>();
         for (Access access : document.getAccessList()) {
             for (Access.Permission permission : permissionList) {
-                if (access.getPermissionList().contains(permission)) {
-                    resultUsers.add(access.getUser());
+                if (access.getPermissionList().contains(permission) && !resultAccess.contains(access)) {
+                    resultAccess.add(access);
                 }
             }
         }
-        return resultUsers;
+        return resultAccess;
+    }
+
+    @Override
+    public Document loadCurrentUserPermissions(Document document) {
+        List<Access> access = repository.getCurrentUserPermissionsForDocument(document.getId(), Core.currentUser().getId());
+        document.setAccessList(access);
+        return document;
     }
 
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {

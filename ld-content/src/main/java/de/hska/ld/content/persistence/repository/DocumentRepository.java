@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.persistence.repository;
 
+import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
@@ -50,4 +51,7 @@ public interface DocumentRepository extends CrudRepository<Document, Long> {
 
     @Query("SELECT atl from Document d LEFT JOIN d.attachmentList atl WHERE d.id = :documentId AND atl.mimeType IN (:mimeTypes) AND atl.mimeType NOT IN (:excludedMimeTypes) AND (atl.deleted = false OR atl.deleted IS NULL)")
     Page<Attachment> findAttachmentsByTypeWithExclusionForDocument(@Param("documentId") Long documentId, @Param("mimeTypes") List<String> attachmentTypes, @Param("excludedMimeTypes") List<String> excludedAttachmentTypesList, Pageable pageable);
+
+    @Query("SELECT acc from Document d LEFT JOIN d.accessList acc WHERE d.id = :documentId AND acc.user.id = :userId")
+    List<Access> getCurrentUserPermissionsForDocument(@Param("documentId") Long documentId, @Param("userId") Long userId);
 }

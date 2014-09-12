@@ -29,7 +29,6 @@ import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
-import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -223,6 +222,7 @@ public class DocumentController {
     public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
         Document document = documentService.findById(documentId);
         documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class);
+        documentService.loadCurrentUserPermissions(document);
         if (document.isDeleted()) {
             throw new NotFoundException("id");
         }
@@ -672,8 +672,11 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/users/permission")
-    public ResponseEntity<List<User>> getUsersByDocumentPermission(@PathVariable Long documentId, @RequestParam String permissions) {
-        List<User> userList = documentService.getUsersByPermissions(documentId, permissions);
+    public ResponseEntity<List<Access>> getUsersByDocumentPermission(@PathVariable Long documentId, @RequestParam String permissions) {
+        if ("all".equals(permissions)) {
+            permissions = "WRITE;READ";
+        }
+        List<Access> userList = documentService.getUsersByPermissions(documentId, permissions);
         return new ResponseEntity<>(userList, HttpStatus.OK);
     }
 }

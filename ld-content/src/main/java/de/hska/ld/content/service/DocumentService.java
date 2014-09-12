@@ -24,7 +24,6 @@ package de.hska.ld.content.service;
 
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.persistence.domain.*;
-import de.hska.ld.core.persistence.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -85,5 +84,7 @@ public interface DocumentService extends ContentService<Document> {
 
     Document addAccess(Long documentId, String userIds, String permissions);
 
-    List<User> getUsersByPermissions(Long documentId, String permissions);
+    List<Access> getUsersByPermissions(Long documentId, String permissions);
+
+    Document loadCurrentUserPermissions(Document document);
 }
