@@ -80,7 +80,7 @@ public class LoggingHandler {
         LogEntry logEntry = extractArgs(args, logging);
         logEntry.setAction(action);
 
-        logEntryService.save(logEntry);
+        //logEntryService.save(logEntry);
 
         threadLocal.remove();
     }
