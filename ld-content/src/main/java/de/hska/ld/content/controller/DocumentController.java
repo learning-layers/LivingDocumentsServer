@@ -673,10 +673,14 @@ public class DocumentController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/users/permission")
     public ResponseEntity<List<Access>> getUsersByDocumentPermission(@PathVariable Long documentId, @RequestParam String permissions) {
-        if ("all".equals(permissions)) {
-            permissions = "WRITE;READ";
-        }
         List<Access> userList = documentService.getUsersByPermissions(documentId, permissions);
         return new ResponseEntity<>(userList, HttpStatus.OK);
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/currentuser/permission")
+    public ResponseEntity<Access> getCurrentUsersPermissions(@PathVariable Long documentId, @RequestParam String permissions) {
+        Access access = documentService.getCurrentUserPermissions(documentId, permissions);
+        return new ResponseEntity<>(access, HttpStatus.OK);
     }
 }

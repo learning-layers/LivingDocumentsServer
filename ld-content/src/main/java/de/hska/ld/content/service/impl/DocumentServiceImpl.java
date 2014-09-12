@@ -485,6 +485,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         if (document == null) {
             throw new NotFoundException("documentId");
         }
+        if ("all".equals(combinedPermissionString)) {
+            combinedPermissionString = "WRITE;READ";
+        }
         List<Access.Permission> permissionList;
         try {
             String[] permissionStringArray = combinedPermissionString.split(";");
@@ -517,6 +520,19 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         List<Access> access = repository.getCurrentUserPermissionsForDocument(document.getId(), Core.currentUser().getId());
         document.setAccessList(access);
         return document;
+    }
+
+    @Override
+    public Access getCurrentUserPermissions(Long documentId, String permissions) {
+        List<Access> accessList = getUsersByPermissions(documentId, permissions);
+        Access tempAccess = new Access();
+        tempAccess.setUser(Core.currentUser());
+        int idx = accessList.indexOf(tempAccess);
+        if (idx != -1) {
+            return accessList.get(idx);
+        } else {
+            throw new NotFoundException("current user access for document=" + documentId);
+        }
     }
 
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {

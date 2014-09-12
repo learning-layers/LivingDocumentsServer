@@ -87,4 +87,6 @@ public interface DocumentService extends ContentService<Document> {
     List<Access> getUsersByPermissions(Long documentId, String permissions);
 
     Document loadCurrentUserPermissions(Document document);
+
+    Access getCurrentUserPermissions(Long documentId, String permissions);
 }
