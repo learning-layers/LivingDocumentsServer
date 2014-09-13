@@ -84,6 +84,7 @@ subprojects {
         compile "mysql:mysql-connector-java:$mySqlVersion"
         compile "com.fasterxml.jackson.datatype:jackson-datatype-hibernate4:2.4.1"
         compile "javax.interceptor:javax.interceptor-api:3.1"
+        compile "uk.com.robust-it:cloning:1.9.0"
 
         // Add the core project as a dependency for each sub project
         if (project.name != 'ld-core') {

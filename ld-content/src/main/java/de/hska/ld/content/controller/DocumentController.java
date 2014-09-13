@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.controller;
 
+import com.rits.cloning.Cloner;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
@@ -46,6 +47,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -60,6 +62,9 @@ public class DocumentController {
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private Cloner cloner;
 
     /**
      * <pre>
@@ -223,16 +228,21 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
     public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
         Document document = documentService.findById(documentId);
+        Document documentClone = cloner.shallowClone(document);
         documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class);
-        document.getAttachmentList().remove(0);
+        documentClone.setAttachmentList(new ArrayList<>(document.getAttachmentList()));
+        documentClone.setCommentList(document.getCommentList());
+        documentClone.setTagList(document.getTagList());
+        documentClone.setHyperlinkList(document.getHyperlinkList());
+        documentClone.getAttachmentList().remove(0);
         Access access = documentService.getCurrentUserPermissions(documentId, "all");
         if (access != null) {
-            document.getAccessList().add(access);
+            documentClone.getAccessList().add(access);
         }
-        if (document.isDeleted()) {
+        if (documentClone.isDeleted()) {
             throw new NotFoundException("id");
         }
-        return new ResponseEntity<>(document, HttpStatus.OK);
+        return new ResponseEntity<>(documentClone, HttpStatus.OK);
     }
 
     /**
@@ -430,6 +440,23 @@ public class DocumentController {
         String name = file.getOriginalFilename();
         if (!file.isEmpty()) {
             attachmentId = documentService.updateAttachment(documentId, attachmentId, file, name);
+            return new ResponseEntity<>(attachmentId, HttpStatus.OK);
+        } else {
+            throw new ValidationException("file");
+        }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/uploadmain")
+    public ResponseEntity<Long> uploadMainFile(@RequestParam MultipartFile file, @RequestParam Long documentId) {
+        String name = file.getOriginalFilename();
+        if (!file.isEmpty()) {
+            Document document = documentService.findById(documentId);
+            if (document == null) {
+                throw new NotFoundException("documentId");
+            }
+            Attachment attachment = document.getAttachmentList().get(0);
+            Long attachmentId = documentService.updateAttachment(documentId, attachment.getId(), file, name);
             return new ResponseEntity<>(attachmentId, HttpStatus.OK);
         } else {
             throw new ValidationException("file");

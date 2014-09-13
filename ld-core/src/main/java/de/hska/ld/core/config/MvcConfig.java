@@ -2,6 +2,7 @@ package de.hska.ld.core.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
+import com.rits.cloning.Cloner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -30,6 +31,12 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
         Hibernate4Module hibernate4Module = new Hibernate4Module();
         objectMapper.registerModule(hibernate4Module);
         return objectMapper;
+    }
+
+    @Bean
+    public Cloner cloner() {
+        Cloner cloner = new Cloner();
+        return cloner;
     }
 
     @Override
