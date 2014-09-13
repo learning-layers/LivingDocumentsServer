@@ -527,7 +527,15 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Transactional
     public Access getCurrentUserPermissions(Long documentId, String permissions) {
+        Document document = findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        }
+        if (document.getCreator().equals(Core.currentUser())) {
+            return null;
+        }
         List<Access> accessList = getUsersByPermissions(documentId, permissions);
         Access tempAccess = new Access();
         tempAccess.setUser(Core.currentUser());

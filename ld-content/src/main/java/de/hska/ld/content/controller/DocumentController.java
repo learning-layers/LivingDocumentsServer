@@ -226,7 +226,9 @@ public class DocumentController {
         documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class);
         document.getAttachmentList().remove(0);
         Access access = documentService.getCurrentUserPermissions(documentId, "all");
-        document.getAccessList().add(access);
+        if (access != null) {
+            document.getAccessList().add(access);
+        }
         if (document.isDeleted()) {
             throw new NotFoundException("id");
         }
