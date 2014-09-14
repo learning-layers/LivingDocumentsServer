@@ -30,6 +30,7 @@ import org.hibernate.validator.constraints.NotBlank;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "ld_comment")
@@ -80,7 +81,8 @@ public class Comment extends Content {
 
     @JsonProperty("subcommentlength")
     public int getSubcommentlength() {
-        return this.getCommentList().size();
+        int size = this.getCommentList().stream().filter(c -> !c.isDeleted()).collect(Collectors.toList()).size();
+        return size;
     }
 
     @JsonProperty("likeslength")
