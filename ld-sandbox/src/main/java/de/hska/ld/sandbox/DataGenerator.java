@@ -32,6 +32,7 @@ import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import javax.transaction.Transactional;
 import java.io.InputStream;
@@ -40,8 +41,15 @@ public class DataGenerator {
 
     @Autowired
     @Transactional
-    public void init(DocumentService documentService, UserService userService) {
-        User user = userService.findByUsername(Core.BOOTSTRAP_USER);
+    public void init(DocumentService documentService, UserService userService, Environment env) {
+        String ddl = env.getProperty("module.core.db.ddl");
+        if ("create".equals(ddl) || "create-drop".equals(ddl)) {
+            User user = userService.findByUsername(Core.BOOTSTRAP_USER);
+            createSandboxDocument(documentService, userService, user);
+        }
+    }
+
+    private void createSandboxDocument(DocumentService documentService, UserService userService, User user) {
         userService.runAs(user, () -> {
             Document document = new Document();
             document.setTitle("Sandbox Document");
