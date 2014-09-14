@@ -49,6 +49,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p><b>Resource:</b> {@value Content#RESOURCE_DOCUMENT}
@@ -235,6 +236,7 @@ public class DocumentController {
         documentClone.setTagList(document.getTagList());
         documentClone.setHyperlinkList(document.getHyperlinkList());
         documentClone.getAttachmentList().remove(0);
+        documentClone.setAttachmentList(documentClone.getAttachmentList().stream().filter(a -> !"maincontent.html".equals(a.getName())).collect(Collectors.toList()));
         Access access = documentService.getCurrentUserPermissions(documentId, "all");
         if (access != null) {
             documentClone.getAccessList().add(access);
@@ -606,8 +608,9 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/attachment/list")
     public ResponseEntity<List<Attachment>> getDocumentAttachmentList(@PathVariable Long documentId) {
         List<Attachment> attachmentList = documentService.getDocumentAttachmentList(documentId);
-        if (attachmentList != null) {
-            return new ResponseEntity<>(attachmentList, HttpStatus.OK);
+        List<Attachment> responseAttachmentList = attachmentList.stream().filter(a -> !"maincontent.html".equals(a.getName())).collect(Collectors.toList());
+        if (responseAttachmentList != null) {
+            return new ResponseEntity<>(responseAttachmentList, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
