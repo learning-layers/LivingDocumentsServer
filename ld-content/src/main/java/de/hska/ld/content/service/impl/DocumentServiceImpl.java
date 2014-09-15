@@ -547,6 +547,20 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         }
     }
 
+    @Override
+    public Document addExpert(Long documentId, String username) {
+        Document document = findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        }
+        User expert = userService.findByUsername(username);
+        if (expert == null) {
+            throw new NotFoundException("username");
+        }
+        document.getExpertList().add(expert);
+        return save(document);
+    }
+
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {
         Document document = findById(documentId);
         for (User user : userList) {
@@ -593,6 +607,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             for (Class clazz : clazzArray) {
                 if (Attachment.class.equals(clazz)) {
                     document.setAttachmentList(filterDeletedListItems(document.getAttachmentList(), Attachment.class));
+                }
+                if (User.class.equals(clazz)) {
+                    document.getExpertList().size();
                 }
             }
         }

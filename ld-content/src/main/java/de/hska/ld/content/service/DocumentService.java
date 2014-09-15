@@ -89,4 +89,6 @@ public interface DocumentService extends ContentService<Document> {
     Document loadCurrentUserPermissions(Document document);
 
     Access getCurrentUserPermissions(Long documentId, String permissions);
+
+    Document addExpert(Long documentId, String username);
 }

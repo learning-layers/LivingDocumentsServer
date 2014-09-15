@@ -30,6 +30,7 @@ import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
+import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -230,7 +231,7 @@ public class DocumentController {
     public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
         Document document = documentService.findById(documentId);
         Document documentClone = cloner.shallowClone(document);
-        documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class);
+        documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class, User.class);
         documentClone.setAttachmentList(new ArrayList<>(document.getAttachmentList()));
         documentClone.setCommentList(document.getCommentList());
         documentClone.setTagList(document.getTagList());
@@ -726,5 +727,12 @@ public class DocumentController {
     public ResponseEntity<Access> getCurrentUsersPermissions(@PathVariable Long documentId, @RequestParam String permissions) {
         Access access = documentService.getCurrentUserPermissions(documentId, permissions);
         return new ResponseEntity<>(access, HttpStatus.OK);
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/expert")
+    public ResponseEntity<Document> addExpertToDocument(@PathVariable Long documentId, @RequestParam String username) {
+        Document document = documentService.addExpert(documentId, username);
+        return new ResponseEntity<>(document, HttpStatus.OK);
     }
 }
