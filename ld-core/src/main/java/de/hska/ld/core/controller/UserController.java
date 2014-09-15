@@ -399,6 +399,16 @@ public class UserController {
     }
 
     @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/id")
+    public ResponseEntity<User> getUser(@RequestParam Long id) {
+        User user = userService.findById(id);
+        if (user == null) {
+            throw new NotFoundException();
+        }
+        return new ResponseEntity(user, HttpStatus.OK);
+    }
+
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/password")
     public ResponseEntity updatePassword(@RequestBody User user) {
         user = userService.updatePassword(user.getPassword());
