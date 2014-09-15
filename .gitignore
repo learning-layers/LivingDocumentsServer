@@ -24,3 +24,5 @@
 */data
 
 rebel.xml
+
+ld-core/src/main/resources/static/*
