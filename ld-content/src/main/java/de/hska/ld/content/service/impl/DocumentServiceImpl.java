@@ -548,6 +548,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Transactional
     public Document addExpert(Long documentId, String username) {
         Document document = findById(documentId);
         if (document == null) {

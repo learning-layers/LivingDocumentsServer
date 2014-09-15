@@ -66,7 +66,7 @@ public class Document extends Content {
             inverseJoinColumns = {@JoinColumn(name = "hyperlink_id")})
     private List<Hyperlink> hyperlinkList;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.PERSIST)
     @JoinTable(name = "ld_document_expert",
             joinColumns = {@JoinColumn(name = "document_id")},
             inverseJoinColumns = {@JoinColumn(name = "user_id")})
