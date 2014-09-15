@@ -397,4 +397,11 @@ public class UserController {
         }
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.PUT, value = "/password")
+    public ResponseEntity updatePassword(@RequestBody User user) {
+        user = userService.updatePassword(user.getPassword());
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
 }

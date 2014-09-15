@@ -244,6 +244,15 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     }
 
     @Override
+    @Transactional
+    public User updatePassword(String password) {
+        String hashedPwd = encodePassword(password);
+        User currentUser = findById(Core.currentUser().getId());
+        currentUser.setPassword(hashedPwd);
+        return save(currentUser);
+    }
+
+    @Override
     public List<byte[]> getAvatars(String userIdsString) {
         List<byte[]> avatarList = new ArrayList<>();
         if (userIdsString != null) {
