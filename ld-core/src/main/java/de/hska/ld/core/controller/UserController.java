@@ -414,4 +414,11 @@ public class UserController {
         user = userService.updatePassword(user.getPassword());
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.PUT, value = "/profile")
+    public ResponseEntity updateProfile(@RequestBody User user) {
+        user = userService.updateProfile(user);
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
 }

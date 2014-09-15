@@ -253,6 +253,15 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     }
 
     @Override
+    public User updateProfile(User user) {
+        User currentUser = Core.currentUser();
+        User userToUpdate = findById(currentUser.getId());
+        userToUpdate.setFullName(user.getFullName());
+        userToUpdate.setDescription(user.getDescription());
+        return save(userToUpdate);
+    }
+
+    @Override
     public List<byte[]> getAvatars(String userIdsString) {
         List<byte[]> avatarList = new ArrayList<>();
         if (userIdsString != null) {

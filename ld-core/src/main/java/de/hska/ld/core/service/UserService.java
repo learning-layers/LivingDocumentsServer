@@ -62,4 +62,6 @@ public interface UserService extends UserDetailsService, Service<User> {
     List<User> getMentionSuggestions(String term);
 
     User updatePassword(String password);
+
+    User updateProfile(User user);
 }

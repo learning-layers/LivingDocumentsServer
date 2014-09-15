@@ -68,6 +68,9 @@ public class User implements UserDetails {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
+    @Column(name = "description", nullable = true)
+    private String description;
+
     @Column(name = "confirmation_key")
     private String confirmationKey;
 
@@ -203,6 +206,14 @@ public class User implements UserDetails {
     @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override
