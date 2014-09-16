@@ -19,7 +19,7 @@ subprojects {
         springBootVersion = '1.1.6.RELEASE'
         springVersion = '4.1.0.RELEASE'
         validationApiVersion = '1.1.0.Final'
-        apacheCommonsIoVersion = '2.4'
+        apacheCommonsIoVersion = '1.3.2'
         javaMailVersion = '1.4.7'
         commonsDbcpVersion = '1.4'
         velocityVersion = '1.7'
