@@ -404,9 +404,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         Document document = findById(documentId);
         checkPermission(document, Access.Permission.READ);
         Attachment attachment = attachmentService.findById(attachmentId);
-        /*if (attachment != null && !document.getAttachmentList().contains(attachment)) {
+        if (attachment != null && !document.getAttachmentList().contains(attachment)) {
             throw new UserNotAuthorizedException();
-        }*/
+        }
         return attachment;
     }
 
