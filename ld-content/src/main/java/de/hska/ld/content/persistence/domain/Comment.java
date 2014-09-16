@@ -41,7 +41,7 @@ public class Comment extends Content {
     private Content parent;
 
     @NotBlank
-    @Column(name = "text", nullable = false)
+    @Column(name = "text", nullable = false, columnDefinition = "TEXT")
     private String text;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
