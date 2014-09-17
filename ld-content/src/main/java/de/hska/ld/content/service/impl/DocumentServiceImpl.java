@@ -544,7 +544,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         if (idx != -1) {
             return accessList.get(idx);
         } else {
-            throw new NotFoundException("current user access for document=" + documentId);
+            return null;
         }
     }
 

@@ -42,7 +42,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,15 +76,7 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
             direction = Sort.Direction.DESC;
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
-        User user = Core.currentUser();
-        if (!document.getCreator().equals(user)) {
-            try {
-                Optional<Access> access = document.getAccessList().stream().filter(ele -> ele.getUser().equals(user)).findFirst();
-                access.get();
-            } catch (NoSuchElementException e) {
-                throw new UserNotAuthorizedException();
-            }
-        }
+        documentService.checkPermission(document, Access.Permission.READ);
         Page<Comment> commentPage = repository.findAllForDocument(document.getId(), pageable);
         return commentPage;
     }
