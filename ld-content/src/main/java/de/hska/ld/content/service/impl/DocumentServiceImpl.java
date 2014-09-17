@@ -26,10 +26,7 @@ import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
-import de.hska.ld.content.service.AttachmentService;
-import de.hska.ld.content.service.DocumentService;
-import de.hska.ld.content.service.SubscriptionService;
-import de.hska.ld.content.service.TagService;
+import de.hska.ld.content.service.*;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
@@ -67,6 +64,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CommentService commentService;
 
     private Comparator<Content> byDateTime = (c1, c2) -> {
         if (c1.getCreatedAt() == null) {
@@ -148,6 +148,8 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         document = super.save(document);
         createNotifications(document, Subscription.Type.COMMENT);
         Optional<Comment> optional = document.getCommentList().stream().sorted(byDateTime).findFirst();
+
+        commentService.sendMentionNotifications(comment);
         return optional.get();
     }
 

@@ -40,4 +40,6 @@ public interface CommentService extends ContentService<Comment> {
     List<Comment> getCommentCommentsList(Long commentId);
 
     Comment agreeToComment(Long commentId);
+
+    void sendMentionNotifications(Comment comment);
 }

@@ -136,7 +136,7 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         }
         comment = super.save(comment);
 
-        sentMentionNotifications(comment);
+        sendMentionNotifications(comment);
 
         return comment;
     }
@@ -150,7 +150,7 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         dbComment.setText(comment.getText());
         dbComment = super.save(dbComment);
 
-        sentMentionNotifications(comment);
+        sendMentionNotifications(comment);
 
         return dbComment;
     }
@@ -173,22 +173,27 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         }
         comment = super.save(dbParentComment);
 
-        sentMentionNotifications(comment);
+        sendMentionNotifications(comment);
 
         return comment;
     }
 
-    private void sentMentionNotifications(Comment comment) {
-        Content tempParent = comment.getParent();
-        while (!(tempParent instanceof Document)) {
-            tempParent = ((Comment) tempParent).getParent();
+    @Override
+    public void sendMentionNotifications(Comment comment) {
+        try {
+            Content tempParent = comment.getParent();
+            while (!(tempParent instanceof Document)) {
+                tempParent = ((Comment) tempParent).getParent();
+            }
+
+            final Document document = (Document) tempParent;
+
+            List<User> userList = filterUserMentions(comment.getText());
+            userList.forEach(u -> subscriptionService.saveNotification(document.getId(), u.getId(),
+                    comment.getCreator().getId(), Subscription.Type.COMMENT));
+        } catch (Exception e) {
+            //
         }
-
-        final Document document = (Document) tempParent;
-
-        List<User> userList = filterUserMentions(comment.getText());
-        userList.forEach(u -> subscriptionService.saveNotification(document.getId(), u.getId(),
-                comment.getCreator().getId(), Subscription.Type.COMMENT));
     }
 
     private List<User> filterUserMentions(String text) {
