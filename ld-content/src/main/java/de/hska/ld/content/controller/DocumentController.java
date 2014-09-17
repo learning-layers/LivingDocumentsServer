@@ -719,6 +719,13 @@ public class DocumentController {
     }
 
     @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/public")
+    public ResponseEntity<List<Notification>> makeDocumentPublic(@PathVariable Long documentId) {
+        Document document = documentService.setAccessAll(documentId, true);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/users/permission")
     public ResponseEntity<List<Access>> getUsersByDocumentPermission(@PathVariable Long documentId, @RequestParam String permissions) {
         List<Access> userList = documentService.getUsersByPermissions(documentId, permissions);
