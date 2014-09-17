@@ -94,7 +94,7 @@ public class Subscription {
     }
 
     public enum Type {
-        MAIN_CONTENT, ATTACHMENT, COMMENT, DISCUSSION
+        DOCUMENT_ALL, MAIN_CONTENT, ATTACHMENT, COMMENT, DISCUSSION
     }
 
     @Override

@@ -688,16 +688,33 @@ public class DocumentController {
      * </pre>
      *
      * @param documentId the document id of the document that shall be tracked
-     * @param type       the subscription type (e.g. DOCUMENT, ATTACHMENT, COMMENT, DISCUSSION, USER) depending on which
+     * @param typeString       the subscription type (e.g. DOCUMENT, ATTACHMENT, COMMENT, DISCUSSION, USER) depending on which
      *                   part of a document the user wants to receive notifications for.
      * @return <b>201 CREATED</b> if a subscription has been successfully applied to the document<br>
      * <b>404 NOT FOUND</b> if the node could not be found within the system
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/subscribe")
-    public ResponseEntity subscribe(@PathVariable Long documentId, @RequestBody Subscription.Type type) {
-        documentService.addSubscription(documentId, type);
-        return new ResponseEntity(HttpStatus.CREATED);
+    public ResponseEntity subscribe(@PathVariable Long documentId, @RequestParam String typeString) {
+        Subscription.Type type;
+        try {
+            type = Subscription.Type.valueOf(typeString);
+        } catch (Exception e) {
+            throw new ValidationException("typeString");
+        }
+        if (Subscription.Type.DOCUMENT_ALL.equals(type)) {
+            documentService.addSubscription(
+                    documentId,
+                    Subscription.Type.DOCUMENT_ALL,
+                    Subscription.Type.MAIN_CONTENT,
+                    Subscription.Type.ATTACHMENT,
+                    Subscription.Type.COMMENT,
+                    Subscription.Type.DISCUSSION
+            );
+        } else {
+            documentService.addSubscription(documentId, type);
+        }
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     /**

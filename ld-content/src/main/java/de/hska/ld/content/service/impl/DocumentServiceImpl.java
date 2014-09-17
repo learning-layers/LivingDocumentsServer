@@ -295,14 +295,19 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
         Subscription subscription = null;
         if (document.getSubscriptionList().size() != 0) {
+            // retrieve subscription if already present for the current user
             subscription = document.getSubscriptionList().stream()
                     .filter(s -> s.getUser().equals(user)).findFirst().get();
         }
         if (subscription != null) {
+            // if the subscription was already present on the document
             List<Subscription.Type> typeList = Arrays.asList(types);
+            // remove all the types that shall be added (to prevent duplicates)
             subscription.getTypeList().removeAll(typeList);
+            // add all types
             subscription.getTypeList().addAll(typeList);
         } else {
+            // add a new subscription
             subscription = new Subscription(user, types);
             document.getSubscriptionList().add(subscription);
         }
@@ -615,7 +620,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         List<Subscription> subscriptionList = document.getSubscriptionList();
         subscriptionList.stream().forEach(s -> {
             if (s.getTypeList().contains(type)) {
-                subscriptionService.saveNotification(documentId, s.getUser().getId(), editor.getId(), type);
+                if (!s.getUser().getId().equals(editor.getId())) {
+                    subscriptionService.saveNotification(documentId, s.getUser().getId(), editor.getId(), type);
+                }
             }
         });
     }
