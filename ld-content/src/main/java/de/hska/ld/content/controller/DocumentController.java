@@ -27,6 +27,7 @@ import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.content.service.SubscriptionService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
@@ -64,6 +65,9 @@ public class DocumentController {
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     @Autowired
     private Cloner cloner;
@@ -708,8 +712,15 @@ public class DocumentController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/notifications")
     public ResponseEntity<List<Notification>> getNotifications() {
-        List<Notification> notificationList = documentService.getNotifications();
+        List<Notification> notificationList = subscriptionService.getNotifications();
         return new ResponseEntity<>(notificationList, HttpStatus.OK);
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/notifications/read")
+    public ResponseEntity markNotificationsAsRead(List<Notification> notificationList) {
+        subscriptionService.markNotificationsAsRead(notificationList);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Secured(Core.ROLE_USER)

@@ -28,6 +28,7 @@ import de.hska.ld.content.persistence.repository.NotificationRepository;
 import de.hska.ld.content.persistence.repository.SubscriptionRepository;
 import de.hska.ld.content.service.SubscriptionService;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
+    @Transactional
     public void saveNotification(Long documentId, Long subscriberId, Long editorId, Subscription.Type type) {
         Notification notification = new Notification();
         notification.setDocumentId(documentId);
@@ -60,15 +62,22 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     @Transactional
-    public List<Notification> deliverNotifications(User user) {
-        List<Notification> subscriptionItemsList = notificationRepository
-                .findBySubscriberIdAndDelivered(user.getId(), false);
+    public List<Notification> getNotifications() {
+        User user = Core.currentUser();
+        return notificationRepository.findBySubscriberId(user.getId());
+    }
 
-        for (Notification notification : subscriptionItemsList) {
-            notification.setDelivered(true);
-            notificationRepository.save(notification);
+    @Override
+    @Transactional
+    public void markNotificationsAsRead(List<Notification> notificationList) {
+        User user = Core.currentUser();
+        if (notificationList != null) {
+            notificationList.forEach(n -> {
+                if (n.getSubscriberId().equals(user.getId())) {
+                    n.setMarkedAsRead(true);
+                    notificationRepository.save(n);
+                }
+            });
         }
-
-        return subscriptionItemsList;
     }
 }

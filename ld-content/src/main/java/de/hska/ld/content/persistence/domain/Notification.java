@@ -25,8 +25,8 @@ public class Notification {
     @Column(name = "type")
     private Subscription.Type type;
 
-    @Column(name = "delivered")
-    private boolean delivered;
+    @Column(name = "markedAsRead")
+    private boolean markedAsRead;
 
     public Long getId() {
         return id;
@@ -69,11 +69,11 @@ public class Notification {
         this.type = type;
     }
 
-    public boolean isDelivered() {
-        return delivered;
+    public boolean isMarkedAsRead() {
+        return markedAsRead;
     }
 
-    public void setDelivered(boolean delivered) {
-        this.delivered = delivered;
+    public void setMarkedAsRead(boolean markedAsRead) {
+        this.markedAsRead = markedAsRead;
     }
 }

@@ -282,12 +282,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    public List<Notification> getNotifications() {
-        User user = Core.currentUser();
-        return subscriptionService.deliverNotifications(user);
-    }
-
-    @Override
     @Transactional
     public Document addSubscription(Long id, Subscription.Type... types) {
         User user = Core.currentUser();

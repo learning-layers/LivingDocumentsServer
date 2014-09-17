@@ -24,7 +24,6 @@ package de.hska.ld.content.service;
 
 import de.hska.ld.content.persistence.domain.Notification;
 import de.hska.ld.content.persistence.domain.Subscription;
-import de.hska.ld.core.persistence.domain.User;
 
 import java.util.List;
 
@@ -32,7 +31,9 @@ public interface SubscriptionService {
 
     Subscription save(Subscription subscription);
 
-    public void saveNotification(Long documentId, Long subscriberId, Long editorId, Subscription.Type type);
+    void saveNotification(Long documentId, Long subscriberId, Long editorId, Subscription.Type type);
 
-    List<Notification> deliverNotifications(User user);
+    List<Notification> getNotifications();
+
+    void markNotificationsAsRead(List<Notification> notificationList);
 }

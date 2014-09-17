@@ -49,6 +49,9 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
     DocumentService documentService;
 
     @Autowired
+    SubscriptionService subscriptionService;
+
+    @Autowired
     TagService tagService;
 
     @Autowired
@@ -284,7 +287,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         document = documentService.save(document);
 
         // retrieve notifications
-        List<Notification> notificationList = documentService.getNotifications();
+        List<Notification> notificationList = subscriptionService.getNotifications();
         Assert.assertNotNull(notificationList);
         Assert.assertTrue(notificationList.size() == 1);
         for (Notification notification : notificationList) {
@@ -292,7 +295,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         // retrieve notifications after the notification has been delivered
-        notificationList = documentService.getNotifications();
+        notificationList = subscriptionService.getNotifications();
         Assert.assertTrue(notificationList.size() == 0);
     }
 
