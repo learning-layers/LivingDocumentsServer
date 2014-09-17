@@ -89,8 +89,9 @@ public class DocumentController {
     public ResponseEntity<Page<Document>> getDocumentsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                            @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                            @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                           @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<Document> documentsPage = documentService.getDocumentsPage(pageNumber, pageSize, sortDirection, sortProperty);
+                                                           @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty,
+                                                           @RequestParam(value = "search-term", required = false) String searchTerm) {
+        Page<Document> documentsPage = documentService.getDocumentsPage(pageNumber, pageSize, sortDirection, sortProperty, searchTerm);
         if (documentsPage != null) {
             return new ResponseEntity<>(documentsPage, HttpStatus.OK);
         } else {

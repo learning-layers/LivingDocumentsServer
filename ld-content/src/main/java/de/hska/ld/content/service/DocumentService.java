@@ -32,7 +32,11 @@ import java.util.List;
 
 public interface DocumentService extends ContentService<Document> {
 
-    Page<Document> getDocumentsPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+    Page<Document> getDocumentsPage(Integer pageNumber, Integer pageSize, String sortDirection,
+                                    String sortProperty);
+
+    Page<Document> getDocumentsPage(Integer pageNumber, Integer pageSize, String sortDirection,
+                                    String sortProperty, String searchTerm);
 
     void markAsDeleted(Long id);
 

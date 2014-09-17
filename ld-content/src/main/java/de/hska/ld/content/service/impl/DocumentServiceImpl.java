@@ -80,6 +80,12 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Override
     public Page<Document> getDocumentsPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        return getDocumentsPage(pageNumber, pageSize, sortDirection, sortProperty, null);
+    }
+
+    @Override
+    public Page<Document> getDocumentsPage(Integer pageNumber, Integer pageSize, String sortDirection,
+                                           String sortProperty, String searchTerm) {
         Sort.Direction direction;
         if (Sort.Direction.ASC.toString().equals(sortDirection)) {
             direction = Sort.Direction.ASC;
@@ -88,7 +94,11 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         User user = Core.currentUser();
-        return repository.findAll(user, pageable);
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            return repository.findAll(user, pageable);
+        } else {
+            return repository.findAll(user, searchTerm, pageable);
+        }
     }
 
     @Override

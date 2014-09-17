@@ -40,6 +40,12 @@ public interface DocumentRepository extends CrudRepository<Document, Long> {
     @Query("SELECT DISTINCT d FROM Document d LEFT JOIN d.accessList al WHERE (al.user = :user OR d.creator = :user OR d.accessAll = true) AND (d.deleted = false OR d.deleted IS NULL)")
     Page<Document> findAll(@Param("user") User user, Pageable pageable);
 
+    @Query("SELECT DISTINCT d FROM Document d LEFT JOIN d.accessList al " +
+            "WHERE (al.user = :user OR d.creator = :user OR d.accessAll = true) " +
+            "AND (d.deleted = false OR d.deleted IS NULL) " +
+            "AND LOWER(d.title) LIKE CONCAT('%', LOWER(:searchTerm), '%')")
+    Page<Document> findAll(@Param("user") User user, @Param("searchTerm") String searchTerm, Pageable pageable);
+
     @Query("SELECT dtl FROM Document d LEFT JOIN d.tagList dtl WHERE d.id = :documentId AND (dtl.deleted = false OR dtl.deleted IS NULL)")
     Page<Tag> findAllTagsForDocument(@Param("documentId") Long documentId, Pageable pageable);
 

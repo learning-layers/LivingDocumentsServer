@@ -502,4 +502,21 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         document.getCommentList().size();
         Assert.assertTrue(document.getCommentList().contains(commentCreated));
     }
+
+    @Test
+    public void testSearchForDocumentTitle() {
+        String title = "Search document";
+
+        Document document = newDocument();
+        document.setTitle(title);
+        documentService.save(document);
+
+        // Create a second document which should not be part of the page result
+        documentService.save(newDocument());
+
+        Page<Document> page = documentService.getDocumentsPage(0, 10, "DESC", "title", title);
+
+        Assert.assertEquals(1, page.getContent().size());
+        Assert.assertEquals(title, page.getContent().get(0).getTitle());
+    }
 }
