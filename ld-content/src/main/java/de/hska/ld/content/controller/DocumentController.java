@@ -24,6 +24,7 @@ package de.hska.ld.content.controller;
 
 import com.rits.cloning.Cloner;
 import de.hska.ld.content.dto.BreadcrumbDto;
+import de.hska.ld.content.dto.DiscussionSectionDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
@@ -756,5 +757,12 @@ public class DocumentController {
     public ResponseEntity<Document> addExpertToDocument(@PathVariable Long documentId, @RequestParam String username) {
         Document document = documentService.addExpert(documentId, username);
         return new ResponseEntity<>(document, HttpStatus.OK);
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/discuss/section")
+    public ResponseEntity<Document> createDiscussion(@PathVariable Long documentId, @RequestBody DiscussionSectionDto discussionSectionDto) {
+        Document document = documentService.addDiscussionToDocument(documentId, discussionSectionDto);
+        return new ResponseEntity<>(document, HttpStatus.CREATED);
     }
 }

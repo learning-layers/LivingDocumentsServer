@@ -23,6 +23,7 @@
 package de.hska.ld.content.service.impl;
 
 import de.hska.ld.content.dto.BreadcrumbDto;
+import de.hska.ld.content.dto.DiscussionSectionDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
 import de.hska.ld.content.service.AttachmentService;
@@ -565,6 +566,16 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         checkPermission(document, Access.Permission.WRITE);
         document.setAccessAll(accessAll);
         return save(document);
+    }
+
+    @Override
+    @Transactional
+    public Document addDiscussionToDocument(Long documentId, DiscussionSectionDto discussionSectionDto) {
+        Document document = addDiscussionToDocument(documentId, discussionSectionDto.getDocument());
+        Document discussion = document.getDiscussionList().get(document.getDiscussionList().size() - 1);
+        Attachment mainAttachment = discussion.getAttachmentList().get(0);
+        mainAttachment.setSource(discussionSectionDto.getSectionText().getBytes());
+        return discussion;
     }
 
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {

@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.service;
 
+import de.hska.ld.content.dto.DiscussionSectionDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
@@ -35,6 +36,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,9 +49,6 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     DocumentService documentService;
-
-    @Autowired
-    SubscriptionService subscriptionService;
 
     @Autowired
     TagService tagService;
@@ -276,30 +275,6 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testThatNotificationIsDelivered() {
-        Document document = documentService.save(newDocument());
-
-        // create subscription for main content
-        document = documentService.addSubscription(document.getId(), Subscription.Type.MAIN_CONTENT);
-
-        // make a change to the document and therefore trigger the notification creation process
-        document.setTitle(document.getTitle() + "(updated)");
-        document = documentService.save(document);
-
-        // retrieve notifications
-        List<Notification> notificationList = subscriptionService.getNotifications();
-        Assert.assertNotNull(notificationList);
-        Assert.assertTrue(notificationList.size() == 1);
-        for (Notification notification : notificationList) {
-            Assert.assertTrue(notification.getDocumentId().equals(document.getId()));
-        }
-
-        // retrieve notifications after the notification has been delivered
-        notificationList = subscriptionService.getNotifications();
-        Assert.assertTrue(notificationList.size() == 0);
-    }
-
-    @Test
     @Transactional
     public void testAddDocumentAccessOneUser() {
         Document document = documentService.save(newDocument());
@@ -521,5 +496,26 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
 
         Assert.assertEquals(1, page.getContent().size());
         Assert.assertEquals(title, page.getContent().get(0).getTitle());
+    }
+
+    @Test
+    public void testDiscussSection() throws UnsupportedEncodingException {
+        Document document = documentService.save(newDocument());
+
+        DiscussionSectionDto discussionSectionDto = new DiscussionSectionDto();
+        discussionSectionDto.setDocument(newDocument());
+        discussionSectionDto.setSectionText("Test");
+        Document discussion = documentService.addDiscussionToDocument(document.getId(), discussionSectionDto);
+
+        Assert.assertTrue(discussion.getAttachmentList().size() > 0);
+        boolean found = false;
+        for (Attachment a : discussion.getAttachmentList()) {
+            if ("Test".equals(new String(a.getSource(), "UTF-8"))) {
+                found = true;
+            }
+        }
+        if (!found) {
+            Assert.fail();
+        }
     }
 }
