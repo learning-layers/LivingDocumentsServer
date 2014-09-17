@@ -563,6 +563,15 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return save(document);
     }
 
+    @Override
+    @Transactional
+    public Document setAccessAll(Long documentId, boolean accessAll) {
+        Document document = findById(documentId);
+        checkPermission(document, Access.Permission.WRITE);
+        document.setAccessAll(accessAll);
+        return save(document);
+    }
+
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {
         Document document = findById(documentId);
         for (User user : userList) {

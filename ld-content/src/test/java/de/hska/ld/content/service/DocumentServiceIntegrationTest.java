@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static de.hska.ld.content.ContentFixture.*;
 import static de.hska.ld.core.fixture.CoreFixture.newUser;
@@ -388,5 +389,40 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
 
         Access access = documentService.getCurrentUserPermissions(document.getId(), "all");
         Assert.assertNotNull(access);
+    }
+
+    @Test
+    @Transactional
+    public void testPublicFlagForDocumentsPage() {
+        // 1. Create a document with testUser
+        Document document = documentService.save(newDocument());
+
+        // 2. Switch to user "user"
+        User user = userService.findByUsername("user");
+        setAuthentication(user);
+
+        // 3. Try to retrieve the document (expected is that the user doesn't see it now)
+        Page<Document> documentsPage = documentService.getDocumentsPage(0, Integer.MAX_VALUE, "DESC", "createdAt");
+        List<Document> documentList = documentsPage.getContent();
+        final Document tempDocument = document;
+        List<Document> documentFoundResult = documentList.stream()
+                .filter(d -> tempDocument.getTitle().equals(d.getTitle()))
+                .collect(Collectors.toList());
+        Assert.assertTrue(documentFoundResult.size() == 0);
+
+        // 4. Switch back to the testUser
+        setAuthentication(testUser);
+        // 5. Make the document public
+        document = documentService.setAccessAll(document.getId(), true);
+
+        // 6. Try to retrieve the document again (expected is that the user does have access now)
+        Page<Document> documentsPage2 = documentService.getDocumentsPage(0, Integer.MAX_VALUE, "DESC", "createdAt");
+        Assert.assertTrue(documentsPage2.getTotalElements() > 0);
+        List<Document> documentList2 = documentsPage2.getContent();
+        final Document tempDocument2 = document;
+        List<Document> documentFoundResult2 = documentList2.stream()
+                .filter(d -> tempDocument2.getTitle().equals(d.getTitle()))
+                .collect(Collectors.toList());
+        Assert.assertTrue(documentFoundResult2.size() > 0);
     }
 }
