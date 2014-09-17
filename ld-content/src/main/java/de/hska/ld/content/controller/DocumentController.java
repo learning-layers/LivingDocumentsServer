@@ -230,6 +230,9 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
     public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
         Document document = documentService.findById(documentId);
+        if (document != null) {
+            documentService.checkPermission(document, Access.Permission.READ);
+        }
         Document documentClone = cloner.shallowClone(document);
         documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class, User.class);
         documentClone.setAttachmentList(new ArrayList<>(document.getAttachmentList()));

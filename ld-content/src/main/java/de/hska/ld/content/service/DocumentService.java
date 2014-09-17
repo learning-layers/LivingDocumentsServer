@@ -93,4 +93,6 @@ public interface DocumentService extends ContentService<Document> {
     Document addExpert(Long documentId, String username);
 
     Document setAccessAll(Long documentId, boolean accessAll);
+
+    void checkPermission(Document document, Access.Permission permission);
 }

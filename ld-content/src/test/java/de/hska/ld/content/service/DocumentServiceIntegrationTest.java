@@ -415,7 +415,10 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         // 5. Make the document public
         document = documentService.setAccessAll(document.getId(), true);
 
-        // 6. Try to retrieve the document again (expected is that the user does have access now)
+        // 6. Switch back to user
+        setAuthentication(user);
+
+        // 7. Try to retrieve the document again (expected is that the user does have access now)
         Page<Document> documentsPage2 = documentService.getDocumentsPage(0, Integer.MAX_VALUE, "DESC", "createdAt");
         Assert.assertTrue(documentsPage2.getTotalElements() > 0);
         List<Document> documentList2 = documentsPage2.getContent();
@@ -424,5 +427,43 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
                 .filter(d -> tempDocument2.getTitle().equals(d.getTitle()))
                 .collect(Collectors.toList());
         Assert.assertTrue(documentFoundResult2.size() > 0);
+    }
+
+    @Test
+    @Transactional
+    public void testPublicFlagUserCanRetrieveDocument() {
+        // 1. Create a document with testUser
+        Document document = documentService.save(newDocument());
+
+        // 2. Switch to user "user"
+        User user = userService.findByUsername("user");
+        setAuthentication(user);
+
+        // 3. Try to retrieve the document (expected is that the user doesn't see it now)
+        documentService.findById(document.getId());
+        try {
+            documentService.checkPermission(document, Access.Permission.READ);
+        } catch (UserNotAuthorizedException e) {
+            // expected
+        }
+
+        // 4. Switch back to the testUser
+        setAuthentication(testUser);
+        // 5. Make the document public
+        document = documentService.setAccessAll(document.getId(), true);
+
+        // 6. Switch to user "user"
+        setAuthentication(user);
+
+        // 7. Try to retrieve the document (expected is that the user doesn't see it now)
+        document = documentService.findById(document.getId());
+        boolean exception = false;
+        Assert.assertTrue(document.isAccessAll());
+        try {
+            documentService.checkPermission(document, Access.Permission.READ);
+        } catch (UserNotAuthorizedException e) {
+            exception = true;
+        }
+        Assert.assertTrue(!exception);
     }
 }
