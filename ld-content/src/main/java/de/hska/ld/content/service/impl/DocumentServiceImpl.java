@@ -575,8 +575,10 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     public Document addDiscussionToDocument(Long documentId, DiscussionSectionDto discussionSectionDto) {
         Document document = addDiscussionToDocument(documentId, discussionSectionDto.getDocument());
         Document discussion = document.getDiscussionList().get(document.getDiscussionList().size() - 1);
-        Attachment mainAttachment = discussion.getAttachmentList().get(0);
-        mainAttachment.setSource(discussionSectionDto.getSectionText().getBytes());
+        if (discussionSectionDto.getSectionText() != null) {
+            Attachment mainAttachment = discussion.getAttachmentList().get(0);
+            mainAttachment.setSource(discussionSectionDto.getSectionText().getBytes());
+        }
         return discussion;
     }
 
