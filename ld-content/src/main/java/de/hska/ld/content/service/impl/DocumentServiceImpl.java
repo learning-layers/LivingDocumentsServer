@@ -113,16 +113,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             attachment.setSource("".getBytes());
             document.getAttachmentList().add(0, attachment);
         } else {
-            // document already present in the database
-            boolean isCreator = dbDocument.getCreator().getId().equals(currentUser.getId());
-            boolean hasAccess = dbDocument.getAccessList().stream().anyMatch(a -> {
-                boolean user = a.getUser().getId().equals(currentUser.getId());
-                boolean permission = a.getPermissionList().contains(Access.Permission.WRITE);
-                return user && permission;
-            });
-            if (!hasAccess && !isCreator) {
-                throw new UserNotAuthorizedException();
-            }
+            checkPermission(dbDocument, Access.Permission.WRITE);
             dbDocument.setModifiedAt(new Date());
             dbDocument.setTitle(document.getTitle());
             dbDocument.setDescription(document.getDescription());
