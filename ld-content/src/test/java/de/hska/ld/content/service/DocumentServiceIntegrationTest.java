@@ -455,7 +455,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         // 6. Switch to user "user"
         setAuthentication(user);
 
-        // 7. Try to retrieve the document (expected is that the user doesn't see it now)
+        // 7. Try to retrieve the document (expected is that the user can see it now)
         document = documentService.findById(document.getId());
         boolean exception = false;
         Assert.assertTrue(document.isAccessAll());
@@ -465,5 +465,41 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
             exception = true;
         }
         Assert.assertTrue(!exception);
+    }
+
+    @Test
+    @Transactional
+    public void testPublicFlagUserCanAddComment() {
+        // 1. Create a document with testUser
+        Document document = documentService.save(newDocument());
+
+        // 2. Switch to user "user"
+        User user = userService.findByUsername("user");
+        setAuthentication(user);
+
+        // 3. Retrieve the document
+        document = documentService.findById(document.getId());
+
+        // 4. Add a comment to the document (should fail due to missing access rights)
+        Comment comment = new Comment();
+        comment.setText("CommentText");
+        boolean expectedException = false;
+        try {
+            documentService.addComment(document.getId(), comment);
+        } catch (UserNotAuthorizedException e) {
+            expectedException = true;
+        }
+        Assert.assertTrue(expectedException);
+
+        // 5. Make the document public
+        setAuthentication(testUser);
+        document = documentService.setAccessAll(document.getId(), true);
+
+        // 6. Check again if the user can now add a comment
+        setAuthentication(user);
+        Comment commentCreated = documentService.addComment(document.getId(), comment);
+        document = documentService.findById(document.getId());
+        document.getCommentList().size();
+        Assert.assertTrue(document.getCommentList().contains(commentCreated));
     }
 }
