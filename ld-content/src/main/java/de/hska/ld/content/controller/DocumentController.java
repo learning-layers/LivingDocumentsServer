@@ -736,7 +736,7 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/notifications/read")
-    public ResponseEntity markNotificationsAsRead(List<Notification> notificationList) {
+    public ResponseEntity markNotificationsAsRead(@RequestBody List<Notification> notificationList) {
         subscriptionService.markNotificationsAsRead(notificationList);
         return new ResponseEntity<>(HttpStatus.OK);
     }

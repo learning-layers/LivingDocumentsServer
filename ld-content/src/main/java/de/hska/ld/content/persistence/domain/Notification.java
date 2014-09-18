@@ -1,7 +1,5 @@
 package de.hska.ld.content.persistence.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import javax.persistence.*;
 
 @Entity
@@ -44,7 +42,6 @@ public class Notification {
         this.documentId = documentId;
     }
 
-    @JsonIgnore
     public Long getSubscriberId() {
         return subscriberId;
     }
