@@ -152,6 +152,8 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
                 // Move the document in the folder structure of the creator
                 // Remove document from the current folder
                 parentFolder.getFolderList().remove(folder);
+                // set the new parent folder
+                folder.setParent(newParentFolder);
                 // Add document to the new folder
                 List<Access> accessList = newParentFolder.getAccessList();
                 folder.setAccessList(new ArrayList<>(accessList));
