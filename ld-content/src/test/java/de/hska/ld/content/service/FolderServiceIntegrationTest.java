@@ -149,12 +149,12 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
 
         // check if the revoke sharing process was successful
         // 1. get the shared items folder of the adminUser
-        folderService.getSharedItemsFolder(adminUser.getId());
+        Folder sharedItemsFolderAfterRevoke = folderService.getSharedItemsFolder(adminUser.getId());
         // 2. load the sub folders list of the shared items folder
-        Folder sharedItemsFolderAfterRevoke = folderService.loadSubFolderList(beforeLoadSubFolderListSharedItemsFolder.getId());
+        sharedItemsFolderAfterRevoke = folderService.loadSubFolderList(sharedItemsFolderAfterRevoke.getId());
         // 3. Assert that the newFolder is in the shared items folder (so it is shared)
         Assert.assertTrue(!sharedItemsFolderAfterRevoke.getFolderList().contains(newFolder));
-        Assert.assertTrue(!newFolder.getParent().equals(sharedItemsFolderAfterRevoke));
+        Assert.assertNull(newFolder.getParent());
     }
 
     @Test

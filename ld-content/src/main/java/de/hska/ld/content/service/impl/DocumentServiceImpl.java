@@ -123,6 +123,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             attachment.setMimeType("text/html");
             attachment.setSource("".getBytes());
             document.getAttachmentList().add(0, attachment);
+
         } else {
             checkPermission(dbDocument, Access.Permission.WRITE);
             dbDocument.setModifiedAt(new Date());
@@ -132,8 +133,8 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
                 dbDocument.setAccessAll(true);
             }
             document = dbDocument;
-            createNotifications(document, Subscription.Type.MAIN_CONTENT);
         }
+        createNotifications(document, Subscription.Type.MAIN_CONTENT);
 
         return super.save(document);
     }
@@ -292,6 +293,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         if (document == null) {
             throw new NotFoundException("id");
         }
+        checkPermission(document, Access.Permission.READ);
 
         Subscription subscription = null;
         if (document.getSubscriptionList().size() != 0) {
