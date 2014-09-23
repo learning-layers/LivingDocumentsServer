@@ -46,4 +46,6 @@ public interface FolderService extends ContentService<Folder> {
     Folder loadSubDocumentList(Long folderId);
 
     Page<Document> getSubDocumentsPage(Long folderId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+
+    boolean isPredecessorOf(Long id, Long id1);
 }

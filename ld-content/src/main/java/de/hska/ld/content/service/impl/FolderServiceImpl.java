@@ -80,6 +80,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         } else {
             isRootIsNewParentFolder = true;
         }
+        if (isPredecessorOf(folderId, newParentFolderId)) {
+            throw new ValidationException("The new parent folder with id=" + newParentFolderId + " is a sub folder of the folder you want to move.");
+        }
 
         if (parentFolderId != -1) {
             // the current parent folder is not the root node
@@ -457,6 +460,15 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         return repository.getSubDocumentsPage(folderId, pageable);
+    }
+
+    @Override
+    public boolean isPredecessorOf(Long folderId, Long folderToCheckId) {
+        Folder folder = findById(folderId);
+        Folder folderToCheck = findById(folderToCheckId);
+        return folderToCheck.getParent() != null
+                && (folderToCheck.getParent().equals(folder)
+                || isPredecessorOf(folderId, folderToCheck.getParent().getId()));
     }
 
     public Folder shareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {

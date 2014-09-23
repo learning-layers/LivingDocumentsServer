@@ -4,6 +4,7 @@ import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Folder;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.junit.Assert;
@@ -377,5 +378,25 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         // 9. Assure that the sub folder is in the correct state
         subFolder = folderService.findById(subFolder.getId());
         Assert.assertEquals(folder, subFolder.getParent());
+    }
+
+    @Test(expected = ValidationException.class)
+    @Transactional
+    public void testMoveSubFolderToOwnFolderStructureExceptionExpected() {
+        Folder folder = folderService.createFolder("Folder");
+        Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
+        Folder subSubFolder = folderService.createFolder("SubSubFolder", subFolder.getId());
+
+        folderService.moveFolderToFolder(folder.getId(), subSubFolder.getId(), folder.getId());
+    }
+
+    @Test
+    public void testIsFolderAPredecessorFolderOfCurrentFolder() {
+        Folder folder = folderService.createFolder("Folder");
+        Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
+        boolean isPredecessor = folderService.isPredecessorOf(folder.getId(), subFolder.getId());
+        Assert.assertTrue(isPredecessor);
+        boolean isPredecessor2 = folderService.isPredecessorOf(subFolder.getId(), folder.getId());
+        Assert.assertFalse(isPredecessor2);
     }
 }
