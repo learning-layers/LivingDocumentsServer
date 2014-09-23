@@ -22,7 +22,13 @@
 */classes
 /data
 */data
+scripts/windows/out
+scripts/windows/out/*
+scripts/unix/out
+scripts/unix/out/*
 
 rebel.xml
 
+# Ignore static html files #
+############################
 ld-core/src/main/resources/static/*
