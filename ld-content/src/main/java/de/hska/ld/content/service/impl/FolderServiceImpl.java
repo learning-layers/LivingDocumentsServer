@@ -141,8 +141,11 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
 
         if (newParentFolder != null) {
             // new parent is not the root folder
-            if (parentFolder.getCreator() != Core.currentUser()
-                    && newParentFolder.getCreator() != parentFolder.getCreator()) {
+            if (Core.currentUser().getId().equals(parentFolder.getCreator().getId())) {
+                // current user is not the creator of the folder
+                if (newParentFolder.getCreator().equals(folder.getCreator())) {
+                    folder.setParent(newParentFolder);
+                }
                 // Move the document in the folder structure of the current user
                 // Remove document from the current folder
                 parentFolder.getFolderList().remove(folder);
@@ -153,7 +156,9 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
                 // Remove document from the current folder
                 parentFolder.getFolderList().remove(folder);
                 // set the new parent folder
-                folder.setParent(newParentFolder);
+                if (Core.currentUser().getId().equals(parentFolder.getCreator().getId())) {
+                    folder.setParent(newParentFolder);
+                }
                 // Add document to the new folder
                 List<Access> accessList = newParentFolder.getAccessList();
                 folder.setAccessList(new ArrayList<>(accessList));

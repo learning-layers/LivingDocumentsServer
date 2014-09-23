@@ -300,7 +300,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
     public void testMoveSubFolderWhenOwner() {
         Folder folder = folderService.createFolder("Folder");
         Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
-        Folder subSubFolder = folderService.createFolder("SubSubFolder", folder.getId());
+        Folder subSubFolder = folderService.createFolder("SubSubFolder", subFolder.getId());
 
         Folder newParentFolder = folderService.createFolder("NewParentFolder");
         newParentFolder = folderService.moveFolderToFolder(folder.getId(), newParentFolder.getId(), subFolder.getId());
@@ -314,5 +314,68 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         // Assert that the "SubFolder" is not in the old parent sub folder list
         folder = folderService.loadSubFolderList(folder.getId());
         Assert.assertTrue(!folder.getFolderList().contains(subFolder));
+    }
+
+    @Test
+    @Transactional
+    public void testMoveSubFolderInRootFolderToNewParentRemoveOldReferencesWhenNotOwner() {
+        // 1. Create folder structure as user
+        User user = userService.findByUsername("user");
+        setAuthentication(user);
+        Folder folder = folderService.createFolder("Folder");
+        Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
+        Folder subSubFolder = folderService.createFolder("SubSubFolder", subFolder.getId());
+
+        // 2. Share folder "SubFolder" with testUser
+        folderService.shareFolder(subFolder.getId(), Arrays.asList(testUser), Access.Permission.READ);
+
+        // 3. As testUser move folder to another folder
+        setAuthentication(testUser);
+        Folder newParentFolder = folderService.createFolder("NewParentFolder");
+        newParentFolder = folderService.moveFolderToFolder(-1L, newParentFolder.getId(), subFolder.getId());
+        Assert.assertTrue(newParentFolder.getFolderList().contains(subFolder));
+        subFolder = folderService.findById(subFolder.getId());
+
+        // 4. Test that references to the shared items folder are removed
+        List<Folder> parentFolderList = folderService.findFoldersByChildFolderIdAndCreatorId(subFolder.getId(), testUser.getId());
+        Assert.assertTrue(parentFolderList.size() == 1);
+        Assert.assertEquals(newParentFolder, parentFolderList.get(0));
+    }
+
+    @Test
+    @Transactional
+    public void testMoveSubFolderToNewParentRemoveOldReferencesWhenNotOwner() {
+        // 1. Create folder structure as user
+        User user = userService.findByUsername("user");
+        setAuthentication(user);
+        Folder folder = folderService.createFolder("Folder");
+        Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
+        Folder subSubFolder = folderService.createFolder("SubSubFolder", subFolder.getId());
+
+        // 2. Share folder "SubFolder" with testUser
+        folderService.shareFolder(subFolder.getId(), Arrays.asList(testUser), Access.Permission.READ);
+
+        // 3. As testUser move folder to another folder
+        setAuthentication(testUser);
+        // 4. Create old parent in current user
+        Folder oldParentFolder = folderService.createFolder("OldParentFolder");
+        oldParentFolder = folderService.moveFolderToFolder(-1L, oldParentFolder.getId(), subFolder.getId());
+        // 5. Move sub folder from old parent folder to the new parent folder
+        Folder newParentFolder = folderService.createFolder("NewParentFolder");
+        newParentFolder = folderService.moveFolderToFolder(oldParentFolder.getId(), newParentFolder.getId(), subFolder.getId());
+        // 6. Assure that the old parent folder is in the correct state
+        oldParentFolder = folderService.findById(oldParentFolder.getId());
+
+        // 7. Assure that the parent folders are set correctly
+        List<Folder> parentFolderList = folderService.findFoldersByChildFolderIdAndCreatorId(subFolder.getId(), testUser.getId());
+        Assert.assertTrue(parentFolderList.size() == 1);
+        Assert.assertEquals(newParentFolder, parentFolderList.get(0));
+
+        // 8. Assure that the new parent folder is in the correct state
+        Assert.assertTrue(newParentFolder.getFolderList().contains(subFolder));
+
+        // 9. Assure that the sub folder is in the correct state
+        subFolder = folderService.findById(subFolder.getId());
+        Assert.assertEquals(folder, subFolder.getParent());
     }
 }
