@@ -98,8 +98,18 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     private void moveFolderParentRoot(Folder folder, Folder newParentFolder) {
         if (newParentFolder != null) {
             // new parent is not the root folder
-            if (folder.getCreator() != Core.currentUser()
-                    && newParentFolder.getCreator() != folder.getCreator()) {
+            if (!folder.getCreator().equals(Core.currentUser())) {
+                // current user is not the creator of the folder
+                if (newParentFolder.getCreator().equals(folder.getCreator())) {
+                    folder.setParent(newParentFolder);
+                } else {
+                    List<Folder> parentFolderList = findFoldersByChildFolderIdAndCreatorId(folder.getId(), Core.currentUser().getId());
+                    if (parentFolderList != null && parentFolderList.size() > 0) {
+                        parentFolderList.forEach(f -> {
+                            f.getFolderList().remove(folder);
+                        });
+                    }
+                }
                 // Move the document in the folder structure of the current user
                 // Add document to the new folder
                 newParentFolder.getFolderList().add(folder);
@@ -281,7 +291,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
             Folder sharedItemsFolder = getSharedItemsFolder(user.getId());
             sharedItemsFolder.getFolderList().size();
             sharedItemsFolder.getFolderList().remove(folder);
-            List<Folder> parentFolderList = findFoldersByParentCreatorId(folderId, user.getId());
+            List<Folder> parentFolderList = findFoldersByChildFolderIdAndCreatorId(folderId, user.getId());
             if (parentFolderList != null && parentFolderList.size() > 0) {
                 parentFolderList.stream().filter(pf -> user.getId().equals(pf.getCreator().getId())).forEach(pf -> {
                     pf.getFolderList().remove(folder);
@@ -397,7 +407,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
     }
 
     @Override
-    public List<Folder> findFoldersByParentCreatorId(Long childFolderId, Long creatorId) {
+    public List<Folder> findFoldersByChildFolderIdAndCreatorId(Long childFolderId, Long creatorId) {
         return repository.findFoldersByChildFolderIdAndCreatorId(childFolderId, creatorId);
     }
 

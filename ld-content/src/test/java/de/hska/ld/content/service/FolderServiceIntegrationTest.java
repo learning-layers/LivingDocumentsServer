@@ -206,7 +206,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         folder = folderService.loadSubFolderList(folder.getId());
         Assert.assertTrue(folder.getFolderList().contains(subfolder));
 
-        List<Folder> folderList = folderService.findFoldersByParentCreatorId(subfolder.getId(), testUser.getId());
+        List<Folder> folderList = folderService.findFoldersByChildFolderIdAndCreatorId(subfolder.getId(), testUser.getId());
 
         Assert.assertNotNull(folderList);
         Assert.assertTrue(folderList.size() == 1);
@@ -252,6 +252,52 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         // 7.a) Move the folder as creator
 
         // 7.b) Assert that the access propagation works
+
+    }
+
+    @Test
+    @Transactional
+    public void testMoveFolderWhenOwner() {
+        Folder folder = folderService.createFolder("Folder");
+        Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
+
+        Folder newParentFolder = folderService.createFolder("NewParentFolder");
+        newParentFolder = folderService.moveFolderToFolder(-1L, newParentFolder.getId(), folder.getId());
+        Assert.assertTrue(newParentFolder.getFolderList().contains(folder));
+        folder = folderService.findById(folder.getId());
+        Assert.assertNotNull(folder.getParent());
+    }
+
+    @Test
+    @Transactional
+    public void testMoveFolderRemoveOldReferencesWhenNotOwner() {
+        // 1. Create folder structure as user
+        User user = userService.findByUsername("user");
+        setAuthentication(user);
+        Folder folder = folderService.createFolder("Folder");
+        Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
+
+        // 2. Share folder "Folder" with testUser
+        folderService.shareFolder(folder.getId(), Arrays.asList(testUser), Access.Permission.READ);
+
+        // 3. As testUser move folder to another folder
+        setAuthentication(testUser);
+        Folder newParentFolder = folderService.createFolder("NewParentFolder");
+        newParentFolder = folderService.moveFolderToFolder(-1L, newParentFolder.getId(), folder.getId());
+        Assert.assertTrue(newParentFolder.getFolderList().contains(folder));
+        folder = folderService.findById(folder.getId());
+        // 4. Assert null because the current user is not the creator
+        Assert.assertNull(folder.getParent());
+
+        // 5. Test that references to the shared items folder are removed
+        List<Folder> parentFolderList = folderService.findFoldersByChildFolderIdAndCreatorId(folder.getId(), testUser.getId());
+        Assert.assertTrue(parentFolderList.size() == 1);
+        Assert.assertEquals(newParentFolder, parentFolderList.get(0));
+    }
+
+    @Test
+    @Transactional
+    public void testMoveSubFolderRemoveOldReferencesWhenOwner() {
 
     }
 }
