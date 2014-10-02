@@ -242,6 +242,8 @@ public class DocumentController {
             Document document = documentService.findById(documentId);
             if (document != null) {
                 documentService.checkPermission(document, Access.Permission.READ);
+            } else {
+                throw new NotFoundException("id");
             }
             Document documentClone = cloner.shallowClone(document);
             documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class, User.class);
