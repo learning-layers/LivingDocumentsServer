@@ -526,21 +526,28 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/download")
-    public void downloadFile(@PathVariable Long documentId, @RequestParam Integer position, HttpServletResponse response) {
-        try {
-            Attachment attachment = documentService.getAttachment(documentId, position);
-            byte[] source = attachment.getSource();
-            InputStream is = new ByteArrayInputStream(source);
-            response.setContentType(attachment.getMimeType());
-            String fileName = URLEncoder.encode(attachment.getName(), "UTF-8");
-            fileName = URLDecoder.decode(fileName, "ISO8859_1");
-            //response.setContentType("application/x-msdownload");
-            response.setHeader("Content-disposition", "attachment; filename=" + fileName);
-            OutputStream outputStream = response.getOutputStream();
-            IOUtils.copy(is, outputStream);
-        } catch (IOException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+    public Callable downloadFile(@PathVariable Long documentId, @RequestParam Integer position, HttpServletResponse response) {
+        return new Callable() {
+            @Override
+            public Void call() throws Exception {
+                try {
+                    Attachment attachment = documentService.getAttachment(documentId, position);
+                    byte[] source = attachment.getSource();
+                    InputStream is = new ByteArrayInputStream(source);
+                    response.setContentType(attachment.getMimeType());
+                    String fileName = URLEncoder.encode(attachment.getName(), "UTF-8");
+                    fileName = URLDecoder.decode(fileName, "ISO8859_1");
+                    //response.setContentType("application/x-msdownload");
+                    response.setHeader("Content-disposition", "attachment; filename=" + fileName);
+                    OutputStream outputStream = response.getOutputStream();
+                    IOUtils.copy(is, outputStream);
+                } catch (IOException e) {
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                }
+                return null;
+            }
+        };
+
     }
 
     /**
