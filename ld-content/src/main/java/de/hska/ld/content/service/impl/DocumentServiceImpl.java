@@ -630,7 +630,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Document loadContentCollection(Document document, Class... clazzArray) {
         document = super.loadContentCollection(document, clazzArray);
         if (document != null) {

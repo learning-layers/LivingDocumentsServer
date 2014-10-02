@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 /**
  * <p><b>Resource:</b> {@value Core#RESOURCE_INFO}
@@ -56,6 +57,18 @@ public class InfoController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.GET)
+    public Callable getInfo() {
+        return () -> {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return new ResponseEntity<>(info, HttpStatus.OK);
+        };
+    }
+
     /**
      * <pre>
      * Gets information about the current application version etc.
@@ -65,10 +78,10 @@ public class InfoController {
      *
      * @return the application information
      */
-    @RequestMapping(method = RequestMethod.GET)
+    /*@RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<Info> getInfo() {
         return new ResponseEntity<>(info, HttpStatus.OK);
-    }
+    }*/
 
     static class Info {
 

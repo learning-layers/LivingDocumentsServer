@@ -66,7 +66,7 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public T loadContentCollection(T t, Class... clazzArray) {
         t = findById(t.getId());
         for (Class clazz : clazzArray) {
