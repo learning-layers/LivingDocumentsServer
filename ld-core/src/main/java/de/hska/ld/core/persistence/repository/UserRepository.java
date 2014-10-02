@@ -53,4 +53,7 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u.username LIKE :term")
     List<User> findMentionSuggestions(@Param("term") String term);
+
+    @Query("SELECT u FROM User u WHERE u.username LIKE :term")
+    Page<User> findMentionSuggestions(@Param("term") String term, Pageable pageable);
 }

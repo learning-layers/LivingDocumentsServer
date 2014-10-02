@@ -202,6 +202,11 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
 
     @Override
     public Page<User> getUsersPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        return getUsersPage(pageNumber, pageSize, sortDirection, sortProperty, null);
+    }
+
+    @Override
+    public Page<User> getUsersPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty, String searchTerm) {
         Sort.Direction direction;
         if (Sort.Direction.ASC.toString().equals(sortDirection)) {
             direction = Sort.Direction.ASC;
@@ -209,8 +214,11 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             direction = Sort.Direction.DESC;
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
-        User user = Core.currentUser();
-        return repository.findAll(pageable);
+        if (searchTerm == null) {
+            return repository.findAll(pageable);
+        } else {
+            return repository.findMentionSuggestions(searchTerm + "%", pageable);
+        }
     }
 
     @Override

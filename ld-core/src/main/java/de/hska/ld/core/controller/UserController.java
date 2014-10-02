@@ -377,14 +377,29 @@ public class UserController {
     }
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.GET, value = "/suggestions")
-    public ResponseEntity<List<User>> getMentionSuggestions(@RequestParam String term) {
+    @RequestMapping(method = RequestMethod.GET, value = "/suggestions/list")
+    public ResponseEntity<List<User>> getMentionSuggestionsList(@RequestParam(required = false) String term) {
         if (!"".equals(term) || term.contains("%")) {
             List<User> userSuggestionList = userService.getMentionSuggestions(term);
             return new ResponseEntity<>(userSuggestionList, HttpStatus.OK);
         } else {
             List<User> userSuggestionList = userService.getMentionSuggestions(term);
             return new ResponseEntity<>(userSuggestionList, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Secured(Core.ROLE_ADMIN)
+    @RequestMapping(method = RequestMethod.GET, value = "/suggestions")
+    public ResponseEntity<Page<User>> getMentionSuggestions(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                            @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                            @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                            @RequestParam(value = "sort-property", defaultValue = "username") String sortProperty,
+                                                            @RequestParam(value = "search-term", required = false) String searchTerm) {
+        Page<User> usersPage = userService.getUsersPage(pageNumber, pageSize, sortDirection, sortProperty, searchTerm);
+        if (usersPage != null) {
+            return new ResponseEntity<>(usersPage, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
