@@ -125,6 +125,7 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
         return super.save(t);
     }
 
+    @Transactional(readOnly = true)
     public void checkPermission(T t, Access.Permission permission) {
         User user = Core.currentUser();
         if (!t.isAccessAll() && !t.getCreator().equals(user)) {

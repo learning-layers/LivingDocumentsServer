@@ -533,7 +533,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Access getCurrentUserPermissions(Long documentId, String permissions) {
         Document document = findById(documentId);
         if (document == null) {
