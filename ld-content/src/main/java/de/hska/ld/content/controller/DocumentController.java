@@ -93,17 +93,19 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<Page<Document>> getDocumentsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+    public Callable getDocumentsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                            @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                            @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                            @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty,
                                                            @RequestParam(value = "search-term", required = false) String searchTerm) {
-        Page<Document> documentsPage = documentService.getDocumentsPage(pageNumber, pageSize, sortDirection, sortProperty, searchTerm);
-        if (documentsPage != null) {
-            return new ResponseEntity<>(documentsPage, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return () -> {
+            Page<Document> documentsPage = documentService.getDocumentsPage(pageNumber, pageSize, sortDirection, sortProperty, searchTerm);
+            if (documentsPage != null) {
+                return new ResponseEntity<>(documentsPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     /**
@@ -124,17 +126,19 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/discussions")
-    public ResponseEntity<Page<Document>> getDiscussionsPage(@PathVariable Long documentId,
+    public Callable getDiscussionsPage(@PathVariable Long documentId,
                                                              @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                              @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                              @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                              @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<Document> documentsPage = documentService.getDiscussionDocumentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
-        if (documentsPage != null) {
-            return new ResponseEntity<>(documentsPage, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return () -> {
+            Page<Document> documentsPage = documentService.getDiscussionDocumentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
+            if (documentsPage != null) {
+                return new ResponseEntity<>(documentsPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     /**
@@ -152,9 +156,11 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<Document> createDocument(@RequestBody Document document) {
-        document = documentService.save(document);
-        return new ResponseEntity<>(document, HttpStatus.CREATED);
+    public Callable createDocument(@RequestBody Document document) {
+        return () -> {
+            Document newDocument = documentService.save(document);
+            return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
+        };
     }
 
     /**
@@ -173,9 +179,11 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/discussion")
-    public ResponseEntity<Document> createDiscussion(@PathVariable Long documentId, @RequestBody Document document) {
-        document = documentService.addDiscussionToDocument(documentId, document);
-        return new ResponseEntity<>(document, HttpStatus.CREATED);
+    public Callable createDiscussion(@PathVariable Long documentId, @RequestBody Document document) {
+        return () -> {
+            Document discussion = documentService.addDiscussionToDocument(documentId, document);
+            return new ResponseEntity<>(discussion, HttpStatus.CREATED);
+        };
     }
 
     /**
@@ -194,33 +202,35 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/{documentId}")
-    public ResponseEntity<Document> updateDocument(@PathVariable Long documentId, @RequestBody Document document, @RequestParam(value = "cmd", defaultValue = "all") String cmd) {
-        Document dbDocument = documentService.findById(documentId);
-        if (dbDocument.isDeleted()) {
-            throw new NotFoundException("id");
-        }
-        switch (cmd) {
-            case "title":
-                if (document.getTitle() == null || "".equals(document.getTitle())) {
-                    throw new ValidationException("title");
-                }
-                dbDocument.setTitle(document.getTitle());
-                break;
-            case "description":
-                if (document.getDescription() == null || "".equals(document.getDescription())) {
-                    throw new ValidationException("description");
-                }
-                dbDocument.setDescription(document.getDescription());
-                break;
-            case "all":
-                dbDocument.setTitle(document.getTitle());
-                dbDocument.setDescription(document.getDescription());
-                break;
-            default:
-                throw new ValidationException("command");
-        }
-        dbDocument = documentService.save(dbDocument);
-        return new ResponseEntity<>(dbDocument, HttpStatus.OK);
+    public Callable updateDocument(@PathVariable Long documentId, @RequestBody Document document, @RequestParam(value = "cmd", defaultValue = "all") String cmd) {
+        return () -> {
+            Document dbDocument = documentService.findById(documentId);
+            if (dbDocument.isDeleted()) {
+                throw new NotFoundException("id");
+            }
+            switch (cmd) {
+                case "title":
+                    if (document.getTitle() == null || "".equals(document.getTitle())) {
+                        throw new ValidationException("title");
+                    }
+                    dbDocument.setTitle(document.getTitle());
+                    break;
+                case "description":
+                    if (document.getDescription() == null || "".equals(document.getDescription())) {
+                        throw new ValidationException("description");
+                    }
+                    dbDocument.setDescription(document.getDescription());
+                    break;
+                case "all":
+                    dbDocument.setTitle(document.getTitle());
+                    dbDocument.setDescription(document.getDescription());
+                    break;
+                default:
+                    throw new ValidationException("command");
+            }
+            dbDocument = documentService.save(dbDocument);
+            return new ResponseEntity<>(dbDocument, HttpStatus.OK);
+        };
     }
 
     /**
@@ -278,9 +288,11 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}")
-    public ResponseEntity removeDocument(@PathVariable Long documentId) {
-        documentService.markAsDeleted(documentId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Callable removeDocument(@PathVariable Long documentId) {
+        return () -> {
+            documentService.markAsDeleted(documentId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
     }
 
     /**
@@ -297,17 +309,19 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/comment")
-    public ResponseEntity<Page<Comment>> getCommentsPage(@PathVariable Long documentId,
+    public Callable getCommentsPage(@PathVariable Long documentId,
                                                          @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                          @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                          @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                          @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<Comment> commentsPage = commentService.getDocumentCommentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
-        if (commentsPage != null && commentsPage.getNumberOfElements() > 0) {
-            return new ResponseEntity<>(commentsPage, HttpStatus.OK);
-        } else {
-            throw new NotFoundException();
-        }
+        return () -> {
+            Page<Comment> commentsPage = commentService.getDocumentCommentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
+            if (commentsPage != null && commentsPage.getNumberOfElements() > 0) {
+                return new ResponseEntity<>(commentsPage, HttpStatus.OK);
+            } else {
+                throw new NotFoundException();
+            }
+        };
     }
 
     /**
@@ -326,9 +340,11 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/comment")
-    public ResponseEntity<Comment> addComment(@PathVariable Long documentId, @RequestBody Comment comment) {
-        comment = documentService.addComment(documentId, comment);
-        return new ResponseEntity<>(comment, HttpStatus.CREATED);
+    public Callable addComment(@PathVariable Long documentId, @RequestBody Comment comment) {
+        return () -> {
+            Comment newComment = documentService.addComment(documentId, comment);
+            return new ResponseEntity<>(newComment, HttpStatus.CREATED);
+        };
     }
 
     /**
@@ -346,9 +362,11 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/tag/{tagId}")
-    public ResponseEntity<Document> addTag(@PathVariable Long documentId, @PathVariable Long tagId) {
-        documentService.addTag(documentId, tagId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Callable addTag(@PathVariable Long documentId, @PathVariable Long tagId) {
+        return () -> {
+            documentService.addTag(documentId, tagId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
     }
 
     /**
@@ -365,9 +383,11 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}/tag/{tagId}")
-    public ResponseEntity removeTag(@PathVariable Long documentId, @PathVariable Long tagId) {
-        documentService.removeTag(documentId, tagId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Callable removeTag(@PathVariable Long documentId, @PathVariable Long tagId) {
+        return () -> {
+            documentService.removeTag(documentId, tagId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
     }
 
     /**
@@ -385,9 +405,11 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/hyperlinks")
-    public ResponseEntity<Document> addHyperlink(@PathVariable Long documentId, @RequestBody Hyperlink hyperlink) {
-        documentService.addHyperlink(documentId, hyperlink);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Callable addHyperlink(@PathVariable Long documentId, @RequestBody Hyperlink hyperlink) {
+        return () -> {
+            documentService.addHyperlink(documentId, hyperlink);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
     }
 
     /**
@@ -404,17 +426,19 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags")
-    public ResponseEntity<Page<Tag>> getTagsPage(@PathVariable Long documentId,
+    public Callable getTagsPage(@PathVariable Long documentId,
                                                  @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                  @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                  @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                  @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<Tag> tagsPage = documentService.getDocumentTagsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
-        if (tagsPage != null && tagsPage.getNumberOfElements() > 0) {
-            return new ResponseEntity<>(tagsPage, HttpStatus.OK);
-        } else {
-            throw new NotFoundException();
-        }
+        return () -> {
+            Page<Tag> tagsPage = documentService.getDocumentTagsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
+            if (tagsPage != null && tagsPage.getNumberOfElements() > 0) {
+                return new ResponseEntity<>(tagsPage, HttpStatus.OK);
+            } else {
+                throw new NotFoundException();
+            }
+        };
     }
 
     /**
@@ -430,13 +454,15 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags/list")
-    public ResponseEntity<List<Tag>> getAllTags(@PathVariable Long documentId) {
-        List<Tag> tagList = documentService.getDocumentTagsList(documentId);
-        if (tagList != null) {
-            return new ResponseEntity<>(tagList, HttpStatus.OK);
-        } else {
-            throw new NotFoundException();
-        }
+    public Callable getAllTags(@PathVariable Long documentId) {
+        return () -> {
+            List<Tag> tagList = documentService.getDocumentTagsList(documentId);
+            if (tagList != null) {
+                return new ResponseEntity<>(tagList, HttpStatus.OK);
+            } else {
+                throw new NotFoundException();
+            }
+        };
     }
 
     /**
@@ -455,31 +481,35 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/upload/{attachmentId}")
-    public ResponseEntity<Long> uploadFile(@RequestParam MultipartFile file, @PathVariable Long attachmentId, @RequestParam Long documentId) {
-        String name = file.getOriginalFilename();
-        if (!file.isEmpty()) {
-            attachmentId = documentService.updateAttachment(documentId, attachmentId, file, name);
-            return new ResponseEntity<>(attachmentId, HttpStatus.OK);
-        } else {
-            throw new ValidationException("file");
-        }
+    public Callable uploadFile(@RequestParam MultipartFile file, @PathVariable Long attachmentId, @RequestParam Long documentId) {
+        return () -> {
+            String name = file.getOriginalFilename();
+            if (!file.isEmpty()) {
+                Long updatedAttachmentId = documentService.updateAttachment(documentId, attachmentId, file, name);
+                return new ResponseEntity<>(updatedAttachmentId, HttpStatus.OK);
+            } else {
+                throw new ValidationException("file");
+            }
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/uploadmain")
-    public ResponseEntity<Long> uploadMainFile(@RequestParam MultipartFile file, @RequestParam Long documentId) {
-        String name = file.getOriginalFilename();
-        if (!file.isEmpty()) {
-            Document document = documentService.findById(documentId);
-            if (document == null) {
-                throw new NotFoundException("documentId");
+    public Callable uploadMainFile(@RequestParam MultipartFile file, @RequestParam Long documentId) {
+        return () -> {
+            String name = file.getOriginalFilename();
+            if (!file.isEmpty()) {
+                Document document = documentService.findById(documentId);
+                if (document == null) {
+                    throw new NotFoundException("documentId");
+                }
+                Attachment attachment = document.getAttachmentList().get(0);
+                Long attachmentId = documentService.updateAttachment(documentId, attachment.getId(), file, name);
+                return new ResponseEntity<>(attachmentId, HttpStatus.OK);
+            } else {
+                throw new ValidationException("file");
             }
-            Attachment attachment = document.getAttachmentList().get(0);
-            Long attachmentId = documentService.updateAttachment(documentId, attachment.getId(), file, name);
-            return new ResponseEntity<>(attachmentId, HttpStatus.OK);
-        } else {
-            throw new ValidationException("file");
-        }
+        };
     }
 
     /**
@@ -497,14 +527,16 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/upload")
-    public ResponseEntity<Long> uploadFile(@RequestParam MultipartFile file, @RequestParam Long documentId) {
-        String name = file.getOriginalFilename();
-        if (!file.isEmpty()) {
-            Long attachmentId = documentService.addAttachment(documentId, file, name);
-            return new ResponseEntity<>(attachmentId, HttpStatus.OK);
-        } else {
-            throw new ValidationException("file");
-        }
+    public Callable uploadFile(@RequestParam MultipartFile file, @RequestParam Long documentId) {
+        return () -> {
+            String name = file.getOriginalFilename();
+            if (!file.isEmpty()) {
+                Long attachmentId = documentService.addAttachment(documentId, file, name);
+                return new ResponseEntity<>(attachmentId, HttpStatus.OK);
+            } else {
+                throw new ValidationException("file");
+            }
+        };
     }
 
     /**
@@ -527,27 +559,23 @@ public class DocumentController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/download")
     public Callable downloadFile(@PathVariable Long documentId, @RequestParam Integer position, HttpServletResponse response) {
-        return new Callable() {
-            @Override
-            public Void call() throws Exception {
-                try {
-                    Attachment attachment = documentService.getAttachment(documentId, position);
-                    byte[] source = attachment.getSource();
-                    InputStream is = new ByteArrayInputStream(source);
-                    response.setContentType(attachment.getMimeType());
-                    String fileName = URLEncoder.encode(attachment.getName(), "UTF-8");
-                    fileName = URLDecoder.decode(fileName, "ISO8859_1");
-                    //response.setContentType("application/x-msdownload");
-                    response.setHeader("Content-disposition", "attachment; filename=" + fileName);
-                    OutputStream outputStream = response.getOutputStream();
-                    IOUtils.copy(is, outputStream);
-                } catch (IOException e) {
-                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                }
-                return null;
+        return () -> {
+            try {
+                Attachment attachment = documentService.getAttachment(documentId, position);
+                byte[] source = attachment.getSource();
+                InputStream is = new ByteArrayInputStream(source);
+                response.setContentType(attachment.getMimeType());
+                String fileName = URLEncoder.encode(attachment.getName(), "UTF-8");
+                fileName = URLDecoder.decode(fileName, "ISO8859_1");
+                //response.setContentType("application/x-msdownload");
+                response.setHeader("Content-disposition", "attachment; filename=" + fileName);
+                OutputStream outputStream = response.getOutputStream();
+                IOUtils.copy(is, outputStream);
+            } catch (IOException e) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
+            return null;
         };
-
     }
 
     /**
@@ -568,21 +596,24 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/download/{attachmentId}")
-    public void downloadFile(@PathVariable Long documentId, @PathVariable Long attachmentId, HttpServletResponse response) {
-        try {
-            Attachment attachment = documentService.getAttachmentByAttachmentId(documentId, attachmentId);
-            byte[] source = attachment.getSource();
-            InputStream is = new ByteArrayInputStream(source);
-            response.setContentType(attachment.getMimeType());
-            String fileName = URLEncoder.encode(attachment.getName(), "UTF-8");
-            fileName = URLDecoder.decode(fileName, "ISO8859_1");
-            //response.setContentType("application/x-msdownload");
-            response.setHeader("Content-disposition", "attachment; filename=" + fileName);
-            OutputStream outputStream = response.getOutputStream();
-            IOUtils.copy(is, outputStream);
-        } catch (IOException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+    public Callable downloadFile(@PathVariable Long documentId, @PathVariable Long attachmentId, HttpServletResponse response) {
+        return () -> {
+            try {
+                Attachment attachment = documentService.getAttachmentByAttachmentId(documentId, attachmentId);
+                byte[] source = attachment.getSource();
+                InputStream is = new ByteArrayInputStream(source);
+                response.setContentType(attachment.getMimeType());
+                String fileName = URLEncoder.encode(attachment.getName(), "UTF-8");
+                fileName = URLDecoder.decode(fileName, "ISO8859_1");
+                //response.setContentType("application/x-msdownload");
+                response.setHeader("Content-disposition", "attachment; filename=" + fileName);
+                OutputStream outputStream = response.getOutputStream();
+                IOUtils.copy(is, outputStream);
+            } catch (IOException e) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+            return null;
+        };
     }
 
     /**
@@ -600,7 +631,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/attachment")
-    public ResponseEntity<Page<Attachment>> getDocumentAttachmentPage(
+    public Callable getDocumentAttachmentPage(
             @PathVariable Long documentId,
             @RequestParam(value = "attachment-types", defaultValue = "all") String attachmentTypes,
             @RequestParam(value = "excluded-attachment-types", defaultValue = "") String excludedAttachmentTypes,
@@ -608,12 +639,14 @@ public class DocumentController {
             @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
             @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
             @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<Attachment> attachmentPage = documentService.getDocumentAttachmentPage(documentId, attachmentTypes, excludedAttachmentTypes, pageNumber, pageSize, sortDirection, sortProperty);
-        if (attachmentPage != null) {
-            return new ResponseEntity<>(attachmentPage, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return () -> {
+            Page<Attachment> attachmentPage = documentService.getDocumentAttachmentPage(documentId, attachmentTypes, excludedAttachmentTypes, pageNumber, pageSize, sortDirection, sortProperty);
+            if (attachmentPage != null) {
+                return new ResponseEntity<>(attachmentPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     /**
@@ -630,28 +663,34 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/attachment/list")
-    public ResponseEntity<List<Attachment>> getDocumentAttachmentList(@PathVariable Long documentId) {
-        List<Attachment> attachmentList = documentService.getDocumentAttachmentList(documentId);
-        List<Attachment> responseAttachmentList = attachmentList.stream().filter(a -> !"maincontent.html".equals(a.getName())).collect(Collectors.toList());
-        if (responseAttachmentList != null) {
-            return new ResponseEntity<>(responseAttachmentList, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public Callable getDocumentAttachmentList(@PathVariable Long documentId) {
+        return () -> {
+            List<Attachment> attachmentList = documentService.getDocumentAttachmentList(documentId);
+            List<Attachment> responseAttachmentList = attachmentList.stream().filter(a -> !"maincontent.html".equals(a.getName())).collect(Collectors.toList());
+            if (responseAttachmentList != null) {
+                return new ResponseEntity<>(responseAttachmentList, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}/attachment/{attachmentId}")
-    public ResponseEntity removeAttachment(@PathVariable Long documentId, @PathVariable Long attachmentId) {
-        documentService.removeAttachment(documentId, attachmentId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Callable removeAttachment(@PathVariable Long documentId, @PathVariable Long attachmentId) {
+        return () -> {
+            documentService.removeAttachment(documentId, attachmentId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/{documentId}/attachment/{attachmentId}")
-    public ResponseEntity updateAttachmentInfo(@PathVariable Long documentId, @PathVariable Long attachmentId, @RequestBody Attachment attachment) {
-        documentService.updateAttachment(documentId, attachmentId, attachment);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Callable updateAttachmentInfo(@PathVariable Long documentId, @PathVariable Long attachmentId, @RequestBody Attachment attachment) {
+        return () -> {
+            documentService.updateAttachment(documentId, attachmentId, attachment);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
     }
 
 
@@ -684,13 +723,15 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/breadcrumbs")
-    public ResponseEntity<List<BreadcrumbDto>> getBreadcrumbs(@PathVariable Long documentId) {
-        List<BreadcrumbDto> breadcrumbList = documentService.getBreadcrumbs(documentId);
-        if (breadcrumbList != null) {
-            return new ResponseEntity<>(breadcrumbList, HttpStatus.OK);
-        } else {
-            throw new NotFoundException();
-        }
+    public Callable getBreadcrumbs(@PathVariable Long documentId) {
+        return () -> {
+            List<BreadcrumbDto> breadcrumbList = documentService.getBreadcrumbs(documentId);
+            if (breadcrumbList != null) {
+                return new ResponseEntity<>(breadcrumbList, HttpStatus.OK);
+            } else {
+                throw new NotFoundException();
+            }
+        };
     }
 
     /**
@@ -709,26 +750,28 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/subscribe")
-    public ResponseEntity subscribe(@PathVariable Long documentId, @RequestParam String typeString) {
-        Subscription.Type type;
-        try {
-            type = Subscription.Type.valueOf(typeString);
-        } catch (Exception e) {
-            throw new ValidationException("typeString");
-        }
-        if (Subscription.Type.DOCUMENT_ALL.equals(type)) {
-            documentService.addSubscription(
-                    documentId,
-                    Subscription.Type.DOCUMENT_ALL,
-                    Subscription.Type.MAIN_CONTENT,
-                    Subscription.Type.ATTACHMENT,
-                    Subscription.Type.COMMENT,
-                    Subscription.Type.DISCUSSION
-            );
-        } else {
-            documentService.addSubscription(documentId, type);
-        }
-        return new ResponseEntity(HttpStatus.OK);
+    public Callable subscribe(@PathVariable Long documentId, @RequestParam String typeString) {
+        return () -> {
+            Subscription.Type type;
+            try {
+                type = Subscription.Type.valueOf(typeString);
+            } catch (Exception e) {
+                throw new ValidationException("typeString");
+            }
+            if (Subscription.Type.DOCUMENT_ALL.equals(type)) {
+                documentService.addSubscription(
+                        documentId,
+                        Subscription.Type.DOCUMENT_ALL,
+                        Subscription.Type.MAIN_CONTENT,
+                        Subscription.Type.ATTACHMENT,
+                        Subscription.Type.COMMENT,
+                        Subscription.Type.DISCUSSION
+                );
+            } else {
+                documentService.addSubscription(documentId, type);
+            }
+            return new ResponseEntity(HttpStatus.OK);
+        };
     }
 
     /**
@@ -743,57 +786,73 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/notifications")
-    public ResponseEntity<List<Notification>> getNotifications() {
-        List<Notification> notificationList = subscriptionService.getNotifications();
-        return new ResponseEntity<>(notificationList, HttpStatus.OK);
+    public Callable getNotifications() {
+        return () -> {
+            List<Notification> notificationList = subscriptionService.getNotifications();
+            return new ResponseEntity<>(notificationList, HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/notifications/read")
-    public ResponseEntity markNotificationsAsRead(@RequestBody List<Notification> notificationList) {
-        subscriptionService.markNotificationsAsRead(notificationList);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Callable markNotificationsAsRead(@RequestBody List<Notification> notificationList) {
+        return () -> {
+            subscriptionService.markNotificationsAsRead(notificationList);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/share")
-    public ResponseEntity<List<Notification>> shareDocumentWithUser(@PathVariable Long documentId, @RequestParam String userIds, @RequestParam String permissions) {
-        documentService.addAccess(documentId, userIds, permissions);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Callable shareDocumentWithUser(@PathVariable Long documentId, @RequestParam String userIds, @RequestParam String permissions) {
+        return () -> {
+            documentService.addAccess(documentId, userIds, permissions);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/public")
-    public ResponseEntity<List<Notification>> makeDocumentPublic(@PathVariable Long documentId) {
-        Document document = documentService.setAccessAll(documentId, true);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Callable makeDocumentPublic(@PathVariable Long documentId) {
+        return () -> {
+            Document document = documentService.setAccessAll(documentId, true);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/users/permission")
-    public ResponseEntity<List<Access>> getUsersByDocumentPermission(@PathVariable Long documentId, @RequestParam String permissions) {
-        List<Access> userList = documentService.getUsersByPermissions(documentId, permissions);
-        return new ResponseEntity<>(userList, HttpStatus.OK);
+    public Callable getUsersByDocumentPermission(@PathVariable Long documentId, @RequestParam String permissions) {
+        return () -> {
+            List<Access> userList = documentService.getUsersByPermissions(documentId, permissions);
+            return new ResponseEntity<>(userList, HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/currentuser/permission")
-    public ResponseEntity<Access> getCurrentUsersPermissions(@PathVariable Long documentId, @RequestParam String permissions) {
-        Access access = documentService.getCurrentUserPermissions(documentId, permissions);
-        return new ResponseEntity<>(access, HttpStatus.OK);
+    public Callable getCurrentUsersPermissions(@PathVariable Long documentId, @RequestParam String permissions) {
+        return () -> {
+            Access access = documentService.getCurrentUserPermissions(documentId, permissions);
+            return new ResponseEntity<>(access, HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/expert")
-    public ResponseEntity<Document> addExpertToDocument(@PathVariable Long documentId, @RequestParam String username) {
-        Document document = documentService.addExpert(documentId, username);
-        return new ResponseEntity<>(document, HttpStatus.OK);
+    public Callable addExpertToDocument(@PathVariable Long documentId, @RequestParam String username) {
+        return () -> {
+            Document document = documentService.addExpert(documentId, username);
+            return new ResponseEntity<>(document, HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/discuss/section")
-    public ResponseEntity<Document> createDiscussion(@PathVariable Long documentId, @RequestBody DiscussionSectionDto discussionSectionDto) {
-        Document document = documentService.addDiscussionToDocument(documentId, discussionSectionDto);
-        return new ResponseEntity<>(document, HttpStatus.CREATED);
+    public Callable createDiscussion(@PathVariable Long documentId, @RequestBody DiscussionSectionDto discussionSectionDto) {
+        return () -> {
+            Document document = documentService.addDiscussionToDocument(documentId, discussionSectionDto);
+            return new ResponseEntity<>(document, HttpStatus.CREATED);
+        };
     }
 }
