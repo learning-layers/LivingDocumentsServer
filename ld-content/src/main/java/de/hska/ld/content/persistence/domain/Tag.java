@@ -36,7 +36,7 @@ public class Tag extends Content {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     public String getName() {

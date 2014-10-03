@@ -36,10 +36,10 @@ import java.util.List;
 public class Document extends Content {
 
     @NotBlank
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = false, columnDefinition = "TEXT")
     private String title;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @OneToMany(cascade = CascadeType.ALL)
