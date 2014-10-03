@@ -34,6 +34,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.Callable;
+
 /**
  * <p><b>Resource:</b> {@value de.hska.ld.content.util.Content#RESOURCE_TAG}
  */
@@ -62,16 +64,18 @@ public class TagController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<Page<Tag>> getTagsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
-                                                 @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
-                                                 @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                 @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<Tag> tagsPage = tagService.getTagsPage(pageNumber, pageSize, sortDirection, sortProperty);
-        if (tagsPage != null) {
-            return new ResponseEntity<>(tagsPage, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public Callable getTagsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        return () -> {
+            Page<Tag> tagsPage = tagService.getTagsPage(pageNumber, pageSize, sortDirection, sortProperty);
+            if (tagsPage != null) {
+                return new ResponseEntity<>(tagsPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     /**
@@ -83,24 +87,25 @@ public class TagController {
      * </pre>
      *
      * @param tag the tag that shall be created. Example:<br>
-     *        {'name':'&lt;name&gt;', 'description': '&lt;description&gt;'} <br>
-     *        description is optional
-     *
+     *            {'name':'&lt;name&gt;', 'description': '&lt;description&gt;'} <br>
+     *            description is optional
      * @return <b>201 CREATED</b> with the generated tag<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<Tag> createTag(@RequestBody Tag tag) {
-        if (tag != null) {
-            if ("".equals(tag.getName())) {
-                throw new ValidationException("name");
+    public Callable createTag(@RequestBody final Tag tag) {
+        return () -> {
+            if (tag != null) {
+                if ("".equals(tag.getName())) {
+                    throw new ValidationException("name");
+                }
+                Tag dbTag = tagService.save(tag);
+                return new ResponseEntity<>(dbTag, HttpStatus.CREATED);
+            } else {
+                throw new ValidationException("No tag provided.");
             }
-            tag = tagService.save(tag);
-            return new ResponseEntity<>(tag, HttpStatus.CREATED);
-        } else {
-            throw new ValidationException("No tag provided.");
-        }
+        };
     }
 
     /**
@@ -112,26 +117,27 @@ public class TagController {
      * </pre>
      *
      * @param tag the tag that shall be created. Example:<br>
-     *        {'name':'&lt;name&gt;', 'description': '&lt;description&gt;'} <br>
-     *        description is optional
-     *
+     *            {'name':'&lt;name&gt;', 'description': '&lt;description&gt;'} <br>
+     *            description is optional
      * @return <b>200 OK</b> with the update tag<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/{tagId}")
-    public ResponseEntity<Tag> updateTag(@PathVariable Long tagId, @RequestBody Tag tag) {
-        if (tag != null) {
-            tag = tagService.updateTag(tagId, tag);
-            return new ResponseEntity<>(tag, HttpStatus.OK);
-        } else {
-            throw new ValidationException("No tag provided.");
-        }
+    public Callable updateTag(@PathVariable Long tagId, @RequestBody final Tag tag) {
+        return () -> {
+            if (tag != null) {
+                Tag dbTag = tagService.updateTag(tagId, tag);
+                return new ResponseEntity<>(dbTag, HttpStatus.OK);
+            } else {
+                throw new ValidationException("No tag provided.");
+            }
+        };
     }
 
     /**
      * Retrieve tags by name.
-     *
+     * <p>
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
@@ -143,12 +149,14 @@ public class TagController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/name/{tagName}")
-    public ResponseEntity<Tag> getTagByName(@PathVariable String tagName) {
-        if (tagName != null) {
-            Tag tag = tagService.findByName(tagName);
-            return new ResponseEntity<>(tag, HttpStatus.OK);
-        } else {
-            throw new ValidationException("No tag provided.");
-        }
+    public Callable getTagByName(@PathVariable String tagName) {
+        return () -> {
+            if (tagName != null) {
+                Tag tag = tagService.findByName(tagName);
+                return new ResponseEntity<>(tag, HttpStatus.OK);
+            } else {
+                throw new ValidationException("No tag provided.");
+            }
+        };
     }
 }

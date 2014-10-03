@@ -34,6 +34,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.concurrent.Callable;
 
 /**
  * <p><b>RESOURCE</b> {@code /api/roles}
@@ -61,19 +62,21 @@ public class RoleController {
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<IdDto> saveRole(@RequestBody @Valid Role role) {
-        Role dbRole = roleService.findById(role.getId());
-        if (dbRole != null) {
-            dbRole.setName(role.getName());
-            role = dbRole;
-        }
-        role = roleService.save(role);
-        IdDto idDto = new IdDto(role.getId());
-        if (dbRole != null) {
-            return new ResponseEntity<>(idDto, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(idDto, HttpStatus.CREATED);
-        }
+    public Callable saveRole(@RequestBody @Valid final Role role) {
+        return () -> {
+            boolean isNew = role.getId() == null;
+            Role dbRole = roleService.findById(role.getId());
+            if (dbRole != null) {
+                dbRole.setName(role.getName());
+            }
+            dbRole = roleService.save(role);
+            IdDto idDto = new IdDto(dbRole.getId());
+            if (isNew) {
+                return new ResponseEntity<>(idDto, HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(idDto, HttpStatus.OK);
+            }
+        };
     }
 
     /**
@@ -91,13 +94,15 @@ public class RoleController {
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
-    public ResponseEntity deleteRole(@PathVariable Long id) {
-        Role role = roleService.findById(id);
-        if (role != null) {
-            roleService.delete(role);
-            return new ResponseEntity(HttpStatus.OK);
-        } else {
-            throw new NotFoundException("id");
-        }
+    public Callable deleteRole(@PathVariable Long id) {
+        return () -> {
+            Role role = roleService.findById(id);
+            if (role != null) {
+                roleService.delete(role);
+                return new ResponseEntity(HttpStatus.OK);
+            } else {
+                throw new NotFoundException("id");
+            }
+        };
     }
 }

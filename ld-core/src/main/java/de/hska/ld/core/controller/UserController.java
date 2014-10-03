@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * <p><b>Resource:</b> {@value Core#RESOURCE_USER}
@@ -71,13 +72,15 @@ public class UserController {
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.GET, value = "/userlist")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> userList = userService.findAll();
-        if (userList != null) {
-            return new ResponseEntity<>(userList, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public Callable getAllUsers() {
+        return () -> {
+            List<User> userList = userService.findAll();
+            if (userList != null) {
+                return new ResponseEntity<>(userList, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     /**
@@ -94,16 +97,18 @@ public class UserController {
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<Page<User>> getUsersPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
-                                                   @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
-                                                   @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                   @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<User> usersPage = userService.getUsersPage(pageNumber, pageSize, sortDirection, sortProperty);
-        if (usersPage != null) {
-            return new ResponseEntity<>(usersPage, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public Callable getUsersPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                 @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                 @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                 @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        return () -> {
+            Page<User> usersPage = userService.getUsersPage(pageNumber, pageSize, sortDirection, sortProperty);
+            if (usersPage != null) {
+                return new ResponseEntity<>(usersPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     /**
@@ -120,27 +125,31 @@ public class UserController {
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.GET, value = "/disabled")
-    public ResponseEntity<Page<User>> getUsersDisabledPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
-                                                           @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
-                                                           @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                           @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<User> usersPage = userService.getUsersDisabledPage(pageNumber, pageSize, sortDirection, sortProperty);
-        if (usersPage != null) {
-            return new ResponseEntity<>(usersPage, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public Callable getUsersDisabledPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                         @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                         @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                         @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        return () -> {
+            Page<User> usersPage = userService.getUsersDisabledPage(pageNumber, pageSize, sortDirection, sortProperty);
+            if (usersPage != null) {
+                return new ResponseEntity<>(usersPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST, value = "/activate/{userid}")
-    public ResponseEntity activateUser(@PathVariable Long userid) {
-        User user = userService.activateUser(userid);
-        if (user != null) {
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public Callable activateUser(@PathVariable Long userid) {
+        return () -> {
+            User user = userService.activateUser(userid);
+            if (user != null) {
+                return new ResponseEntity<>(HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     /**
@@ -156,8 +165,8 @@ public class UserController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
-    public ResponseEntity<User> authenticate(@AuthenticationPrincipal User user) {
-        return new ResponseEntity<>(user, HttpStatus.OK);
+    public Callable authenticate(@AuthenticationPrincipal User user) {
+        return () -> new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     /**
@@ -175,12 +184,14 @@ public class UserController {
      */
     @PreAuthorize("hasRole('" + Core.ROLE_ADMIN + "') or (isAuthenticated() and principal.username == #username)")
     @RequestMapping(method = RequestMethod.GET, value = "/{username}")
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
-        User user = userService.findByUsername(username);
-        if (user == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(user, HttpStatus.OK);
+    public Callable getUserByUsername(@PathVariable String username) {
+        return () -> {
+            User user = userService.findByUsername(username);
+            if (user == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        };
     }
 
     /**
@@ -201,14 +212,16 @@ public class UserController {
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<User> saveUser(@RequestBody @Valid User user) {
-        boolean isNew = user.getId() == null;
-        user = userService.save(user);
-        if (isNew) {
-            return new ResponseEntity<>(user, HttpStatus.CREATED);
-        } else {
-            return new ResponseEntity<>(user, HttpStatus.OK);
-        }
+    public Callable saveUser(@RequestBody @Valid final User user) {
+        return () -> {
+            boolean isNew = user.getId() == null;
+            User savedUser = userService.save(user);
+            if (isNew) {
+                return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(savedUser, HttpStatus.OK);
+            }
+        };
     }
 
     /**
@@ -225,9 +238,11 @@ public class UserController {
      * <b>400 Bad Request</b> if at least one property was invalid
      */
     @RequestMapping(method = RequestMethod.POST, value = "/register")
-    public ResponseEntity register(@RequestBody @Valid User user) {
-        userService.register(user);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public Callable register(@RequestBody @Valid User user) {
+        return () -> {
+            userService.register(user);
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        };
     }
 
     /**
@@ -243,10 +258,13 @@ public class UserController {
      * <b>400 Bad Request</b> if at least one property was invalid or <br>
      * <b>404 Not Found</b> if no user with the given confirmation key has been found
      */
+    @SuppressWarnings("unchecked")
     @RequestMapping(method = RequestMethod.GET, value = "/confirmRegistration/{confirmationKey}")
-    public ResponseEntity<User> confirmRegistration(@PathVariable String confirmationKey) {
-        User user = userService.confirmRegistration(confirmationKey);
-        return new ResponseEntity(user, HttpStatus.OK);
+    public Callable confirmRegistration(@PathVariable String confirmationKey) {
+        return () -> {
+            User user = userService.confirmRegistration(confirmationKey);
+            return new ResponseEntity(user, HttpStatus.OK);
+        };
     }
 
     /**
@@ -266,9 +284,11 @@ public class UserController {
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST, value = "/roles/add")
-    public ResponseEntity addRolesToUser(@RequestBody @Valid UserRoleDto userRoleDto) {
-        userService.addRoles(userRoleDto.getUsername(), userRoleDto.getRoleNames());
-        return new ResponseEntity(HttpStatus.OK);
+    public Callable addRolesToUser(@RequestBody @Valid UserRoleDto userRoleDto) {
+        return () -> {
+            userService.addRoles(userRoleDto.getUsername(), userRoleDto.getRoleNames());
+            return new ResponseEntity(HttpStatus.OK);
+        };
     }
 
     /**
@@ -286,15 +306,17 @@ public class UserController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
-    public ResponseEntity deleteUser(@PathVariable Long id) {
-        userService.delete(id);
-        return new ResponseEntity(HttpStatus.OK);
+    public Callable deleteUser(@PathVariable Long id) {
+        return () -> {
+            userService.delete(id);
+            return new ResponseEntity(HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/avatars")
-    public List<byte[]> loadAvatars(@RequestParam String userIdsString) {
-        return userService.getAvatars(userIdsString);
+    public Callable loadAvatars(@RequestParam String userIdsString) {
+        return () -> userService.getAvatars(userIdsString);
     }
 
     @Secured(Core.ROLE_USER)
@@ -366,74 +388,89 @@ public class UserController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/avatar")
-    public ResponseEntity uploadAvatar(@RequestParam MultipartFile file) {
-        String name = file.getOriginalFilename();
-        if (!file.isEmpty()) {
-            userService.uploadAvatar(file, name);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            throw new ValidationException("file");
-        }
+    public Callable uploadAvatar(@RequestParam MultipartFile file) {
+        return () -> {
+            String name = file.getOriginalFilename();
+            if (!file.isEmpty()) {
+                userService.uploadAvatar(file, name);
+                return new ResponseEntity<>(HttpStatus.OK);
+            } else {
+                throw new ValidationException("file");
+            }
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/suggestions/list")
-    public ResponseEntity<List<User>> getMentionSuggestionsList(@RequestParam(required = false) String term) {
-        if (!"".equals(term) || term.contains("%")) {
-            List<User> userSuggestionList = userService.getMentionSuggestions(term);
-            return new ResponseEntity<>(userSuggestionList, HttpStatus.OK);
-        } else {
-            List<User> userSuggestionList = userService.getMentionSuggestions(term);
-            return new ResponseEntity<>(userSuggestionList, HttpStatus.BAD_REQUEST);
-        }
+    public Callable getMentionSuggestionsList(@RequestParam(required = false) String term) {
+        return () -> {
+            if (!"".equals(term) || term.contains("%")) {
+                List<User> userSuggestionList = userService.getMentionSuggestions(term);
+                return new ResponseEntity<>(userSuggestionList, HttpStatus.OK);
+            } else {
+                List<User> userSuggestionList = userService.getMentionSuggestions(term);
+                return new ResponseEntity<>(userSuggestionList, HttpStatus.BAD_REQUEST);
+            }
+        };
     }
 
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.GET, value = "/suggestions")
-    public ResponseEntity<Page<User>> getMentionSuggestions(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
-                                                            @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
-                                                            @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                            @RequestParam(value = "sort-property", defaultValue = "username") String sortProperty,
-                                                            @RequestParam(value = "search-term", required = false) String searchTerm) {
-        Page<User> usersPage = userService.getUsersPage(pageNumber, pageSize, sortDirection, sortProperty, searchTerm);
-        if (usersPage != null) {
-            return new ResponseEntity<>(usersPage, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public Callable getMentionSuggestions(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                          @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                          @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                          @RequestParam(value = "sort-property", defaultValue = "username") String sortProperty,
+                                          @RequestParam(value = "search-term", required = false) String searchTerm) {
+        return () -> {
+            Page<User> usersPage = userService.getUsersPage(pageNumber, pageSize, sortDirection, sortProperty, searchTerm);
+            if (usersPage != null) {
+                return new ResponseEntity<>(usersPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/username")
-    public ResponseEntity<User> getUserByUserName(@RequestParam String term) {
-        User user = userService.findByUsername(term);
-        if (user == null) {
-            throw new NotFoundException();
-        }
-        return new ResponseEntity<>(user, HttpStatus.OK);
+    public Callable getUserByUserName(@RequestParam String term) {
+        return () -> {
+            User user = userService.findByUsername(term);
+            if (user == null) {
+                throw new NotFoundException();
+            }
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/id")
-    public ResponseEntity<User> getUser(@RequestParam Long id) {
-        User user = userService.findById(id);
-        if (user == null) {
-            throw new NotFoundException();
-        }
-        return new ResponseEntity(user, HttpStatus.OK);
+    @SuppressWarnings("unchecked")
+    public Callable getUser(@RequestParam Long id) {
+        return () -> {
+            User user = userService.findById(id);
+            if (user == null) {
+                throw new NotFoundException();
+            }
+            return new ResponseEntity(user, HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/password")
-    public ResponseEntity updatePassword(@RequestBody User user) {
-        user = userService.updatePassword(user.getPassword());
-        return new ResponseEntity<>(user, HttpStatus.OK);
+    public Callable updatePassword(@RequestBody User user) {
+        return () -> {
+            User dbUser = userService.updatePassword(user.getPassword());
+            return new ResponseEntity<>(dbUser, HttpStatus.OK);
+        };
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/profile")
-    public ResponseEntity updateProfile(@RequestBody User user) {
-        user = userService.updateProfile(user);
-        return new ResponseEntity<>(user, HttpStatus.OK);
+    public Callable updateProfile(@RequestBody User user) {
+        return () -> {
+            User dbUser = userService.updateProfile(user);
+            return new ResponseEntity<>(dbUser, HttpStatus.OK);
+        };
     }
 }

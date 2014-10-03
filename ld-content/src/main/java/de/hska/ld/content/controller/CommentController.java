@@ -35,6 +35,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * <p><b>Resource:</b> {@value de.hska.ld.content.util.Content#RESOURCE_COMMENT}
@@ -54,26 +55,28 @@ public class CommentController {
      * <b>Path:</b> GET /api/comments/{commentId}/comment?page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt
      * </pre>
      *
-     * @param commentId the comment ID
-     * @param pageNumber the page number as a request parameter (default: 0)
-     * @param pageSize the page size as a request parameter (default: 10)
+     * @param commentId     the comment ID
+     * @param pageNumber    the page number as a request parameter (default: 0)
+     * @param pageSize      the page size as a request parameter (default: 10)
      * @param sortDirection the sort direction as a request parameter (default: 'DESC')
-     * @param sortProperty the sort property as a request parameter (default: 'createdAt')
+     * @param sortProperty  the sort property as a request parameter (default: 'createdAt')
      * @return the requested subcomments page
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{commentId}/comment")
-    public ResponseEntity<Page<Comment>> getCommentsPage(@PathVariable Long commentId,
-                                                         @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
-                                                         @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
-                                                         @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
-                                                         @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
-        Page<Comment> commentsPage = commentService.getCommentCommentsPage(commentId, pageNumber, pageSize, sortDirection, sortProperty);
-        if (commentsPage != null) {
-            return new ResponseEntity<>(commentsPage, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public Callable getCommentsPage(@PathVariable Long commentId,
+                                    @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                    @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                    @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                    @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        return () -> {
+            Page<Comment> commentsPage = commentService.getCommentCommentsPage(commentId, pageNumber, pageSize, sortDirection, sortProperty);
+            if (commentsPage != null) {
+                return new ResponseEntity<>(commentsPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     /**
@@ -89,13 +92,15 @@ public class CommentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{commentId}/comment/list")
-    public ResponseEntity<List<Comment>> getCommentsList(@PathVariable Long commentId) {
-        List<Comment> commentsPage = commentService.getCommentCommentsList(commentId);
-        if (commentsPage != null) {
-            return new ResponseEntity<>(commentsPage, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public Callable getCommentsList(@PathVariable Long commentId) {
+        return () -> {
+            List<Comment> commentsPage = commentService.getCommentCommentsList(commentId);
+            if (commentsPage != null) {
+                return new ResponseEntity<>(commentsPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     /**
@@ -111,13 +116,15 @@ public class CommentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/{commentId}/agree")
-    public ResponseEntity<Comment> agreeToComment(@PathVariable Long commentId) {
-        Comment comment = commentService.agreeToComment(commentId);
-        if (comment != null) {
-            return new ResponseEntity<>(comment, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public Callable agreeToComment(@PathVariable Long commentId) {
+        return () -> {
+            Comment comment = commentService.agreeToComment(commentId);
+            if (comment != null) {
+                return new ResponseEntity<>(comment, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
 
@@ -135,9 +142,11 @@ public class CommentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{commentId}/comment")
-    public ResponseEntity<CommentDto> addComment(@PathVariable Long commentId, @RequestBody Comment comment) {
-        comment = commentService.replyToComment(commentId, comment);
-        return new ResponseEntity<>(new CommentDto(comment), HttpStatus.CREATED);
+    public Callable addComment(@PathVariable Long commentId, @RequestBody Comment comment) {
+        return () -> {
+            Comment dbComment = commentService.replyToComment(commentId, comment);
+            return new ResponseEntity<>(new CommentDto(dbComment), HttpStatus.CREATED);
+        };
     }
 
     /**
@@ -154,9 +163,11 @@ public class CommentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<CommentDto> updateComment(@RequestBody Comment comment) {
-        comment = commentService.update(comment);
-        return new ResponseEntity<>(new CommentDto(comment), HttpStatus.OK);
+    public Callable updateComment(@RequestBody Comment comment) {
+        return () -> {
+            Comment dbComment = commentService.update(comment);
+            return new ResponseEntity<>(new CommentDto(dbComment), HttpStatus.OK);
+        };
     }
 
     /**
@@ -172,8 +183,10 @@ public class CommentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{commentId}")
-    public ResponseEntity<CommentDto> removeComment(@PathVariable Long commentId) {
-        commentService.markAsDeleted(commentId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Callable removeComment(@PathVariable Long commentId) {
+        return () -> {
+            commentService.markAsDeleted(commentId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
     }
 }

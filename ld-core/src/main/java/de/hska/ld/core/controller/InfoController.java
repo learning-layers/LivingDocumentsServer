@@ -59,29 +59,8 @@ public class InfoController {
 
     @RequestMapping(method = RequestMethod.GET)
     public Callable getInfo() {
-        return () -> {
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return new ResponseEntity<>(info, HttpStatus.OK);
-        };
+        return () -> new ResponseEntity<>(info, HttpStatus.OK);
     }
-
-    /**
-     * <pre>
-     * Gets information about the current application version etc.
-     *
-     * <b>Path:</b> GET {@value Core#RESOURCE_INFO}
-     * </pre>
-     *
-     * @return the application information
-     */
-    /*@RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<Info> getInfo() {
-        return new ResponseEntity<>(info, HttpStatus.OK);
-    }*/
 
     static class Info {
 
