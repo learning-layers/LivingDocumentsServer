@@ -590,7 +590,8 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    public Page<User> getUsersByDocumentPermission(Long documentId, String combinedPermissionString, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+    @Transactional(readOnly = true)
+    public Page<Access> getUsersByDocumentPermission(Long documentId, String combinedPermissionString, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
         Document document = findById(documentId);
         if (document == null) {
             throw new NotFoundException("documentId");
@@ -616,7 +617,11 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             direction = Sort.Direction.DESC;
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
-        return repository.getUsersByDocumentPermission(documentId, permissionList, pageable);
+        Page<Access> usersByDocumentPermission = repository.getUsersByDocumentPermission(documentId, permissionList, pageable);
+        for (Access access : usersByDocumentPermission) {
+            access.getPermissionList().size();
+        }
+        return usersByDocumentPermission;
     }
 
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {

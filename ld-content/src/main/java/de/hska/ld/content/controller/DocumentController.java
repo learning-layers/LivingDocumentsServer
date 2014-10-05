@@ -838,9 +838,9 @@ public class DocumentController {
                                                  @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
                                                  @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
         return () -> {
-            Page<User> usersPage = documentService.getUsersByDocumentPermission(documentId, permissions, pageNumber, pageSize, sortDirection, sortProperty);
-            if (usersPage != null) {
-                return new ResponseEntity<>(usersPage, HttpStatus.OK);
+            Page<Access> accessPage = documentService.getUsersByDocumentPermission(documentId, permissions, pageNumber, pageSize, sortDirection, sortProperty);
+            if (accessPage != null) {
+                return new ResponseEntity<>(accessPage, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
