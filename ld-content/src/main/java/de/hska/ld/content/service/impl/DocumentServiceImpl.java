@@ -589,6 +589,36 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return discussion;
     }
 
+    @Override
+    public Page<User> getUsersByDocumentPermission(Long documentId, String combinedPermissionString, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Document document = findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        }
+        if ("all".equals(combinedPermissionString)) {
+            combinedPermissionString = "WRITE;READ";
+        }
+        List<Access.Permission> permissionList;
+        try {
+            String[] permissionStringArray = combinedPermissionString.split(";");
+            permissionList = new ArrayList<>();
+            for (String permissionString : permissionStringArray) {
+                Access.Permission permission = Access.Permission.valueOf(permissionString);
+                permissionList.add(permission);
+            }
+        } catch (Exception e) {
+            throw new ValidationException("permissionString");
+        }
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        return repository.getUsersByDocumentPermission(documentId, permissionList, pageable);
+    }
+
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {
         Document document = findById(documentId);
         for (User user : userList) {

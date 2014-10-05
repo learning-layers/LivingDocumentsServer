@@ -69,4 +69,8 @@ public interface DocumentRepository extends CrudRepository<Document, Long> {
 
     @Query("SELECT acc from Document d LEFT JOIN d.accessList acc WHERE d.id = :documentId AND acc.user.id = :userId")
     List<Access> getCurrentUserPermissionsForDocument(@Param("documentId") Long documentId, @Param("userId") Long userId);
+
+    @Query("SELECT acc from Document d LEFT JOIN d.accessList acc LEFT JOIN acc.permissionList perm WHERE d.id = :documentId AND perm IN :permissionList")
+    Page<User> getUsersByDocumentPermission(@Param("documentId") Long documentId,
+                                            @Param("permissionList") List<Access.Permission> permissionList, Pageable pageable);
 }
