@@ -624,6 +624,17 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return usersByDocumentPermission;
     }
 
+    @Override
+    @Transactional
+    public void removeAccess(Long documentId, Long userId) {
+        Document document = findById(documentId);
+        User user = userService.findById(userId);
+        Access userAccess = new Access();
+        userAccess.setUser(user);
+        document.getAccessList().remove(userAccess);
+        save(document);
+    }
+
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {
         Document document = findById(documentId);
         for (User user : userList) {

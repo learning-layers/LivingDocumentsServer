@@ -848,6 +848,16 @@ public class DocumentController {
     }
 
     @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}/access/users/{userId}")
+    public Callable removeUserPermissions(@PathVariable Long documentId,
+                                          @PathVariable Long userId) {
+        return () -> {
+            documentService.removeAccess(documentId, userId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
+    }
+
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/currentuser/permission")
     public Callable getCurrentUsersPermissions(@PathVariable Long documentId, @RequestParam String permissions) {
         return () -> {
