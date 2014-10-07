@@ -589,6 +589,52 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return discussion;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Access> getUsersByDocumentPermission(Long documentId, String combinedPermissionString, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Document document = findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        }
+        if ("all".equals(combinedPermissionString)) {
+            combinedPermissionString = "WRITE;READ";
+        }
+        List<Access.Permission> permissionList;
+        try {
+            String[] permissionStringArray = combinedPermissionString.split(";");
+            permissionList = new ArrayList<>();
+            for (String permissionString : permissionStringArray) {
+                Access.Permission permission = Access.Permission.valueOf(permissionString);
+                permissionList.add(permission);
+            }
+        } catch (Exception e) {
+            throw new ValidationException("permissionString");
+        }
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        Page<Access> usersByDocumentPermission = repository.getUsersByDocumentPermission(documentId, permissionList, pageable);
+        for (Access access : usersByDocumentPermission) {
+            access.getPermissionList().size();
+        }
+        return usersByDocumentPermission;
+    }
+
+    @Override
+    @Transactional
+    public void removeAccess(Long documentId, Long userId) {
+        Document document = findById(documentId);
+        User user = userService.findById(userId);
+        Access userAccess = new Access();
+        userAccess.setUser(user);
+        document.getAccessList().remove(userAccess);
+        save(document);
+    }
+
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {
         Document document = findById(documentId);
         for (User user : userList) {

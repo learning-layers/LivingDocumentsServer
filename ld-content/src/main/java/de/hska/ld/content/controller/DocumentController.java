@@ -822,10 +822,38 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/users/permission")
-    public Callable getUsersByDocumentPermission(@PathVariable Long documentId, @RequestParam String permissions) {
+    public Callable getUserListByDocumentPermission(@PathVariable Long documentId, @RequestParam String permissions) {
         return () -> {
             List<Access> userList = documentService.getUsersByPermissions(documentId, permissions);
             return new ResponseEntity<>(userList, HttpStatus.OK);
+        };
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/access/users")
+    public Callable getUsersByDocumentPermission(@PathVariable Long documentId,
+                                                 @RequestParam String permissions,
+                                                 @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                                 @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                                 @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                                 @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        return () -> {
+            Page<Access> accessPage = documentService.getUsersByDocumentPermission(documentId, permissions, pageNumber, pageSize, sortDirection, sortProperty);
+            if (accessPage != null) {
+                return new ResponseEntity<>(accessPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}/access/users/{userId}")
+    public Callable removeUserPermissions(@PathVariable Long documentId,
+                                          @PathVariable Long userId) {
+        return () -> {
+            documentService.removeAccess(documentId, userId);
+            return new ResponseEntity<>(HttpStatus.OK);
         };
     }
 
