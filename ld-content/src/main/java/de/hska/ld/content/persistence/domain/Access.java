@@ -75,7 +75,7 @@ public class Access {
     }
 
     public enum Permission {
-        READ, WRITE
+        READ, WRITE, COMMENT_DOCUMENT, ATTACH_FILES
     }
 
     @Override
