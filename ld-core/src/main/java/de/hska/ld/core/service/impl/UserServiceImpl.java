@@ -22,6 +22,7 @@
 
 package de.hska.ld.core.service.impl;
 
+import de.hska.ld.core.config.MailConfig;
 import de.hska.ld.core.exception.*;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
@@ -33,6 +34,7 @@ import de.hska.ld.core.util.Core;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,11 +46,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
 
@@ -67,6 +66,9 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private Environment env;
 
     @Override
     public User findByUsername(String username) {
@@ -154,7 +156,7 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         user.setConfirmationKey(UUID.randomUUID().toString());
         user.setEnabled(false);
         user = super.save(user);
-        //sendConfirmationMail(user);
+        sendConfirmationMail(user);
     }
 
     @Override
@@ -349,17 +351,19 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
 
     @SuppressWarnings("unchecked")
     private void sendConfirmationMail(User user) {
-        Locale locale = LocaleContextHolder.getLocale();
-        ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        if (!MailConfig.MAIL_PROPERTIES.entrySet().isEmpty()) {
+            Locale locale = LocaleContextHolder.getLocale();
+            ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
+            String baseUrl = env.getProperty("server.address") + ":" + env.getProperty("server.port");
 
-        Map model = new HashMap<>();
-        model.put("subject", bundle.getString("user.confirmation.subject"));
-        model.put("text", bundle.getString("user.confirmation.text"));
-        model.put("link", bundle.getString("user.confirmation.link"));
-        model.put("confirmationUrl", request.getContextPath() + "/users/confirmRegistration/" + user.getConfirmationKey());
+            Map model = new HashMap<>();
+            model.put("subject", bundle.getString("user.confirmation.subject"));
+            model.put("text", bundle.getString("user.confirmation.text"));
+            model.put("link", bundle.getString("user.confirmation.link"));
+            model.put("confirmationUrl", baseUrl + "/users/confirmRegistration/" + user.getConfirmationKey());
 
-        mailService.sendMail(user, "user_confirmation.vm", model);
+            mailService.sendMail(user, "user_confirmation.vm", model);
+        }
     }
 
     @Override

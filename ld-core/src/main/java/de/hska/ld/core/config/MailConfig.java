@@ -23,9 +23,12 @@
 package de.hska.ld.core.config;
 
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.ui.velocity.VelocityEngineFactoryBean;
@@ -35,35 +38,34 @@ import java.util.Properties;
 @Configuration
 public class MailConfig {
 
-    @Value("${email.host}")
-    private String host;
+    public static final Properties MAIL_PROPERTIES = new Properties();
 
-    @Value("${email.port}")
-    private Integer port;
+    @Autowired
+    private Environment env;
 
-    @Value("${email.smtp.auth}")
-    private Boolean smtpAuth;
-
-    @Value("${email.smtp.starttls.enable}")
-    private Boolean startTlsEnable;
-
-    @Value("${mail.smtp.ssl.trust}")
-    private Boolean sslTrust;
-
-    @Value("${email.username}")
-    private String username;
-
-    @Value("${email.password}")
-    private String password;
+    @Autowired
+    private ApplicationContext context;
 
     @Bean
     public JavaMailSender javaMailService() {
+        String userHome = System.getProperty("user.home");
+        String emailCfgLocation = env.getProperty("email.config.file");
+        emailCfgLocation = emailCfgLocation.replace("~", userHome);
+
         JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
-        javaMailSender.setHost(host);
-        javaMailSender.setPort(port);
-        javaMailSender.setUsername(username);
-        javaMailSender.setPassword(password);
-        javaMailSender.setJavaMailProperties(getMailProperties());
+        Resource resource = context.getResource("file:" + emailCfgLocation);
+
+        try {
+            MAIL_PROPERTIES.load(resource.getInputStream());
+            javaMailSender.setHost(MAIL_PROPERTIES.getProperty("email.host"));
+            javaMailSender.setPort(Integer.parseInt(MAIL_PROPERTIES.getProperty("email.port")));
+            javaMailSender.setUsername(MAIL_PROPERTIES.getProperty("email.username"));
+            javaMailSender.setPassword(MAIL_PROPERTIES.getProperty("email.password"));
+            javaMailSender.setJavaMailProperties(getMailProperties());
+        } catch (Exception e) {
+            System.err.println("Java Mail Sender could not be initialized. Maybe the configuration file is not in place.");
+        }
+
         return javaMailSender;
     }
 
@@ -79,10 +81,14 @@ public class MailConfig {
 
     private Properties getMailProperties() {
         Properties properties = new Properties();
-        //properties.setProperty("mail.transport.protocol", protocol);
-        properties.setProperty("mail.smtp.auth", smtpAuth.toString());
-        properties.setProperty("mail.smtp.starttls.enable", startTlsEnable.toString());
-        properties.setProperty("mail.smtp.ssl.trust", sslTrust.toString());
+        properties.setProperty("mail.transport.protocol", "smtps");
+        properties.setProperty("mail.smtp.auth", env.getProperty("email.smtp.auth"));
+        //properties.setProperty("mail.smtp.starttls.enable", env.getProperty("email.smtp.starttls.enable"));
+        properties.setProperty("mail.smtp.ssl.trust", env.getProperty("mail.smtp.ssl.trust"));
+
+        //properties.setProperty("mail.smtp.ssl.checkserveridentity", "true");
+        //properties.setProperty("mail.smtps.debug", "true");
+
         return properties;
     }
 }
