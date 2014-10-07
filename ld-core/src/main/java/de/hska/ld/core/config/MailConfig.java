@@ -48,12 +48,10 @@ public class MailConfig {
 
     @Bean
     public JavaMailSender javaMailService() {
-        String userHome = System.getProperty("user.home");
         String emailCfgLocation = env.getProperty("email.config.file");
-        emailCfgLocation = emailCfgLocation.replace("~", userHome);
 
         JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
-        Resource resource = context.getResource("file:" + emailCfgLocation);
+        Resource resource = context.getResource(emailCfgLocation);
 
         try {
             MAIL_PROPERTIES.load(resource.getInputStream());
