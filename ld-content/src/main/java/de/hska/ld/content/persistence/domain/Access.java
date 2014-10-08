@@ -23,9 +23,11 @@
 package de.hska.ld.content.persistence.domain;
 
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.util.Core;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -36,6 +38,18 @@ public class Access {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at", nullable = false)
+    private Date createdAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "modified_at")
+    private Date modifiedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "creator_id")
+    private User creator;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -53,6 +67,26 @@ public class Access {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getModifiedAt() {
+        return modifiedAt;
+    }
+
+    public void setModifiedAt(Date modifiedAt) {
+        this.modifiedAt = modifiedAt;
+    }
+
+    public User getCreator() {
+        return creator;
+    }
+
+    public void setCreator(User creator) {
+        this.creator = creator;
     }
 
     public User getUser() {
@@ -76,6 +110,19 @@ public class Access {
 
     public enum Permission {
         READ, WRITE, COMMENT_DOCUMENT, ATTACH_FILES
+    }
+
+    @PrePersist
+    void prePersist() {
+        this.createdAt = new Date();
+        if (this.creator == null) {
+            this.creator = Core.currentUser();
+        }
+    }
+
+    @PreUpdate
+    void modifiedAt() {
+        this.modifiedAt = new Date();
     }
 
     @Override

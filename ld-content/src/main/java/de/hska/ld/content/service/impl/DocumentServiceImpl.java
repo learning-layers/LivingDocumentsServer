@@ -616,7 +616,14 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         } else {
             direction = Sort.Direction.DESC;
         }
-        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        Pageable pageable;
+        if ("createdAt".equals(sortProperty)) {
+            String newSortProperty = "acc.createdAt";
+            pageable = new PageRequest(pageNumber, pageSize, direction, newSortProperty);
+        } else {
+            pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        }
+
         Page<Access> usersByDocumentPermission = repository.getUsersByDocumentPermission(documentId, permissionList, pageable);
         for (Access access : usersByDocumentPermission) {
             access.getPermissionList().size();
