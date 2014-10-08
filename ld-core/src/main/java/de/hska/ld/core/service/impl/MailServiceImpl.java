@@ -22,16 +22,18 @@
 
 package de.hska.ld.core.service.impl;
 
+import de.hska.ld.core.config.MailConfig;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.MailService;
 import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.mail.MailSender;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.ui.velocity.VelocityEngineUtils;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -39,20 +41,13 @@ import java.util.ResourceBundle;
 public class MailServiceImpl implements MailService {
 
     @Autowired
-    private MailSender mailSender;
+    private JavaMailSender javaMailSender;
 
     @Autowired
     private VelocityEngine velocityEngine;
 
-    @Value("${email.from.system}")
-    private String fromSystem;
-
     @Override
     public void sendMail(User user, String templateFileName, Map<String, Object> model) {
-        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-        simpleMailMessage.setFrom(fromSystem);
-        simpleMailMessage.setTo(user.getEmail());
-        simpleMailMessage.setSubject(model.containsKey("subject") ? (String) model.get("subject") : "");
 
         Locale locale = LocaleContextHolder.getLocale();
         ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
@@ -62,7 +57,17 @@ public class MailServiceImpl implements MailService {
 
         String text = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
                 "templates/mail/" + templateFileName, "UTF-8", model);
-        simpleMailMessage.setText(text);
-        mailSender.send(simpleMailMessage);
+
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(MailConfig.MAIL_PROPERTIES.getProperty("email.from.system"));
+            helper.setTo(user.getEmail());
+            helper.setSubject(model.containsKey("subject") ? (String) model.get("subject") : "");
+            helper.setText(text, true);
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
     }
 }

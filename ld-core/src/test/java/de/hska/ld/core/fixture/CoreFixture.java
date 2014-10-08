@@ -37,6 +37,7 @@ public class CoreFixture {
 
         User user = new User();
         user.setPassword(PASSWORD);
+        user.setEmail(firstName + "." + lastName + "@learning-layers.de");
         user.setUsername(firstName + "." + lastName);
         user.setFullName(firstName + " " + lastName);
 

@@ -9,3 +9,14 @@ See AUTHORS.txt for a list of contributors. If you are author as well and are no
   Dennis Soehnen <info@soehnen.com>
 
 For vendor package license information see vendor// -> LICENSE or README files.
+
+
+
+#email.properties template
+default location: ~/ld/email.properties
+
+email.username = <USERNAME>
+email.password = <PASSWORD>
+email.host = <HOST>
+email.from.system = <FROM>
+email.port = 465
