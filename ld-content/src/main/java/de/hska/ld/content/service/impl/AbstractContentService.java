@@ -28,6 +28,7 @@ import de.hska.ld.content.persistence.domain.Content;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.ContentService;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
+import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.impl.AbstractService;
@@ -84,10 +85,13 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
     @Override
     @Transactional
     public T addAccess(Long contentId, User user, Access.Permission... permissions) {
+        if (user == null) {
+            throw new ValidationException("user");
+        }
         Access access;
         T t = findById(contentId);
         try {
-            access = t.getAccessList().stream().filter(a -> a.getUser().equals(user)).findFirst().get();
+            access = t.getAccessList().stream().filter(a -> a.getUser().getId().equals(user.getId())).findFirst().get();
             List<Access.Permission> pl = access.getPermissionList();
             for (Access.Permission p : permissions) {
                 if (!pl.contains(p)) {
