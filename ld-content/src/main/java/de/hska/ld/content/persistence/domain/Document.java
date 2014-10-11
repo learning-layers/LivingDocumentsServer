@@ -25,6 +25,8 @@ package de.hska.ld.content.persistence.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.hska.ld.core.persistence.domain.User;
+import org.hibernate.search.annotations.*;
+import org.hibernate.search.annotations.Index;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
@@ -32,13 +34,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Indexed
 @Table(name = "ld_document")
 public class Document extends Content {
 
     @NotBlank
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO)
     @Column(name = "title", nullable = false, columnDefinition = "TEXT")
     private String title;
 
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO)
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 

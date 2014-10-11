@@ -29,6 +29,7 @@ subprojects {
         h2Version = '1.4.178'
         mySqlVersion = '5.1.30'
         tomcatVersion = '8.0.9'
+        hibernateSearch = '4.5.1.Final'
     }
 
     configurations.all {
@@ -81,6 +82,7 @@ subprojects {
         compile "org.apache.velocity:velocity:$velocityVersion"
         compile "org.apache.velocity:velocity-tools:$velocityToolsVersion"
         compile "com.h2database:h2:$h2Version"
+        compile "org.hibernate:hibernate-search-orm:$hibernateSearch"
         compile "mysql:mysql-connector-java:$mySqlVersion"
         compile "com.fasterxml.jackson.datatype:jackson-datatype-hibernate4:2.4.1"
         compile "javax.interceptor:javax.interceptor-api:3.1"

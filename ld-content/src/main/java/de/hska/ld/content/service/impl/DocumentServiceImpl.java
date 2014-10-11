@@ -98,7 +98,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         if (searchTerm == null || searchTerm.isEmpty()) {
             return repository.findAll(user, pageable);
         } else {
-            return repository.findAll(user, searchTerm, pageable);
+            return repository.searchDocumentByTitleOrDescription(searchTerm, pageable);
         }
     }
 

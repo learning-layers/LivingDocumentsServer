@@ -26,6 +26,7 @@ import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.persistence.repository.custom.DocumentRepositoryCustom;
 import de.hska.ld.core.persistence.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,7 +36,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface DocumentRepository extends CrudRepository<Document, Long> {
+public interface DocumentRepository extends DocumentRepositoryCustom, CrudRepository<Document, Long> {
 
     @Query("SELECT DISTINCT d FROM Document d LEFT JOIN d.accessList al " +
             "WHERE (al.user = :user OR d.creator = :user OR d.accessAll = true) " +
