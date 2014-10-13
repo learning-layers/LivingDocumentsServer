@@ -15,7 +15,7 @@ public class UserServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testRegistration() {
         User user = newUser();
-        user.setEmail("martin@bachl.pro");
+        user.setEmail("martin.bachl@web.de");
         userService.register(user);
     }
 }
