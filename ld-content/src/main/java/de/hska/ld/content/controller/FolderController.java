@@ -162,7 +162,7 @@ public class FolderController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> PUT /api/folders/{folderId}/share?users=1;2;3;4&permissions=READ,WRITE
+     *     <b>Path:</b> PUT /api/folders/{folderId}/share?users=1;2;3;4&amp;permissions=READ,WRITE
      * </pre>
      *
      * @param folderId         The folder id of the folder the document should be added to.
@@ -197,7 +197,7 @@ public class FolderController {
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
-     *     <b>Path:</b> PUT /api/folders/{folderId}/share/revoke?users=1;2;3;4&permissions=READ,WRITE
+     *     <b>Path:</b> PUT /api/folders/{folderId}/share/revoke?users=1;2;3;4&amp;permissions=READ,WRITE
      * </pre>
      *
      * @param folderId         The folder id of the folder the document should be added to.
