@@ -61,7 +61,7 @@ public class SubscriptionServiceIntegrationTest extends AbstractIntegrationTest 
         // retrieve notifications
         List<Notification> notificationList = subscriptionService.getNotifications();
         Assert.assertNotNull(notificationList);
-        Assert.assertTrue(notificationList.size() > 4);
+        Assert.assertTrue(notificationList.size() >= 4);
 
         List<Notification> toBeMarkedAsReadNotificationList = new ArrayList<>();
         toBeMarkedAsReadNotificationList.add(notificationList.get(0));
