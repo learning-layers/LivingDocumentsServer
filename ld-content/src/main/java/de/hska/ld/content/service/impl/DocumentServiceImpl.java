@@ -143,7 +143,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     @Transactional
     public Comment addComment(Long id, Comment comment) {
         Document document = findById(id);
-        checkPermission(document, Access.Permission.WRITE);
+        checkPermission(document, Access.Permission.COMMENT_DOCUMENT, Access.Permission.WRITE, Access.Permission.ATTACH_FILES);
         document.getCommentList().add(comment);
         comment.setParent(document);
         document = super.save(document);

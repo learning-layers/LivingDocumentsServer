@@ -146,6 +146,36 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
         }
     }
 
+    @Transactional(readOnly = true)
+    public void checkPermission(T t, Access.Permission... permissions) {
+
+        User user = Core.currentUser();
+        if (!t.isAccessAll() && !t.getCreator().getId().equals(user.getId())) {
+            try {
+                t.getAccessList().size();
+                Access access = t.getAccessList().stream().filter(a -> a.getUser().getId().equals(user.getId())).findFirst().get();
+                boolean found = false;
+                for (Access.Permission permission : permissions) {
+                    Access.Permission result = null;
+                    try {
+                        result = access.getPermissionList().stream().filter(p -> p.equals(permission)).findFirst().get();
+                    } catch (Exception e) {
+                        //
+                    }
+                    if (result != null) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    throw new UserNotAuthorizedException();
+                }
+            } catch (NoSuchElementException e) {
+                throw new UserNotAuthorizedException();
+            }
+        }
+    }
+
     public boolean checkPermissionResult(T t, Access.Permission permission) {
         try {
             checkPermission(t, permission);
