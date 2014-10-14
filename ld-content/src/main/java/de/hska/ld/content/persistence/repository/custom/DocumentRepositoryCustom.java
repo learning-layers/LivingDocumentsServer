@@ -20,16 +20,13 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.service;
+package de.hska.ld.content.persistence.repository.custom;
 
-import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.content.persistence.domain.Document;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.Map;
-import java.util.Properties;
+public interface DocumentRepositoryCustom {
 
-public interface MailService {
-
-    public static final Properties MAIL_PROPERTIES = new Properties();
-
-    void sendMail(User user, String templateFileName, Map<String, Object> templateModel);
+    Page<Document> searchDocumentByTitleOrDescription(String searchTerm, Pageable pageable);
 }

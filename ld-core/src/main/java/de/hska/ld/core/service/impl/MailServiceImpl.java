@@ -22,52 +22,94 @@
 
 package de.hska.ld.core.service.impl;
 
-import de.hska.ld.core.config.MailConfig;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.MailService;
 import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.ui.velocity.VelocityEngineUtils;
 
 import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 public class MailServiceImpl implements MailService {
 
     @Autowired
-    private JavaMailSender javaMailSender;
+    private VelocityEngine velocityEngine;
 
     @Autowired
-    private VelocityEngine velocityEngine;
+    private Environment env;
+
+    @Autowired
+    private ApplicationContext context;
+
+    @Autowired
+    private void init() {
+        String emailCfgLocation = env.getProperty("email.config.file");
+        Resource resource = context.getResource(emailCfgLocation);
+        try {
+            MAIL_PROPERTIES.load(resource.getInputStream());
+        } catch (Exception e) {
+            System.err.println("Java Mail Sender could not be initialized. Maybe the configuration file is not in place.");
+        }
+    }
 
     @Override
     public void sendMail(User user, String templateFileName, Map<String, Object> model) {
 
-        Locale locale = LocaleContextHolder.getLocale();
-        ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
-        model.put("dear", bundle.getString("vm.dear"));
-        model.put("fullName", user.getFullName());
-        model.put("greeting", bundle.getString("user.confirmation.greeting"));
+        if (Boolean.parseBoolean(env.getProperty("email.enabled"))) {
+            Locale locale = LocaleContextHolder.getLocale();
+            ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
+            model.put("dear", bundle.getString("vm.dear"));
+            model.put("fullName", user.getFullName());
+            model.put("greeting", bundle.getString("user.confirmation.greeting"));
 
-        String text = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
-                "templates/mail/" + templateFileName, "UTF-8", model);
+            String text = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
+                    "templates/mail/" + templateFileName, "UTF-8", model);
 
-        try {
-            MimeMessage message = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setFrom(MailConfig.MAIL_PROPERTIES.getProperty("email.from.system"));
-            helper.setTo(user.getEmail());
-            helper.setSubject(model.containsKey("subject") ? (String) model.get("subject") : "");
-            helper.setText(text, true);
-            javaMailSender.send(message);
-        } catch (MessagingException e) {
-            e.printStackTrace();
+            Properties properties = getMailProperties();
+
+            Session session = Session.getInstance(properties,
+                    new javax.mail.Authenticator() {
+                        protected PasswordAuthentication getPasswordAuthentication() {
+                            return new PasswordAuthentication(
+                                    MAIL_PROPERTIES.getProperty("email.username"),
+                                    MAIL_PROPERTIES.getProperty("email.password")
+                            );
+                        }
+                    });
+
+            try {
+                MimeMessage message = new MimeMessage(session);
+                MimeMessageHelper helper = new MimeMessageHelper(message, true);
+                helper.setFrom(MAIL_PROPERTIES.getProperty("email.from.system"));
+                helper.setTo(user.getEmail());
+                helper.setSubject(model.containsKey("subject") ? (String) model.get("subject") : "");
+                helper.setText(text, true);
+                Transport.send(message);
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    private Properties getMailProperties() {
+        Properties properties = new Properties();
+        properties.put("mail.smtp.auth", env.getProperty("email.smtp.auth"));
+        properties.put("mail.smtp.starttls.enable", env.getProperty("email.smtp.starttls.enable"));
+        properties.put("mail.smtp.host", MAIL_PROPERTIES.getProperty("email.host"));
+        properties.put("mail.smtp.port", MAIL_PROPERTIES.getProperty("email.port"));
+        return properties;
     }
 }

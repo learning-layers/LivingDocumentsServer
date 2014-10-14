@@ -20,16 +20,25 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.service;
+package de.hska.ld.core.config;
 
-import de.hska.ld.core.persistence.domain.User;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.ui.velocity.VelocityEngineFactoryBean;
 
-import java.util.Map;
 import java.util.Properties;
 
-public interface MailService {
+@Configuration
+public class VelocityConfig {
 
-    public static final Properties MAIL_PROPERTIES = new Properties();
-
-    void sendMail(User user, String templateFileName, Map<String, Object> templateModel);
+    @Bean
+    public VelocityEngineFactoryBean velocityEngine() {
+        VelocityEngineFactoryBean factoryBean = new VelocityEngineFactoryBean();
+        Properties properties = new Properties();
+        properties.put("resource.loader", "class");
+        properties.setProperty("class.resource.loader.class", ClasspathResourceLoader.class.getName());
+        factoryBean.setVelocityProperties(properties);
+        return factoryBean;
+    }
 }

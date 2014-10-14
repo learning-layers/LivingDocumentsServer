@@ -22,7 +22,6 @@
 
 package de.hska.ld.core.service.impl;
 
-import de.hska.ld.core.config.MailConfig;
 import de.hska.ld.core.exception.*;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
@@ -351,10 +350,10 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
 
     @SuppressWarnings("unchecked")
     private void sendConfirmationMail(User user) {
-        if (!MailConfig.MAIL_PROPERTIES.entrySet().isEmpty()) {
+        if (!MailService.MAIL_PROPERTIES.entrySet().isEmpty()) {
             Locale locale = LocaleContextHolder.getLocale();
             ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
-            String baseUrl = env.getProperty("server.address") + ":" + env.getProperty("server.port");
+            String baseUrl = "http://" + env.getProperty("server.address") + ":" + env.getProperty("server.port");
 
             Map model = new HashMap<>();
             model.put("subject", bundle.getString("user.confirmation.subject"));
