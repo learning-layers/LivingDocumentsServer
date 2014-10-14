@@ -265,7 +265,9 @@ public class DocumentController {
             documentClone.setAttachmentList(documentClone.getAttachmentList().stream().filter(a -> !"maincontent.html".equals(a.getName())).collect(Collectors.toList()));
             Access access = documentService.getCurrentUserPermissions(documentId, "all");
             if (access != null) {
-                documentClone.getAccessList().add(access);
+                List<Access> readAccessList = new ArrayList<>();
+                readAccessList.add(access);
+                documentClone.setAccessList(readAccessList);
             }
             if (documentClone.isDeleted()) {
                 throw new NotFoundException("id");
