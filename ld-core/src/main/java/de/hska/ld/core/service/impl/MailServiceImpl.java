@@ -68,37 +68,39 @@ public class MailServiceImpl implements MailService {
     @Override
     public void sendMail(User user, String templateFileName, Map<String, Object> model) {
 
-        Locale locale = LocaleContextHolder.getLocale();
-        ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
-        model.put("dear", bundle.getString("vm.dear"));
-        model.put("fullName", user.getFullName());
-        model.put("greeting", bundle.getString("user.confirmation.greeting"));
+        if (Boolean.parseBoolean(env.getProperty("email.enabled"))) {
+            Locale locale = LocaleContextHolder.getLocale();
+            ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
+            model.put("dear", bundle.getString("vm.dear"));
+            model.put("fullName", user.getFullName());
+            model.put("greeting", bundle.getString("user.confirmation.greeting"));
 
-        String text = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
-                "templates/mail/" + templateFileName, "UTF-8", model);
+            String text = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
+                    "templates/mail/" + templateFileName, "UTF-8", model);
 
-        Properties properties = getMailProperties();
+            Properties properties = getMailProperties();
 
-        Session session = Session.getInstance(properties,
-                new javax.mail.Authenticator() {
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(
-                                MAIL_PROPERTIES.getProperty("email.username"),
-                                MAIL_PROPERTIES.getProperty("email.password")
-                        );
-                    }
-                });
+            Session session = Session.getInstance(properties,
+                    new javax.mail.Authenticator() {
+                        protected PasswordAuthentication getPasswordAuthentication() {
+                            return new PasswordAuthentication(
+                                    MAIL_PROPERTIES.getProperty("email.username"),
+                                    MAIL_PROPERTIES.getProperty("email.password")
+                            );
+                        }
+                    });
 
-        try {
-            MimeMessage message = new MimeMessage(session);
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setFrom(MAIL_PROPERTIES.getProperty("email.from.system"));
-            helper.setTo(user.getEmail());
-            helper.setSubject(model.containsKey("subject") ? (String) model.get("subject") : "");
-            helper.setText(text, true);
-            Transport.send(message);
-        } catch (MessagingException e) {
-            e.printStackTrace();
+            try {
+                MimeMessage message = new MimeMessage(session);
+                MimeMessageHelper helper = new MimeMessageHelper(message, true);
+                helper.setFrom(MAIL_PROPERTIES.getProperty("email.from.system"));
+                helper.setTo(user.getEmail());
+                helper.setSubject(model.containsKey("subject") ? (String) model.get("subject") : "");
+                helper.setText(text, true);
+                Transport.send(message);
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
         }
     }
 
