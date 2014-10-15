@@ -93,6 +93,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET)
+    @Transactional(readOnly = true)
     public Callable getDocumentsPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                            @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                                            @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
@@ -126,6 +127,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/discussions")
+    @Transactional(readOnly = true)
     public Callable getDiscussionsPage(@PathVariable Long documentId,
                                                              @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                              @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
@@ -311,6 +313,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/comment")
+    @Transactional(readOnly = true)
     public Callable getCommentsPage(@PathVariable Long documentId,
                                                          @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                          @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
@@ -429,6 +432,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags")
+    @Transactional(readOnly = true)
     public Callable getTagsPage(@PathVariable Long documentId,
                                                  @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                                  @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
@@ -457,6 +461,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/tags/list")
+    @Transactional(readOnly = true)
     public Callable getAllTags(@PathVariable Long documentId) {
         return () -> {
             List<Tag> tagList = documentService.getDocumentTagsList(documentId);
@@ -561,6 +566,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/download")
+    @Transactional(readOnly = true)
     public Callable downloadFile(@PathVariable Long documentId, @RequestParam Integer position, HttpServletResponse response) {
         return () -> {
             try {
@@ -599,6 +605,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/download/{attachmentId}")
+    @Transactional(readOnly = true)
     public Callable downloadFile(@PathVariable Long documentId, @PathVariable Long attachmentId, HttpServletResponse response) {
         return () -> {
             try {
@@ -634,6 +641,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/attachment")
+    @Transactional(readOnly = true)
     public Callable getDocumentAttachmentPage(
             @PathVariable Long documentId,
             @RequestParam(value = "attachment-types", defaultValue = "all") String attachmentTypes,
@@ -666,6 +674,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/attachment/list")
+    @Transactional(readOnly = true)
     public Callable getDocumentAttachmentList(@PathVariable Long documentId) {
         return () -> {
             List<Attachment> attachmentList = documentService.getDocumentAttachmentList(documentId);
@@ -726,6 +735,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/breadcrumbs")
+    @Transactional(readOnly = true)
     public Callable getBreadcrumbs(@PathVariable Long documentId) {
         return () -> {
             List<BreadcrumbDto> breadcrumbList = documentService.getBreadcrumbs(documentId);
@@ -789,6 +799,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/notifications")
+    @Transactional(readOnly = true)
     public Callable getNotifications() {
         return () -> {
             List<Notification> notificationList = subscriptionService.getNotifications();
@@ -825,6 +836,7 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/users/permission")
+    @Transactional(readOnly = true)
     public Callable getUserListByDocumentPermission(@PathVariable Long documentId, @RequestParam String permissions) {
         return () -> {
             List<Access> userList = documentService.getUsersByPermissions(documentId, permissions);
@@ -834,6 +846,7 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/access/users")
+    @Transactional(readOnly = true)
     public Callable getUsersByDocumentPermission(@PathVariable Long documentId,
                                                  @RequestParam String permissions,
                                                  @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
@@ -862,6 +875,7 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/currentuser/permission")
+    @Transactional(readOnly = true)
     public Callable getCurrentUsersPermissions(@PathVariable Long documentId, @RequestParam String permissions) {
         return () -> {
             Access access = documentService.getCurrentUserPermissions(documentId, permissions);
