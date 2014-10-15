@@ -22,6 +22,7 @@
 
 package de.hska.ld.core.config;
 
+import org.apache.commons.io.FileUtils;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceException;
 import javax.sql.DataSource;
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -52,6 +55,18 @@ public class PersistenceConfig {
 
     @Autowired
     private Environment env;
+
+    @Autowired
+    private void init() {
+        String ddl = env.getProperty("module.core.db.ddl");
+        if (ddl != null && ddl.contains("update")) {
+            try {
+                FileUtils.deleteDirectory(new File(env.getProperty("module.core.search.location")));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     @Bean
     public DataSource dataSource() throws SQLException {
@@ -73,6 +88,8 @@ public class PersistenceConfig {
 
         Properties jpaProperties = new Properties();
         jpaProperties.setProperty("hibernate.hbm2ddl.auto", env.getProperty("module.core.db.ddl"));
+        jpaProperties.setProperty("hibernate.search.default.indexBase", env.getProperty("module.core.search.location"));
+
         factory.setJpaProperties(jpaProperties);
         factory.afterPropertiesSet();
 
