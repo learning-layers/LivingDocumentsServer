@@ -364,6 +364,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/tag/{tagId}")
+    @Transactional(readOnly = true)
     public Callable addTag(@PathVariable Long documentId, @PathVariable Long tagId) {
         return () -> {
             documentService.addTag(documentId, tagId);

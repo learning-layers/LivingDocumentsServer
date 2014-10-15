@@ -163,11 +163,11 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = false)
     public Document addTag(Long id, Long tagId) {
         Document document = findById(id);
         Tag tag = tagService.findById(tagId);
-        checkPermission(document, Access.Permission.WRITE);
+        checkPermission(document, Access.Permission.WRITE, Access.Permission.ATTACH_FILES, Access.Permission.READ, Access.Permission.COMMENT_DOCUMENT);
         if (!document.getTagList().contains(tag)) {
             document.getTagList().add(tag);
         }
