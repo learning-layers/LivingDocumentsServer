@@ -7,6 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,6 +24,7 @@ public class LogEntryController {
 
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.GET)
+    @Transactional(readOnly = true)
     public Callable getLogEntryPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                     @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                     @RequestParam(value = "sort-direction", defaultValue = "DESC") Sort.Direction sortDirection,

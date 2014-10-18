@@ -37,6 +37,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -129,6 +130,7 @@ public class UserController {
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.GET, value = "/disabled")
+    @Transactional(readOnly = true)
     public Callable getUsersDisabledPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                          @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                          @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
@@ -188,6 +190,7 @@ public class UserController {
      */
     @PreAuthorize("hasRole('" + Core.ROLE_ADMIN + "') or (isAuthenticated() and principal.username == #username)")
     @RequestMapping(method = RequestMethod.GET, value = "/{username}")
+    @Transactional(readOnly = true)
     public Callable getUserByUsername(@PathVariable String username) {
         return () -> {
             User user = userService.findByUsername(username);
@@ -319,12 +322,14 @@ public class UserController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/avatars")
+    @Transactional(readOnly = true)
     public Callable loadAvatars(@RequestParam String userIdsString) {
         return () -> userService.getAvatars(userIdsString);
     }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/avatar")
+    @Transactional(readOnly = true)
     public void loadAvatar(HttpServletResponse response) {
         try {
             User user = Core.currentUser();
@@ -359,6 +364,7 @@ public class UserController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/avatar/{id}")
+    @Transactional(readOnly = true)
     public void loadAvatarForUser(@PathVariable Long id, HttpServletResponse response) {
         try {
             String userIdString = id.toString();
@@ -406,6 +412,7 @@ public class UserController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/suggestions/list")
+    @Transactional(readOnly = true)
     public Callable getMentionSuggestionsList(@RequestParam(required = false) String term) {
         return () -> {
             if (!"".equals(term) || term.contains("%")) {
@@ -420,6 +427,7 @@ public class UserController {
 
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.GET, value = "/suggestions")
+    @Transactional(readOnly = true)
     public Callable getMentionSuggestions(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
                                           @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
                                           @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
@@ -437,6 +445,7 @@ public class UserController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/username")
+    @Transactional(readOnly = true)
     public Callable getUserByUserName(@RequestParam String term) {
         return () -> {
             User user = userService.findByUsername(term);
@@ -449,6 +458,7 @@ public class UserController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/id")
+    @Transactional(readOnly = true)
     @SuppressWarnings("unchecked")
     public Callable getUser(@RequestParam Long id) {
         return () -> {
