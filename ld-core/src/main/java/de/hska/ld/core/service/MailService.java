@@ -29,7 +29,11 @@ import java.util.Properties;
 
 public interface MailService {
 
+    public static final String DEFAULT_TEMPLATE = "default.vm";
+
     public static final Properties MAIL_PROPERTIES = new Properties();
+
+    void sendMail(User user, Map<String, Object> templateModel);
 
     void sendMail(User user, String templateFileName, Map<String, Object> templateModel);
 }

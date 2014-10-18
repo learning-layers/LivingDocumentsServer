@@ -66,14 +66,19 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
+    public void sendMail(User user, Map<String, Object> templateModel) {
+        sendMail(user, DEFAULT_TEMPLATE, templateModel);
+    }
+
+    @Override
     public void sendMail(User user, String templateFileName, Map<String, Object> model) {
 
         if (Boolean.parseBoolean(env.getProperty("email.enabled"))) {
             Locale locale = LocaleContextHolder.getLocale();
             ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
-            model.put("dear", bundle.getString("vm.dear"));
+            model.put("dear", bundle.getString("email.dear"));
             model.put("fullName", user.getFullName());
-            model.put("greeting", bundle.getString("user.confirmation.greeting"));
+            model.put("greeting", bundle.getString("email.greeting"));
 
             String text = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
                     "templates/mail/" + templateFileName, "UTF-8", model);

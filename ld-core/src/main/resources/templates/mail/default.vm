@@ -1,0 +1,11 @@
+<html>
+<body style="font-family: monospace">
+<h1>${dear} ${fullName},</h1>
+
+<div style="font-size: 1.4em;">
+  <div>${text}</div>
+  <div style="margin-top: .5em; font-size: .9em;"><a href="${confirmationUrl}">${confirmationUrl}</a></div>
+  <div style="margin-top: 1em">${greeting}</div>
+</div>
+</body>
+</html>

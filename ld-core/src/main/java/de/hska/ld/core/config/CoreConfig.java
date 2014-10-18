@@ -28,13 +28,17 @@ import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.service.impl.MailServiceImpl;
 import de.hska.ld.core.service.impl.RoleServiceImpl;
 import de.hska.ld.core.service.impl.UserServiceImpl;
+import de.hska.ld.core.util.AsyncExecutor;
+import de.hska.ld.core.util.SpringAsyncExecutor;
 import org.springframework.boot.context.embedded.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.servlet.MultipartConfigElement;
 
 @Configuration
+@EnableAsync
 public class CoreConfig {
 
     @Bean
@@ -58,5 +62,10 @@ public class CoreConfig {
         factory.setMaxFileSize("128MB");
         factory.setMaxRequestSize("128MB");
         return factory.createMultipartConfig();
+    }
+
+    @Bean
+    public AsyncExecutor asyncExecutor() {
+        return new SpringAsyncExecutor();
     }
 }

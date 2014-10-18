@@ -38,7 +38,11 @@ public interface UserRepository extends CrudRepository<User, Long> {
     @Query("FROM User u WHERE u.email = :email AND u.email is not null")
     User findByEmail(@Param("email") String email);
 
-    User findByConfirmationKey(String confirmationKey);
+    User findByRegistrationConfirmationKey(String confirmationKey);
+
+    User findByForgotPasswordConfirmationKey(String confirmationKey);
+
+    User findByChangeEmailConfirmationKey(String confirmationKey);
 
     @Query("FROM User u WHERE u.username = :userKey OR (u.email = :userKey AND u.email is not null)")
     User findByUsernameOrEmail(@Param("userKey") String userKey);

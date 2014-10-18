@@ -71,8 +71,14 @@ public class User implements UserDetails {
     @Column(name = "description", nullable = true, columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "confirmation_key")
-    private String confirmationKey;
+    @Column(name = "registration_confirmation_key")
+    private String registrationConfirmationKey;
+
+    @Column(name = "forgot_password_confirmation_key")
+    private String forgotPasswordConfirmationKey;
+
+    @Column(name = "change_email_confirmation_key")
+    private String changeEmailConfirmationKey;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", nullable = false)
@@ -139,12 +145,30 @@ public class User implements UserDetails {
     }
 
     @JsonIgnore
-    public String getConfirmationKey() {
-        return confirmationKey;
+    public String getRegistrationConfirmationKey() {
+        return registrationConfirmationKey;
     }
 
-    public void setConfirmationKey(String confirmationKey) {
-        this.confirmationKey = confirmationKey;
+    public void setRegistrationConfirmationKey(String registrationConfirmationKey) {
+        this.registrationConfirmationKey = registrationConfirmationKey;
+    }
+
+    @JsonIgnore
+    public String getForgotPasswordConfirmationKey() {
+        return forgotPasswordConfirmationKey;
+    }
+
+    public void setForgotPasswordConfirmationKey(String forgotPasswordConfirmationKey) {
+        this.forgotPasswordConfirmationKey = forgotPasswordConfirmationKey;
+    }
+
+    @JsonIgnore
+    public String getChangeEmailConfirmationKey() {
+        return changeEmailConfirmationKey;
+    }
+
+    public void setChangeEmailConfirmationKey(String changeEmailConfirmationKey) {
+        this.changeEmailConfirmationKey = changeEmailConfirmationKey;
     }
 
     public Date getCreatedAt() {

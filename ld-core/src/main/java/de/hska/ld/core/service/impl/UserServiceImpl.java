@@ -152,21 +152,26 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         User userFoundByUsername = findByUsername(user.getUsername());
         User userFoundByEmail = findByEmail(user.getEmail());
         setNewUserFields(user, userFoundByUsername, userFoundByEmail);
-        user.setConfirmationKey(UUID.randomUUID().toString());
+        user.setRegistrationConfirmationKey(UUID.randomUUID().toString());
         user.setEnabled(false);
         user = super.save(user);
-        sendConfirmationMail(user);
+
+        ResourceBundle bundle = ResourceBundle.getBundle("messages", LocaleContextHolder.getLocale());
+        String subject = bundle.getString("email.user.registration.subject");
+        String text = bundle.getString("email.user.registration.text");
+        String confirmationUrl = env.getProperty("module.core.auth.registrationConfirmUrl") + user.getForgotPasswordConfirmationKey();
+        sendConfirmationMail(user, subject, text, confirmationUrl);
     }
 
     @Override
     @Transactional
     public User confirmRegistration(String confirmationKey) {
-        User user = repository.findByConfirmationKey(confirmationKey);
+        User user = repository.findByRegistrationConfirmationKey(confirmationKey);
         if (user == null) {
             throw new NotFoundException("confirmationKey");
         }
         user.setEnabled(true);
-        user.setConfirmationKey(null);
+        user.setRegistrationConfirmationKey(null);
         user = super.save(user);
         return user;
     }
@@ -248,8 +253,7 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
 
     @Override
     public List<User> getMentionSuggestions(String term) {
-        List<User> userList = repository.findMentionSuggestions(term + "%");
-        return userList;
+        return repository.findMentionSuggestions(term + "%");
     }
 
     @Override
@@ -293,6 +297,34 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             user.setAvatar(file.getBytes());
             super.save(user);
         } catch (IOException e) {
+            throw new ApplicationException();
+        }
+    }
+
+    @Override
+    public void forgotPassword(String userKey) {
+        User user = repository.findByUsernameOrEmail(userKey);
+        if (user != null) {
+            user.setForgotPasswordConfirmationKey(UUID.randomUUID().toString());
+            user = super.save(user);
+
+            ResourceBundle bundle = ResourceBundle.getBundle("messages", LocaleContextHolder.getLocale());
+            String subject = bundle.getString("email.user.forgotPassword.subject");
+            String text = bundle.getString("email.user.forgotPassword.text");
+            String confirmationUrl = env.getProperty("module.core.auth.forgotPasswordConfirmUrl") + user.getForgotPasswordConfirmationKey();
+
+            sendConfirmationMail(user, subject, text, confirmationUrl);
+        }
+    }
+
+    @Override
+    public void forgotPasswordConfirm(String confirmationKey, String newPassword) {
+        User user = repository.findByForgotPasswordConfirmationKey(confirmationKey);
+        if (user != null) {
+            user.setForgotPasswordConfirmationKey(null);
+            user.setPassword(passwordEncoder.encode(newPassword));
+            super.save(user);
+        } else {
             throw new ApplicationException();
         }
     }
@@ -341,7 +373,6 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         }
         user.setId(null);
         user.setCreatedAt(new Date());
-        user.setConfirmationKey(UUID.randomUUID().toString());
         user.setEnabled(true);
         String hashedPwd = encodePassword(user.getPassword());
         user.setPassword(hashedPwd);
@@ -349,20 +380,12 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     }
 
     @SuppressWarnings("unchecked")
-    private void sendConfirmationMail(User user) {
-        if (!MailService.MAIL_PROPERTIES.entrySet().isEmpty()) {
-            Locale locale = LocaleContextHolder.getLocale();
-            ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
-            String baseUrl = "http://" + env.getProperty("server.address") + ":" + env.getProperty("server.port");
-
-            Map model = new HashMap<>();
-            model.put("subject", bundle.getString("user.confirmation.subject"));
-            model.put("text", bundle.getString("user.confirmation.text"));
-            model.put("link", bundle.getString("user.confirmation.link"));
-            model.put("confirmationUrl", baseUrl + "/users/confirmRegistration/" + user.getConfirmationKey());
-
-            mailService.sendMail(user, "user_confirmation.vm", model);
-        }
+    private void sendConfirmationMail(User user, String subject, String text, String confirmationUrl) {
+        Map model = new HashMap<>();
+        model.put("subject", subject);
+        model.put("text", text);
+        model.put("confirmationUrl", confirmationUrl);
+        mailService.sendMail(user, model);
     }
 
     @Override

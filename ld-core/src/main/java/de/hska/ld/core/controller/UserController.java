@@ -27,6 +27,7 @@ import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
+import de.hska.ld.core.util.AsyncExecutor;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AsyncExecutor asyncExecutor;
 
     /**
      * <pre>
@@ -472,5 +476,41 @@ public class UserController {
             User dbUser = userService.updateProfile(user);
             return new ResponseEntity<>(dbUser, HttpStatus.OK);
         };
+    }
+
+    /**
+     * <pre>
+     * Forgot Password workflow (Step 1)
+     *
+     * <b>Required roles:</b> no role required
+     * <b>Path:</b> POST {@value Core#RESOURCE_USER}/forgotPassword
+     * </pre>
+     *
+     * @param userKey username or password
+     * @return always <b>200 OK</b>
+     */
+    @RequestMapping(method = RequestMethod.POST, value = "/forgotPassword")
+    public ResponseEntity forgotPassword(@RequestBody String userKey) {
+        asyncExecutor.run(() -> userService.forgotPassword(userKey));
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    /**
+     * <pre>
+     * Forgot Password workflow (Step 2)
+     *
+     * <b>Required roles:</b> no role required
+     * <b>Path:</b> POST {@value Core#RESOURCE_USER}/forgotPasswordConfirm/{confirmationKey}
+     * </pre>
+     *
+     * @param confirmationKey forgot password confirmation key
+     * @param newPassword     the new password
+     * @return <b>200 OK</b> if everything goes well or <br>
+     * <b>500 Bad RequestInternal Server Error</b> if an error occurred
+     */
+    @RequestMapping(method = RequestMethod.POST, value = "/forgotPasswordConfirm/{confirmationKey}")
+    public ResponseEntity forgotPasswordConfirm(@PathVariable String confirmationKey, @RequestBody String newPassword) {
+        userService.forgotPasswordConfirm(confirmationKey, newPassword);
+        return new ResponseEntity(HttpStatus.OK);
     }
 }

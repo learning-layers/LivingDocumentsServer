@@ -66,4 +66,8 @@ public interface UserService extends UserDetailsService, Service<User> {
     User updatePassword(String password);
 
     User updateProfile(User user);
+
+    void forgotPassword(String userKey);
+
+    void forgotPasswordConfirm(String confirmationKey, String newPassword);
 }

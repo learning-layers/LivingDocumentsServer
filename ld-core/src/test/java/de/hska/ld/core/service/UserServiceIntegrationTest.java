@@ -2,8 +2,11 @@ package de.hska.ld.core.service;
 
 import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.persistence.domain.User;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static de.hska.ld.core.fixture.CoreFixture.newUser;
 
@@ -17,5 +20,23 @@ public class UserServiceIntegrationTest extends AbstractIntegrationTest {
         User user = newUser();
         user.setEmail("martin.bachl@web.de");
         userService.register(user);
+    }
+
+    @Test
+    public void testForgotPassword() {
+        User user = newUser();
+        user.setEmail("martin.bachl@web.de");
+        user = userService.save(user);
+
+        userService.forgotPassword(user.getEmail());
+
+        user = userService.findById(user.getId());
+
+        userService.forgotPasswordConfirm(user.getForgotPasswordConfirmationKey(), "changedPass");
+
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+
+        user = userService.findByEmail("martin.bachl@web.de");
+        Assert.assertTrue(encoder.matches("changedPass", user.getPassword()));
     }
 }
