@@ -36,4 +36,6 @@ public interface MailService {
     void sendMail(User user, Map<String, Object> templateModel);
 
     void sendMail(User user, String templateFileName, Map<String, Object> templateModel);
+
+    void sendMail(String fullName, String email, String templateFileName, Map<String, Object> model);
 }

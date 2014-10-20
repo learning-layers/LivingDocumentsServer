@@ -15,6 +15,8 @@ public class UserServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     UserService userService;
 
+    private static String email = "martin.bachl@web.de";
+
     @Test
     public void testRegistration() {
         User user = newUser();
@@ -29,14 +31,24 @@ public class UserServiceIntegrationTest extends AbstractIntegrationTest {
         user = userService.save(user);
 
         userService.forgotPassword(user.getEmail());
-
         user = userService.findById(user.getId());
-
         userService.forgotPasswordConfirm(user.getForgotPasswordConfirmationKey(), "changedPass");
-
         PasswordEncoder encoder = new BCryptPasswordEncoder();
-
         user = userService.findByEmail("martin.bachl@web.de");
         Assert.assertTrue(encoder.matches("changedPass", user.getPassword()));
+    }
+
+    @Test
+    public void testChangeEmail() {
+        userService.changeEmail(testUser, email);
+
+        testUser = userService.findById(testUser.getId());
+        Assert.assertEquals(email, testUser.getEmailToBeConfirmed());
+
+        userService.changeEmailConfirm(testUser.getChangeEmailConfirmationKey());
+        testUser = userService.findById(testUser.getId());
+        Assert.assertEquals(email, testUser.getEmail());
+        Assert.assertNull(testUser.getChangeEmailConfirmationKey());
+        Assert.assertNull(testUser.getEmailToBeConfirmed());
     }
 }

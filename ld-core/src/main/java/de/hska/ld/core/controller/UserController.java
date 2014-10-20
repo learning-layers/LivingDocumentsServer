@@ -523,4 +523,42 @@ public class UserController {
         userService.forgotPasswordConfirm(confirmationKey, newPassword);
         return new ResponseEntity(HttpStatus.OK);
     }
+
+    /**
+     * <pre>
+     * Change email workflow (Step 1)
+     *
+     * <b>Required roles:</b> ROLE_USER
+     * <b>Path:</b> POST {@value Core#RESOURCE_USER}/changeEmail
+     * </pre>
+     *
+     * @param emailToBeConfirmed the new email address to be confirmed
+     * @return <b>200 OK</b> if everything goes well or <br>
+     * <b>409 Conflict</b> if a user with the given username or email already exists
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/changeEmail")
+    public ResponseEntity changeEmail(@AuthenticationPrincipal User user, @RequestBody String emailToBeConfirmed) {
+        userService.changeEmail(user, emailToBeConfirmed);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    /**
+     * <pre>
+     * Change email workflow (Step 2)
+     *
+     * <b>Required roles:</b> no role required
+     * <b>Path:</b> GET {@value Core#RESOURCE_USER}/changeEmailConfirm/{confirmationKey}
+     * </pre>
+     *
+     * @param confirmationKey change email confirmation key
+     * @return <b>200 OK</b> if everything goes well or <br>
+     * <b>409 Conflict</b> if a user with the given username or email already exists or <br>
+     * <b>500 Bad RequestInternal Server Error</b> if an error occurred
+     */
+    @RequestMapping(method = RequestMethod.GET, value = "/changeEmailConfirm/{confirmationKey}")
+    public ResponseEntity changeEmailConfirm(@PathVariable String confirmationKey) {
+        userService.changeEmailConfirm(confirmationKey);
+        return new ResponseEntity(HttpStatus.OK);
+    }
 }
