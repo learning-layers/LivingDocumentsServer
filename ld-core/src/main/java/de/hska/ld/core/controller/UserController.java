@@ -496,12 +496,12 @@ public class UserController {
      * <b>Path:</b> POST {@value Core#RESOURCE_USER}/forgotPassword
      * </pre>
      *
-     * @param userKey username or password
+     * @param userUsernameOrEmail username or the user's email address
      * @return always <b>200 OK</b>
      */
     @RequestMapping(method = RequestMethod.POST, value = "/forgotPassword")
-    public ResponseEntity forgotPassword(@RequestBody String userKey) {
-        asyncExecutor.run(() -> userService.forgotPassword(userKey));
+    public ResponseEntity forgotPassword(@RequestBody String userUsernameOrEmail) {
+        asyncExecutor.run(() -> userService.forgotPassword(userUsernameOrEmail));
         return new ResponseEntity(HttpStatus.OK);
     }
 

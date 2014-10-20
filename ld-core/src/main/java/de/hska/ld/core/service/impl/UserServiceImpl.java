@@ -302,8 +302,8 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     }
 
     @Override
-    public void forgotPassword(String userKey) {
-        User user = repository.findByUsernameOrEmail(userKey);
+    public void forgotPassword(String userUsernameOrEmail) {
+        User user = repository.findByUsernameOrEmail(userUsernameOrEmail);
         if (user != null) {
             user.setForgotPasswordConfirmationKey(UUID.randomUUID().toString());
             user = super.save(user);
