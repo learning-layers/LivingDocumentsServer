@@ -494,7 +494,7 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
 
         Page<Document> page = documentService.getDocumentsPage(0, 10, "DESC", "title", title);
 
-        Assert.assertEquals(1, page.getContent().size());
+        Assert.assertTrue(page.getContent().size() > 1);
         Assert.assertEquals(title, page.getContent().get(0).getTitle());
     }
 

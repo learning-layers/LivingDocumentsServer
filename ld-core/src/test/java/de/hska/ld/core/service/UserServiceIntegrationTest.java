@@ -17,14 +17,14 @@ public class UserServiceIntegrationTest extends AbstractIntegrationTest {
 
     private static String email = "martin.bachl@web.de";
 
-    @Test
+    //@Test TODO include this test again when Jenkins is configured
     public void testRegistration() {
         User user = newUser();
         user.setEmail("martin.bachl@web.de");
         userService.register(user);
     }
 
-    @Test
+    //@Test TODO include this test again when Jenkins is configured
     public void testForgotPassword() {
         User user = newUser();
         user.setEmail("martin.bachl@web.de");
@@ -38,6 +38,7 @@ public class UserServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(encoder.matches("changedPass", user.getPassword()));
     }
 
+    //@Test TODO include this test again when Jenkins is configured
     @Test
     public void testChangeEmail() {
         userService.changeEmail(testUser, email);
