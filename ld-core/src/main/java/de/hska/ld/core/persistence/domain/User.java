@@ -61,6 +61,9 @@ public class User implements UserDetails {
     @Column(name = "email", unique = true)
     private String email;
 
+    @Email
+    private String emailToBeConfirmed;
+
     @Column(name = "password", nullable = false)
     private String password;
 
@@ -122,6 +125,14 @@ public class User implements UserDetails {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getEmailToBeConfirmed() {
+        return emailToBeConfirmed;
+    }
+
+    public void setEmailToBeConfirmed(String emailToBeConfirmed) {
+        this.emailToBeConfirmed = emailToBeConfirmed;
     }
 
     @Override

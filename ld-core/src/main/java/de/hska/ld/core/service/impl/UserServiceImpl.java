@@ -329,6 +329,42 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         }
     }
 
+    @Override
+    public void changeEmail(User user, String emailToBeConfirmed) {
+        User userFoundByEmail = findByEmail(emailToBeConfirmed);
+        if (userFoundByEmail == null) {
+            user.setEmailToBeConfirmed(emailToBeConfirmed);
+            user.setChangeEmailConfirmationKey(UUID.randomUUID().toString());
+            user = super.save(user);
+
+            ResourceBundle bundle = ResourceBundle.getBundle("messages", LocaleContextHolder.getLocale());
+            String subject = bundle.getString("email.user.changeEmail.subject");
+            String text = bundle.getString("email.user.changeEmail.text");
+            String confirmationUrl = env.getProperty("module.core.auth.changeEmailConfirmUrl") + user.getChangeEmailConfirmationKey();
+
+            sendConfirmationMail(user.getFullName(), user.getEmailToBeConfirmed(), subject, text, confirmationUrl);
+        } else {
+            throw new AlreadyExistsException("email");
+        }
+    }
+
+    @Override
+    public void changeEmailConfirm(String confirmationKey) {
+        User user = repository.findByChangeEmailConfirmationKey(confirmationKey);
+        if (user != null) {
+            User userFoundByEmail = findByEmail(user.getEmailToBeConfirmed());
+            if (userFoundByEmail != null) {
+                throw new AlreadyExistsException("email");
+            }
+            user.setEmail(user.getEmailToBeConfirmed());
+            user.setChangeEmailConfirmationKey(null);
+            user.setEmailToBeConfirmed(null);
+            super.save(user);
+        } else {
+            throw new ApplicationException();
+        }
+    }
+
     private void createRoleListForUser(User user) {
         Collection<Role> roleList;
         boolean adminAvailable = findByUsername(Core.BOOTSTRAP_ADMIN) != null;
@@ -380,12 +416,20 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     }
 
     @SuppressWarnings("unchecked")
-    private void sendConfirmationMail(User user, String subject, String text, String confirmationUrl) {
+    private void sendConfirmationMail(String fullName, String email, String subject, String text, String confirmationUrl) {
+        User user = new User();
+        user.setFullName(fullName);
+        user.setEmail(email);
+
         Map model = new HashMap<>();
         model.put("subject", subject);
         model.put("text", text);
         model.put("confirmationUrl", confirmationUrl);
         mailService.sendMail(user, model);
+    }
+
+    private void sendConfirmationMail(User user, String subject, String text, String confirmationUrl) {
+        sendConfirmationMail(user.getFullName(), user.getEmail(), subject, text, confirmationUrl);
     }
 
     @Override

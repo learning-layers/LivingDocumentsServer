@@ -70,4 +70,8 @@ public interface UserService extends UserDetailsService, Service<User> {
     void forgotPassword(String userKey);
 
     void forgotPasswordConfirm(String confirmationKey, String newPassword);
+
+    void changeEmail(User user, String emailToBeConfirmed);
+
+    void changeEmailConfirm(String confirmationKey);
 }
