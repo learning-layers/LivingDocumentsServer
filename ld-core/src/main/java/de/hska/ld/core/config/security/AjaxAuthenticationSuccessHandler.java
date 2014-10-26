@@ -51,6 +51,7 @@ public class AjaxAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
         }
 
         if (userJson != null) {
+            response.setCharacterEncoding("UTF-8");
             response.getWriter().write(userJson);
             response.setStatus(HttpServletResponse.SC_OK);
         } else {
