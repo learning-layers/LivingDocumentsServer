@@ -359,7 +359,12 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             user.setEmail(user.getEmailToBeConfirmed());
             user.setChangeEmailConfirmationKey(null);
             user.setEmailToBeConfirmed(null);
-            super.save(user);
+            user = super.save(user);
+            User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (SecurityContextHolder.getContext() != null && SecurityContextHolder.getContext().getAuthentication() != null
+                    && principal.getId().equals(user.getId())) {
+                principal.setEmail(user.getEmail());
+            }
         } else {
             throw new ApplicationException();
         }
