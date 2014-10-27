@@ -86,17 +86,18 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = repository.findByUsernameOrEmail(username);
-        return user;
+        return repository.findByUsernameOrEmail(username);
     }
 
     @Override
     public User save(User user) {
-        boolean isNew = user.getId() == null;
+
+        User savedUser;
         User userFoundByUsername = findByUsername(user.getUsername());
-        User userFoundByEmail = findByEmail(user.getEmail());
-        if (isNew) {
+        if (user.getId() == null) {
+            User userFoundByEmail = findByEmail(user.getEmail());
             setNewUserFields(user, userFoundByUsername, userFoundByEmail);
+            savedUser = super.save(user);
         } else {
             // Check if a the current user wants to update an account owned by somebody else
             User currentUser = Core.currentUser();
@@ -108,18 +109,21 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
                     !user.getId().equals(userFoundByUsername.getId())) {
                 throw new AlreadyExistsException("username");
             }
-            if (userFoundByEmail != null && user.getEmail().equals(userFoundByEmail.getEmail()) &&
-                    !user.getId().equals(userFoundByEmail.getId())) {
-                throw new AlreadyExistsException("email");
-            }
             User dbUser = repository.findOne(user.getId());
-            user.setId(dbUser.getId());
-            user.setEnabled(dbUser.isEnabled());
-            user.setPassword(dbUser.getPassword());
-            user.setRoleList(dbUser.getRoleList());
+            dbUser.setFullName(user.getFullName());
+            dbUser.setUsername(user.getUsername());
+            savedUser = super.save(dbUser);
+
+            User principal = Core.currentUser();
+            if (principal != null) {
+                if (principal.getId().equals(savedUser.getId())) {
+                    principal.setFullName(savedUser.getFullName());
+                    principal.setUsername(savedUser.getUsername());
+                }
+            }
         }
-        user = super.save(user);
-        return user;
+
+        return savedUser;
     }
 
     @Override
@@ -360,9 +364,9 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             user.setChangeEmailConfirmationKey(null);
             user.setEmailToBeConfirmed(null);
             user = super.save(user);
-            User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if (SecurityContextHolder.getContext() != null && SecurityContextHolder.getContext().getAuthentication() != null
-                    && principal.getId().equals(user.getId())) {
+
+            User principal = Core.currentUser();
+            if (principal.getId().equals(user.getId())) {
                 principal.setEmail(user.getEmail());
             }
         } else {
