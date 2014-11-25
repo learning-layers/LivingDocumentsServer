@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,12 +80,17 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(document.getId());
         Assert.assertNotNull(document.getCreator());
         Assert.assertNotNull(document.getCreatedAt());
+        Date modDate1 = document.getModifiedAt();
         Assert.assertNull(document.getModifiedAt());
-
-        document.setTitle(document.getTitle() + " (updated)");
+        String documentTitle = document.getTitle() + " (updated)";
+        document.setTitle(documentTitle);
         document = documentService.save(document);
 
+        Assert.assertEquals(documentTitle, document.getTitle());
+
+        Date modDate2 = document.getModifiedAt();
         Assert.assertNotNull(document.getModifiedAt());
+        Assert.assertTrue(modDate1.compareTo(modDate2) > 1);
     }
 
     @Test
