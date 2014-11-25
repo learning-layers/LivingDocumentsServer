@@ -148,6 +148,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         comment.setParent(document);
         document = super.save(document);
         createNotifications(document, Subscription.Type.COMMENT);
+        // retrieves the latest comment
         Optional<Comment> optional = document.getCommentList().stream().sorted(byDateTime).findFirst();
 
         commentService.sendMentionNotifications(comment);

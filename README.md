@@ -20,3 +20,6 @@ email.password = <PASSWORD>
 email.host = <HOST>
 email.from.system = <FROM>
 email.port = 465
+
+Open Id Connect specific settings:
+// TODO

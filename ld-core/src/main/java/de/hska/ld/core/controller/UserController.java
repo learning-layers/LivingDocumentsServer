@@ -63,6 +63,14 @@ public class UserController {
     @Autowired
     private AsyncExecutor asyncExecutor;
 
+    @RequestMapping(method = RequestMethod.GET, value = "/hello")
+    public Callable helloWorld() {
+        return () -> {
+            String helloWorldString = "HelloWorld";
+            return new ResponseEntity<>(helloWorldString, HttpStatus.OK);
+        };
+    }
+
     /**
      * <pre>
      * Gets a list with all users.
@@ -75,6 +83,7 @@ public class UserController {
      * <b>403 Forbidden</b> if authorization failed or <br>
      * <b>404 Not Found</b> if no users are in the system
      */
+    // TODO currently not working
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.GET, value = "/userlist")
     public Callable getAllUsers() {
