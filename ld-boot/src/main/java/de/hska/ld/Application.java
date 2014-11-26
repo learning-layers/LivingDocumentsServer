@@ -22,12 +22,13 @@
 
 package de.hska.ld;
 
+import de.hska.ld.core.config.security.SecurityConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 
-@ComponentScan
-@EnableAutoConfiguration
+@ComponentScan(basePackages = {"org.mitre", "de.hska"})
+@EnableAutoConfiguration(exclude = SecurityConfig.class)
 public class Application {
 
     public static void main(String[] args) {
