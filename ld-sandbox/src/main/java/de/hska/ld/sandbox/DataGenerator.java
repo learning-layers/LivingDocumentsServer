@@ -42,10 +42,15 @@ public class DataGenerator {
     @Autowired
     @Transactional
     public void init(DocumentService documentService, UserService userService, Environment env) {
-        String ddl = env.getProperty("module.core.db.ddl");
-        if ("create".equals(ddl) || "create-drop".equals(ddl)) {
-            User user = userService.findByUsername(Core.BOOTSTRAP_USER);
-            createSandboxDocument(documentService, userService, user);
+        if (false) {
+
+
+            // TODO Martin
+            String ddl = env.getProperty("module.core.db.ddl");
+            if ("create".equals(ddl) || "create-drop".equals(ddl)) {
+                User user = userService.findByUsername(Core.BOOTSTRAP_USER);
+                createSandboxDocument(documentService, userService, user);
+            }
         }
     }
 

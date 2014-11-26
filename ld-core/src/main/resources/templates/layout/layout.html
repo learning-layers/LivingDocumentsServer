@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <title>Getting Started: Serving Web Content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script src="webjars/jquery/2.0.3/jquery.min.js"></script>
+    <script src="webjars/underscorejs/1.7.0/underscore-min.js"></script>
+    <script src="webjars/bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="webjars/bootstrap/2.3.2/css/bootstrap.min.css"/>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body>
+<div layout:replace="layout/topbar"/>
+<div layout:include="this :: content"/>
+</body>
+</html>

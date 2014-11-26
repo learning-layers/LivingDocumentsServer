@@ -57,7 +57,7 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     @Autowired
     private UserRepository repository;
 
-    @Autowired
+    @Autowired(required = false)
     private PasswordEncoder passwordEncoder;
 
     @Autowired

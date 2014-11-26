@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout/layout">
+<head>
+    <script src="resources/js/lib/jwt.js"></script>
+</head>
+<body>
+<div class="container-fluid main" layout:fragment="content">
+    <div class="row-fluid">
+        <div class="span10 offset1">
+
+            <h1 th:inline="text">Hello [[${ principal.userInfo.name }]]</h1>
+
+            <div>
+                <p>This page requires that the user be logged in with a valid account and the <code>ROLE_USER</code>
+                    Spring Security authority.
+                    If you are reading this page, <span class="text-success">you are currently logged in</span>.</p>
+
+                <p>The authorization provider will create a Principal object based on the <code>iss</code> and
+                    <code>sub</code>
+                    claims associated with your ID token. This value can be used as a globally unique username within
+                    the application
+                    (though it's not meant to be human-readable).
+                    Your Principal is: <code th:inline="text">[[${ principal.principal }]]</code></p>
+
+                <p>The authorization provider will assign your account a set of authorities depending on how it's
+                    configured.
+                    Your current login has the following Spring Security authorities:</p>
+
+                <ul>
+                    <li th:each="auth : ${principal.authorities}">
+                        <code th:inline="text">[[${ auth }]]</code>
+                    </li>
+                </ul>
+
+                <h3>ID Token</h3>
+
+                <p>Your ID Token has the following set of claims:</p>
+
+                <table class="table table-striped table-hover" id="idTokenTable">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+                <h3>User Info</h3>
+
+                <p>The call to the User Info Endpoint returned the following set of claims:</p>
+
+                <table class="table table-striped table-hover" id="userInfoTable">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        $(document).ready(function () {
+
+            var idTokenString = "" + /*[[${ principal.idTokenValue }]]*/ +"";
+            var idToken = jwt.WebTokenParser.parse(idTokenString);
+            var idClaims = JSON.parse(jwt.base64urldecode(idToken.payloadSegment));
+
+            _.each(idClaims, function (val, key, list) {
+                $('#idTokenTable tbody').append('<tr><td>' + _.escape(key) + '</td><td>' + _.escape(val) + '</td></tr>');
+            });
+
+            var userInfo = /*[[${ principal.userInfo }]]*/;
+            _.each(userInfo, function (val, key, list) {
+                $('#userInfoTable tbody').append('<tr><td>' + _.escape(key) + '</td><td>' + _.escape(val) + '</td></tr>');
+            });
+        });
+        /*]]>*/
+    </script>
+</div>
+</body>
+</html>
