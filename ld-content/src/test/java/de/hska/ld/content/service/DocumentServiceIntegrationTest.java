@@ -80,8 +80,6 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(document.getId());
         Assert.assertNotNull(document.getCreator());
         Assert.assertNotNull(document.getCreatedAt());
-        Date modDate1 = document.getModifiedAt();
-        Assert.assertNull(document.getModifiedAt());
         String documentTitle = document.getTitle() + " (updated)";
         document.setTitle(documentTitle);
         document = documentService.save(document);
@@ -90,7 +88,6 @@ public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
 
         Date modDate2 = document.getModifiedAt();
         Assert.assertNotNull(document.getModifiedAt());
-        Assert.assertTrue(modDate1.compareTo(modDate2) > 1);
     }
 
     @Test
