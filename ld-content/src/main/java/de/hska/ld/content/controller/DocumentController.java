@@ -35,6 +35,13 @@ import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -45,10 +52,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -900,4 +904,192 @@ public class DocumentController {
             return new ResponseEntity<>(document, HttpStatus.CREATED);
         };
     }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/session")
+    public Callable getSession(HttpServletResponse response) {
+        return () -> {
+            String padName = "HelloWorld3";
+            //StringBuffer createPadResult = createPad(padName);
+            //StringBuffer createGroupResult = createGroup();
+            // group: g.SVR3zflpnZEkaWTp
+            String groupID = "g.SVR3zflpnZEkaWTp";
+            //StringBuffer createGroupPad = createGroupPad(groupID, padName);
+            String authorName = "Martin";
+            //StringBuffer createAuthor = createAuthor(authorName);
+            // {"code":0,"message":"ok","data":{"authorID":"a.sSX1zBtP8LNK029e"}}
+            String groupPadID = "g.SVR3zflpnZEkaWTp$HelloWorld3";
+            String authorID = "a.sSX1zBtP8LNK029e";
+            String validUntil = "1417634057";
+            //StringBuffer createSession = createSession(groupID, authorID, validUntil);
+            // {"code":0,"message":"ok","data":{"sessionID":"s.eb3eeec087a2a23e0283631612740c69"}}
+            javax.servlet.http.Cookie myCookie = new javax.servlet.http.Cookie("sessionID", "s.eb3eeec087a2a23e0283631612740c69");
+            myCookie.setPath("/");
+            response.addCookie(myCookie);
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        };
+    }
+
+    private StringBuffer createSession(String groupID, String authorID, String validUntil) throws IOException {
+        String sessionId = "";
+
+        String url = "http://localhost:9001/api/1/createSession";
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("User-Agent", "Mozilla/5.0");
+
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("groupID", groupID));
+        urlParameters.add(new BasicNameValuePair("authorID", authorID));
+        urlParameters.add(new BasicNameValuePair("validUntil", validUntil));
+
+        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        BufferedReader rd = new BufferedReader(
+                new InputStreamReader(response.getEntity().getContent()));
+
+        StringBuffer result = new StringBuffer();
+        String line = "";
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+        return result;
+    }
+
+    private StringBuffer createAuthor(String authorName) throws IOException {
+        String sessionId = "";
+
+        String url = "http://localhost:9001/api/1/createAuthor";
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("User-Agent", "Mozilla/5.0");
+
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("name", authorName));
+
+        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        BufferedReader rd = new BufferedReader(
+                new InputStreamReader(response.getEntity().getContent()));
+
+        StringBuffer result = new StringBuffer();
+        String line = "";
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+        return result;
+    }
+
+    private StringBuffer createGroupPad(String groupId, String padName) throws IOException {
+        String sessionId = "";
+
+        String url = "http://localhost:9001/api/1/createGroupPad";
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("User-Agent", "Mozilla/5.0");
+
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("groupID", groupId));
+        urlParameters.add(new BasicNameValuePair("padName", padName));
+
+        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        BufferedReader rd = new BufferedReader(
+                new InputStreamReader(response.getEntity().getContent()));
+
+        StringBuffer result = new StringBuffer();
+        String line = "";
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+        return result;
+    }
+
+    private StringBuffer createGroup() throws IOException {
+        String sessionId = "";
+
+        String url = "http://localhost:9001/api/1/createGroup";
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("User-Agent", "Mozilla/5.0");
+
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+
+        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        BufferedReader rd = new BufferedReader(
+                new InputStreamReader(response.getEntity().getContent()));
+
+        StringBuffer result = new StringBuffer();
+        String line = "";
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+        return result;
+    }
+
+    private StringBuffer createPad(String padName) throws IOException {
+        String sessionId = "";
+
+        String url = "http://localhost:9001/api/1/createPad";
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("User-Agent", "Mozilla/5.0");
+
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("padID", padName));
+        urlParameters.add(new BasicNameValuePair("text", "API"));
+
+        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        BufferedReader rd = new BufferedReader(
+                new InputStreamReader(response.getEntity().getContent()));
+
+        StringBuffer result = new StringBuffer();
+        String line = "";
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+        return result;
+    }
+
 }
