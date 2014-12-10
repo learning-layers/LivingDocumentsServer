@@ -104,4 +104,6 @@ public interface DocumentService extends ContentService<Document> {
     Page<Access> getUsersByDocumentPermission(Long documentId, String permissions, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
     void removeAccess(Long documentId, Long userId);
+
+    String getAuthorIdForCurrentUser();
 }

@@ -1097,9 +1097,16 @@ public class DocumentController {
     public Callable editDocumentContent(HttpServletResponse response , @PathVariable Long documentId) {
         return () -> {
 
+            Document document = documentService.findById(documentId);
             // 2. check if the User is allowed to access the current Document
+            if(document != null){
+                documentService.checkPermission(document, Access.Permission.READ);
+            } else {
+                throw new NotFoundException("id");
+            }
 
             // 1. for the given User check wether ther is an AuthorId regestired in Etherpad
+            documentService.getAuthorIdForCurrentUser();
             //  1.1 look up if ther is an existing AutorId associated with the current user
             //      1.1.1 if ther is an AuthorId open a session for this AuthorId for the Current Document
             //      1.1.2 if ther is no AuthorId present register an AuthorId for the current User
