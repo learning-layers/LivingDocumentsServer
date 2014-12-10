@@ -1092,4 +1092,37 @@ public class DocumentController {
         return result;
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/edit/{documentId}")
+    public Callable editDocumentContent(HttpServletResponse response , @PathVariable Long documentId) {
+        return () -> {
+
+            // 2. check if the User is allowed to access the current Document
+
+            // 1. for the given User check wether ther is an AuthorId regestired in Etherpad
+            //  1.1 look up if ther is an existing AutorId associated with the current user
+            //      1.1.1 if ther is an AuthorId open a session for this AuthorId for the Current Document
+            //      1.1.2 if ther is no AuthorId present register an AuthorId for the current User
+            //          1.1.2.1 register an AuthorId for the Etherpad Server and store the Author Id for current user
+            //      Continue with 1.1.1
+
+            // 3. is the GroupPad available for the Document :
+            //  3.1. GroupPad is available associet GroupPadId for the Document
+            //  3.2. otherwise creat a GroupPad
+
+            // 4. creat a session betwen Author and GroupPad
+            // 4.1. we need return types, cookie with sessionId and the URL of Etherpads Pad
+
+
+            javax.servlet.http.Cookie myCookie = new javax.servlet.http.Cookie("sessionID", "s.eb3eeec087a2a23e0283631612740c69");
+            myCookie.setPath("/");
+            response.addCookie(myCookie);
+            // 5. Return Etherpad URL path
+
+            String padURL = "localhost:9001/p/group";
+            return new ResponseEntity<>(padURL, HttpStatus.CREATED);
+
+        };
+    }
+
 }
