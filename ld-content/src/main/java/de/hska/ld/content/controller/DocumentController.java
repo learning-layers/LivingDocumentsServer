@@ -29,6 +29,7 @@ import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.SubscriptionService;
+import de.hska.ld.content.service.UserEtherpadInfoService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
@@ -78,6 +79,9 @@ public class DocumentController {
 
     @Autowired
     private Cloner cloner;
+
+    @Autowired
+    private UserEtherpadInfoService userEtherpadInfoService;
 
     /**
      * <pre>
@@ -963,7 +967,7 @@ public class DocumentController {
         return result;
     }
 
-    private StringBuffer createAuthor(String authorName) throws IOException {
+    private String createAuthor(String authorName) throws IOException {
         String sessionId = "";
 
         String url = "http://localhost:9001/api/1/createAuthor";
@@ -992,7 +996,7 @@ public class DocumentController {
         while ((line = rd.readLine()) != null) {
             result.append(line);
         }
-        return result;
+        return result.toString();
     }
 
     private StringBuffer createGroupPad(String groupId, String padName) throws IOException {
@@ -1094,24 +1098,40 @@ public class DocumentController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/edit/{documentId}")
+    @Transactional(readOnly = true)
     public Callable editDocumentContent(HttpServletResponse response , @PathVariable Long documentId) {
         return () -> {
 
             Document document = documentService.findById(documentId);
             // 2. check if the User is allowed to access the current Document
-            if(document != null){
+            if (document != null) {
                 documentService.checkPermission(document, Access.Permission.READ);
             } else {
                 throw new NotFoundException("id");
             }
 
             // 1. for the given User check wether ther is an AuthorId regestired in Etherpad
-            documentService.getAuthorIdForCurrentUser();
+            String authorId = documentService.getAuthorIdForCurrentUser();
+
             //  1.1 look up if ther is an existing AutorId associated with the current user
+            if (authorId == null) {
+
+                // 1.1.2 if ther is no AuthorId present register an AuthorId for the current User
+                authorId = createAuthor(Core.currentUser().getFullName());
+
+                // 1.1.2.1 register an AuthorId for the Etherpad Server and store the Author Id for current user
+                UserEtherpadInfo userEtherpadInfo = new UserEtherpadInfo();
+                userEtherpadInfo.setAuthorId(authorId);
+                userEtherpadInfo.setUser(Core.currentUser());
+                userEtherpadInfoService.save(userEtherpadInfo);
+
+                //      Continue with 1.1.1
+            }
+
             //      1.1.1 if ther is an AuthorId open a session for this AuthorId for the Current Document
-            //      1.1.2 if ther is no AuthorId present register an AuthorId for the current User
-            //          1.1.2.1 register an AuthorId for the Etherpad Server and store the Author Id for current user
-            //      Continue with 1.1.1
+
+
+
 
             // 3. is the GroupPad available for the Document :
             //  3.1. GroupPad is available associet GroupPadId for the Document

@@ -647,10 +647,14 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getAuthorIdForCurrentUser() {
         UserEtherpadInfo userEtherpadInfo = userEtherpadInfoRepository.getEtherpadInfoByUser(Core.currentUser());
-
-        return userEtherpadInfo.getAuthorId();
+        if (userEtherpadInfo == null) {
+            return null;
+        } else {
+            return userEtherpadInfo.getAuthorId();
+        }
     }
 
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {
