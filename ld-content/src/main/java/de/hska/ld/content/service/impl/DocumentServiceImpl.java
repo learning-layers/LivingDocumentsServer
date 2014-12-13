@@ -649,7 +649,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     @Override
     @Transactional(readOnly = true)
     public String getAuthorIdForCurrentUser() {
-        UserEtherpadInfo userEtherpadInfo = userEtherpadInfoRepository.getEtherpadInfoByUser(Core.currentUser());
+        User currentUser = Core.currentUser();
+        User user = userService.findById(currentUser.getId());
+        UserEtherpadInfo userEtherpadInfo = userEtherpadInfoRepository.findByUser(user);
         if (userEtherpadInfo == null) {
             return null;
         } else {

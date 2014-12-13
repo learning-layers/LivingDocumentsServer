@@ -25,6 +25,7 @@ package de.hska.ld.content.controller;
 import com.rits.cloning.Cloner;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
+import de.hska.ld.content.dto.EtherpadAuthorDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
@@ -34,6 +35,7 @@ import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
@@ -43,6 +45,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -70,6 +73,9 @@ public class DocumentController {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private CommentService commentService;
@@ -996,7 +1002,9 @@ public class DocumentController {
         while ((line = rd.readLine()) != null) {
             result.append(line);
         }
-        return result.toString();
+        ObjectMapper mapper = new ObjectMapper();
+        EtherpadAuthorDto etherpadAuthorDto = mapper.readValue(result.toString(), EtherpadAuthorDto.class);
+        return etherpadAuthorDto.getData().getAuthorID();
     }
 
     private StringBuffer createGroupPad(String groupId, String padName) throws IOException {
@@ -1118,12 +1126,7 @@ public class DocumentController {
 
                 // 1.1.2 if ther is no AuthorId present register an AuthorId for the current User
                 authorId = createAuthor(Core.currentUser().getFullName());
-
-                // 1.1.2.1 register an AuthorId for the Etherpad Server and store the Author Id for current user
-                UserEtherpadInfo userEtherpadInfo = new UserEtherpadInfo();
-                userEtherpadInfo.setAuthorId(authorId);
-                userEtherpadInfo.setUser(Core.currentUser());
-                userEtherpadInfoService.save(userEtherpadInfo);
+                storeAuthorIdForCurrentUser(authorId);
 
                 //      Continue with 1.1.1
             }
@@ -1150,6 +1153,17 @@ public class DocumentController {
             return new ResponseEntity<>(padURL, HttpStatus.CREATED);
 
         };
+    }
+
+    @Transactional(readOnly = false)
+    private void storeAuthorIdForCurrentUser(String authorId) {
+        // 1.1.2.1 register an AuthorId for the Etherpad Server and store the Author Id for current user
+        UserEtherpadInfo userEtherpadInfo = new UserEtherpadInfo();
+        userEtherpadInfo.setAuthorId(authorId);
+        User currentUser = Core.currentUser();
+        User user = userService.findById(currentUser.getId());
+        userEtherpadInfo.setUser(user);
+        userEtherpadInfoService.save(userEtherpadInfo);
     }
 
 }
