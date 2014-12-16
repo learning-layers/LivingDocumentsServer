@@ -25,6 +25,7 @@ package de.hska.ld.content.service.impl;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
 import de.hska.ld.content.persistence.domain.*;
+import de.hska.ld.content.persistence.repository.DocumentEtherpadInfoRepository;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
 import de.hska.ld.content.persistence.repository.UserEtherpadInfoRepository;
 import de.hska.ld.content.service.*;
@@ -65,6 +66,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Autowired
     private UserEtherpadInfoRepository userEtherpadInfoRepository;
+
+    @Autowired
+    private DocumentEtherpadInfoRepository documentEtherpadInfoRepository;
 
     @Autowired
     private UserService userService;
@@ -656,6 +660,18 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             return null;
         } else {
             return userEtherpadInfo.getAuthorId();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getGroupPadIdForDocument(Document document) {
+        Document dbDocument = findById(document.getId());
+        DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoRepository.findByDocument(dbDocument);
+        if (documentEtherpadInfo == null) {
+            return null;
+        } else {
+            return documentEtherpadInfo.getGroupPadId();
         }
     }
 

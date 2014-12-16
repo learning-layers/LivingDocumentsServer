@@ -106,4 +106,7 @@ public interface DocumentService extends ContentService<Document> {
     void removeAccess(Long documentId, Long userId);
 
     String getAuthorIdForCurrentUser();
+
+    String getGroupPadIdForDocument(Document document);
+
 }

@@ -23,14 +23,9 @@
 package de.hska.ld.content.controller;
 
 import com.rits.cloning.Cloner;
-import de.hska.ld.content.dto.BreadcrumbDto;
-import de.hska.ld.content.dto.DiscussionSectionDto;
-import de.hska.ld.content.dto.EtherpadAuthorDto;
+import de.hska.ld.content.dto.*;
 import de.hska.ld.content.persistence.domain.*;
-import de.hska.ld.content.service.CommentService;
-import de.hska.ld.content.service.DocumentService;
-import de.hska.ld.content.service.SubscriptionService;
-import de.hska.ld.content.service.UserEtherpadInfoService;
+import de.hska.ld.content.service.*;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
@@ -73,6 +68,9 @@ public class DocumentController {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private DocumentEtherpadInfoService documentEtherpadInfoService;
 
     @Autowired
     private UserService userService;
@@ -1007,7 +1005,7 @@ public class DocumentController {
         return etherpadAuthorDto.getData().getAuthorID();
     }
 
-    private StringBuffer createGroupPad(String groupId, String padName) throws IOException {
+    private String createGroupPad(String groupId, String padName) throws IOException {
         String sessionId = "";
 
         String url = "http://localhost:9001/api/1/createGroupPad";
@@ -1037,10 +1035,14 @@ public class DocumentController {
         while ((line = rd.readLine()) != null) {
             result.append(line);
         }
-        return result;
+
+        ObjectMapper mapper = new ObjectMapper();
+        EtherpadGroupPadDto etherpadGroupPadDto = mapper.readValue(result.toString(), EtherpadGroupPadDto.class);
+        return etherpadGroupPadDto.getData().getPadID();
+
     }
 
-    private StringBuffer createGroup() throws IOException {
+    private String createGroup() throws IOException {
         String sessionId = "";
 
         String url = "http://localhost:9001/api/1/createGroup";
@@ -1068,7 +1070,9 @@ public class DocumentController {
         while ((line = rd.readLine()) != null) {
             result.append(line);
         }
-        return result;
+        ObjectMapper mapper = new ObjectMapper();
+        EtherpadGroupDto etherpadGroupDto = mapper.readValue(result.toString(), EtherpadGroupDto.class);
+        return etherpadGroupDto.getData().getGroupID();
     }
 
     private StringBuffer createPad(String padName) throws IOException {
@@ -1118,29 +1122,32 @@ public class DocumentController {
                 throw new NotFoundException("id");
             }
 
-            // 1. for the given User check wether ther is an AuthorId regestired in Etherpad
+            // 1. for the given User check whether there is an AuthorId registered in Etherpad
             String authorId = documentService.getAuthorIdForCurrentUser();
 
-            //  1.1 look up if ther is an existing AutorId associated with the current user
+            //  1.1 look up if there is an existing AuthorId associated with the current user
             if (authorId == null) {
 
-                // 1.1.2 if ther is no AuthorId present register an AuthorId for the current User
+                // 1.1.2 if there is no AuthorId present register an AuthorId for the current User
                 authorId = createAuthor(Core.currentUser().getFullName());
                 storeAuthorIdForCurrentUser(authorId);
 
                 //      Continue with 1.1.1
             }
 
-            //      1.1.1 if ther is an AuthorId open a session for this AuthorId for the Current Document
-
-
-
+            //      1.1.1 if there is an AuthorId open a session for this AuthorId for the Current Document
 
             // 3. is the GroupPad available for the Document :
-            //  3.1. GroupPad is available associet GroupPadId for the Document
-            //  3.2. otherwise creat a GroupPad
+            String groupPadId =  documentService.getGroupPadIdForDocument(document);
+            if(groupPadId == null){
+                //  3.2. otherwise create a GroupPad
+                String groupId = createGroup();
+                groupPadId = createGroupPad(groupId, document.getTitle());
+                //  3.1. GroupPad is available associate GroupPadId for the Document
+                storeGroupPadIdForDocument(groupPadId, document);
+            }
 
-            // 4. creat a session betwen Author and GroupPad
+            // 4. create a session between Author and GroupPad
             // 4.1. we need return types, cookie with sessionId and the URL of Etherpads Pad
 
 
@@ -1164,6 +1171,15 @@ public class DocumentController {
         User user = userService.findById(currentUser.getId());
         userEtherpadInfo.setUser(user);
         userEtherpadInfoService.save(userEtherpadInfo);
+    }
+
+    @Transactional(readOnly = false)
+    private void storeGroupPadIdForDocument(String groupPadId, Document document) {
+        // associate GroupPadId for the Document and save it
+        DocumentEtherpadInfo documentEtherpadInfo = new DocumentEtherpadInfo();
+        documentEtherpadInfo.setGroupPadId(groupPadId);
+        documentEtherpadInfo.setDocument(document);
+        documentEtherpadInfoService.save(documentEtherpadInfo);
     }
 
 }
