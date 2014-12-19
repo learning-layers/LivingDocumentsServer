@@ -937,7 +937,7 @@ public class DocumentController {
         };
     }
 
-    private StringBuffer createSession(String groupID, String authorID, String validUntil) throws IOException {
+    private String createSession(String groupID, String authorID, String validUntil) throws IOException {
         String sessionId = "";
 
         String url = "http://localhost:9001/api/1/createSession";
@@ -968,7 +968,10 @@ public class DocumentController {
         while ((line = rd.readLine()) != null) {
             result.append(line);
         }
-        return result;
+
+        ObjectMapper mapper = new ObjectMapper();
+        EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
+        return etherpadSessionDto.getData().getSessionID();
     }
 
     private String createAuthor(String authorName) throws IOException {
@@ -1135,7 +1138,6 @@ public class DocumentController {
                 //      Continue with 1.1.1
             }
 
-            //      1.1.1 if there is an AuthorId open a session for this AuthorId for the Current Document
 
             // 3. is the GroupPad available for the Document :
             String groupPadId =  documentService.getGroupPadIdForDocument(document);
@@ -1148,10 +1150,16 @@ public class DocumentController {
             }
 
             // 4. create a session between Author and GroupPad
+            String groupId = groupPadId.split("\\$")[0];
+            long unixTime = System.currentTimeMillis() / 1000L; // current time
+            unixTime += 86400L;
+            String validUntil = String.valueOf(unixTime);
+            String sessionId = createSession(groupId, authorId,validUntil);
+
             // 4.1. we need return types, cookie with sessionId and the URL of Etherpads Pad
 
 
-            javax.servlet.http.Cookie myCookie = new javax.servlet.http.Cookie("sessionID", "s.eb3eeec087a2a23e0283631612740c69");
+            javax.servlet.http.Cookie myCookie = new javax.servlet.http.Cookie("sessionID", sessionId);
             myCookie.setPath("/");
             response.addCookie(myCookie);
             // 5. Return Etherpad URL path
