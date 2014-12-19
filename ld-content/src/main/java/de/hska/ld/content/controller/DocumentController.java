@@ -1154,10 +1154,32 @@ public class DocumentController {
             long unixTime = System.currentTimeMillis() / 1000L; // current time
             unixTime += 86400L;
             String validUntil = String.valueOf(unixTime);
-            String sessionId = createSession(groupId, authorId,validUntil);
 
+
+            String sessionId = null; // TODO fetch info from database, also the info about valid until (sessionId)
+            // retrieve sessionID from db if available
+            boolean newSessionRequired = false;
+            if (sessionId == null) {
+                newSessionRequired = true;
+            } else {
+                // check if sessionID is still valid (valid for more than 3h)
+                // if sessionID is still valid longer than 3h
+                // then send the sessionID to the client
+                // TODO check if valid until is still valid for more than 3h
+                boolean isStillValid = false;
+                if (isStillValid) {
+                    // TODO check if the session still exists on the etherpad server (GET)
+                    if (!isStillValid) {
+                        newSessionRequired = true;
+                    }
+                }
+            }
+            if (newSessionRequired) {
+                sessionId = createSession(groupId, authorId, validUntil);
+                // TODO store the sessionID into UserEtherpadInfo object
+                // TODO store the validUntil value also
+            }
             // 4.1. we need return types, cookie with sessionId and the URL of Etherpads Pad
-
 
             javax.servlet.http.Cookie myCookie = new javax.servlet.http.Cookie("sessionID", sessionId);
             myCookie.setPath("/");
