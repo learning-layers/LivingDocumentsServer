@@ -14,7 +14,7 @@ public class UserEtherpadInfoServiceImpl implements UserEtherpadInfoService {
     private UserEtherpadInfoRepository userEtherpadInfoRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = false)
     public UserEtherpadInfo save(UserEtherpadInfo userEtherpadInfo) {
         return userEtherpadInfoRepository.save(userEtherpadInfo);
     }

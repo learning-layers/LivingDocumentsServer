@@ -1179,9 +1179,8 @@ public class DocumentController {
                 authorId = createAuthor(Core.currentUser().getFullName());
                 storeAuthorIdForCurrentUser(authorId);
 
-                //      Continue with 1.1.1
+                // Continue with 1.1.1
             }
-
 
             // 3. is the GroupPad available for the Document :
             String groupPadId =  documentService.getGroupPadIdForDocument(document);
