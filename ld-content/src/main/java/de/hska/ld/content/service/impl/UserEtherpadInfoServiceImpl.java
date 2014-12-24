@@ -22,4 +22,9 @@ public class UserEtherpadInfoServiceImpl implements UserEtherpadInfoService {
     public UserEtherpadInfo getUserEtherpadInfo (String AuthorId){
         return userEtherpadInfoRepository.findByAuthorId(AuthorId);
     }
+
+    @Override
+    public UserEtherpadInfo findById(Long id) {
+        return userEtherpadInfoRepository.findById(id);
+    }
 }

@@ -1233,7 +1233,9 @@ public class DocumentController {
 
                 // store the sessionID into UserEtherpadInfo object
                 // store the validUntil value also
-                storeSessionForUser(sessionId, Core.currentUser(), validUntil);
+                User currentUser = Core.currentUser();
+                User dbUser = userService.findById(currentUser.getId());
+                storeSessionForUser(sessionId, validUntil, userEtherpadInfo);
             }
 
             // 4.1. we need return types, cookie with sessionId and the URL of Etherpads Pad
@@ -1243,7 +1245,6 @@ public class DocumentController {
             // 5. Return Etherpad URL path
             String padURL = "localhost:9001/p/group";
             return new ResponseEntity<>(padURL, HttpStatus.CREATED);
-
         };
     }
 
@@ -1267,14 +1268,11 @@ public class DocumentController {
         documentEtherpadInfoService.save(documentEtherpadInfo);
     }
 
-    private void storeSessionForUser(String sessionId, User user, Long validUntil) {
-        UserEtherpadInfo userEtherpadInfo = new UserEtherpadInfo();
+    @Transactional(readOnly = false)
+    private void storeSessionForUser(String sessionId, Long validUntil, UserEtherpadInfo userEtherpadInfo) {
+        userEtherpadInfo = userEtherpadInfoService.findById(userEtherpadInfo.getId());
         userEtherpadInfo.setSessionId(sessionId);
-        userEtherpadInfo.setUser(user);
         userEtherpadInfo.setValidUntil(validUntil);
         userEtherpadInfoService.save(userEtherpadInfo);
     }
-
-
-
 }
