@@ -19,5 +19,7 @@ public class UserEtherpadInfoServiceImpl implements UserEtherpadInfoService {
         return userEtherpadInfoRepository.save(userEtherpadInfo);
     }
 
-
+    public UserEtherpadInfo getUserEtherpadInfo (String AuthorId){
+        return userEtherpadInfoRepository.findByAuthorId(AuthorId);
+    }
 }

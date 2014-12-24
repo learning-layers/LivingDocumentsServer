@@ -35,6 +35,36 @@ public class EtherpadSessionDto {
     public class Data {
         String sessionID;
 
+        //{code: 0, message:"ok", data: {authorID: "a.s8oes9dhwrvt0zif", groupID: g.s8oes9dhwrvt0zif,
+        // validUntil: 1312201246}} {code: 1, message:"sessionID does not exist", data: null}
+        String authorID;
+        String groupID;
+        Long validUntil;
+
+        public String getAuthorID() {
+            return authorID;
+        }
+
+        public void setAuthorID(String authorID) {
+            this.authorID = authorID;
+        }
+
+        public String getGroupID() {
+            return groupID;
+        }
+
+        public void setGroupID(String groupID) {
+            this.groupID = groupID;
+        }
+
+        public Long getValidUntil() {
+            return validUntil;
+        }
+
+        public void setValidUntil(Long validUntil) {
+            this.validUntil = validUntil;
+        }
+
         public String getSessionID() {
             return sessionID;
         }

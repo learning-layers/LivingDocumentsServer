@@ -43,6 +43,27 @@ public class UserEtherpadInfo {
     @Column(name = "author_id", columnDefinition = "TEXT")
     String authorId;
 
+    @Column(name = "session_id")
+    private String sessionId;
+
+    @Column(name = "valid_until")
+    private Long validUntil;
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public Long getValidUntil() {
+        return validUntil;
+    }
+
+    public void setValidUntil(Long validUntil) {
+        this.validUntil = validUntil;
+    }
 
     public Long getId() {
         return id;

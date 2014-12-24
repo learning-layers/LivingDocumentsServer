@@ -937,7 +937,47 @@ public class DocumentController {
         };
     }
 
-    private String createSession(String groupID, String authorID, String validUntil) throws IOException {
+    public boolean checkIfSessionStillValid(Long currentTime, String sessionId) throws IOException {
+        String url = "http://localhost:9001/api/1/getSessionInfo";
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("User-Agent", "Mozilla/5.0");
+
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("sessionID", sessionId));
+
+        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        BufferedReader rd = new BufferedReader(
+                new InputStreamReader(response.getEntity().getContent()));
+
+        StringBuffer result = new StringBuffer();
+        String line = "";
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
+        if(etherpadSessionDto.getCode() == 1){
+            return false;
+        }else {
+            if(etherpadSessionDto.getData().getValidUntil() - currentTime >= 10800){
+                return true;
+            }else
+                return false;
+        }
+    }
+
+    private String createSession(String groupID, String authorID, Long validUntil) throws IOException {
         String sessionId = "";
 
         String url = "http://localhost:9001/api/1/createSession";
@@ -952,7 +992,7 @@ public class DocumentController {
         urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
         urlParameters.add(new BasicNameValuePair("groupID", groupID));
         urlParameters.add(new BasicNameValuePair("authorID", authorID));
-        urlParameters.add(new BasicNameValuePair("validUntil", validUntil));
+        urlParameters.add(new BasicNameValuePair("validUntil", String.valueOf(validUntil)));
 
         post.setEntity(new UrlEncodedFormEntity(urlParameters));
 
@@ -1126,7 +1166,11 @@ public class DocumentController {
             }
 
             // 1. for the given User check whether there is an AuthorId registered in Etherpad
-            String authorId = documentService.getAuthorIdForCurrentUser();
+            UserEtherpadInfo firstUserEtherPadInfoCheck = documentService.getUserEtherpadInfoForCurrentUser();
+            String authorId = null;
+            if (firstUserEtherPadInfoCheck != null) {
+                authorId = firstUserEtherPadInfoCheck.getAuthorId();
+            }
 
             //  1.1 look up if there is an existing AuthorId associated with the current user
             if (authorId == null) {
@@ -1151,24 +1195,34 @@ public class DocumentController {
 
             // 4. create a session between Author and GroupPad
             String groupId = groupPadId.split("\\$")[0];
-            long unixTime = System.currentTimeMillis() / 1000L; // current time
-            unixTime += 86400L;
-            String validUntil = String.valueOf(unixTime);
-
+            long currentTime = System.currentTimeMillis() / 1000L; // current time
+            long validUntil = currentTime + 86400L;
 
             String sessionId = null; // TODO fetch info from database, also the info about valid until (sessionId)
+            UserEtherpadInfo userEtherpadInfo = documentService.getUserEtherpadInfoForCurrentUser();
+            sessionId = userEtherpadInfo.getSessionId();
+            Long currentValidUntil = userEtherpadInfo.getValidUntil();
+
             // retrieve sessionID from db if available
             boolean newSessionRequired = false;
             if (sessionId == null) {
                 newSessionRequired = true;
             } else {
-                // check if sessionID is still valid (valid for more than 3h)
-                // if sessionID is still valid longer than 3h
-                // then send the sessionID to the client
-                // TODO check if valid until is still valid for more than 3h
                 boolean isStillValid = false;
+                // check if valid until is still valid for more than 3h
+                // check if sessionID is still valid (valid for more than 3h)
+                if(currentValidUntil - currentTime >= 10800){
+                    // if sessionID is still valid longer than 3h
+                    // then send the sessionID to the client
+                    isStillValid = true;
+                }
+                if(currentValidUntil - currentTime < 10800){
+                    newSessionRequired = true;
+                }
+
                 if (isStillValid) {
-                    // TODO check if the session still exists on the etherpad server (GET)
+                    // check if the session still exists on the etherpad server (GET)
+                    isStillValid = checkIfSessionStillValid(currentTime, sessionId);
                     if (!isStillValid) {
                         newSessionRequired = true;
                     }
@@ -1176,16 +1230,17 @@ public class DocumentController {
             }
             if (newSessionRequired) {
                 sessionId = createSession(groupId, authorId, validUntil);
-                // TODO store the sessionID into UserEtherpadInfo object
-                // TODO store the validUntil value also
-            }
-            // 4.1. we need return types, cookie with sessionId and the URL of Etherpads Pad
 
+                // store the sessionID into UserEtherpadInfo object
+                // store the validUntil value also
+                storeSessionForUser(sessionId, Core.currentUser(), validUntil);
+            }
+
+            // 4.1. we need return types, cookie with sessionId and the URL of Etherpads Pad
             javax.servlet.http.Cookie myCookie = new javax.servlet.http.Cookie("sessionID", sessionId);
             myCookie.setPath("/");
             response.addCookie(myCookie);
             // 5. Return Etherpad URL path
-
             String padURL = "localhost:9001/p/group";
             return new ResponseEntity<>(padURL, HttpStatus.CREATED);
 
@@ -1211,5 +1266,15 @@ public class DocumentController {
         documentEtherpadInfo.setDocument(document);
         documentEtherpadInfoService.save(documentEtherpadInfo);
     }
+
+    private void storeSessionForUser(String sessionId, User user, Long validUntil) {
+        UserEtherpadInfo userEtherpadInfo = new UserEtherpadInfo();
+        userEtherpadInfo.setSessionId(sessionId);
+        userEtherpadInfo.setUser(user);
+        userEtherpadInfo.setValidUntil(validUntil);
+        userEtherpadInfoService.save(userEtherpadInfo);
+    }
+
+
 
 }
