@@ -1014,6 +1014,41 @@ public class DocumentController {
         return etherpadSessionDto.getData().getSessionID();
     }
 
+    private String getReadOnlyID(String groupPadId) throws IOException {
+
+        String url = "http://localhost:9001/api/1/getReadOnlyID";
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("User-Agent", "Mozilla/5.0");
+
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("padID", groupPadId));
+
+        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        BufferedReader rd = new BufferedReader(
+                new InputStreamReader(response.getEntity().getContent()));
+
+        StringBuffer result = new StringBuffer();
+        String line = "";
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+
+        //{code: 0, message:"ok", data: {readOnlyID: "r.s8oes9dhwrvt0zif"}}
+        //{code: 1, message:"padID does not exist", data: null}
+
+        return result.toString();
+    }
+
     private String createAuthor(String authorName) throws IOException {
         String sessionId = "";
 
@@ -1158,9 +1193,15 @@ public class DocumentController {
         return () -> {
 
             Document document = documentService.findById(documentId);
+            boolean readOnly = true;
             // 2. check if the User is allowed to access the current Document
             if (document != null) {
                 documentService.checkPermission(document, Access.Permission.READ);
+                try {
+                    documentService.checkPermission(document, Access.Permission.WRITE);
+                } catch (Exception e){
+                    readOnly = true;
+                }
             } else {
                 throw new NotFoundException("id");
             }
@@ -1191,6 +1232,14 @@ public class DocumentController {
                 //  3.1. GroupPad is available associate GroupPadId for the Document
                 storeGroupPadIdForDocument(groupPadId, document);
             }
+
+            // TODO check if ReadOnlyID exist in the DB if not :
+            String readOnlyId= null;
+            if(readOnly){
+                readOnlyId = getReadOnlyID(groupPadId);
+            }
+            // TODO store ReadOnlyID in DataBase
+            // TODO deliver ReadOnlyID if User has only Read Access
 
             // 4. create a session between Author and GroupPad
             String groupId = groupPadId.split("\\$")[0];
@@ -1242,9 +1291,16 @@ public class DocumentController {
             myCookie.setPath("/");
             response.addCookie(myCookie);
             // 5. Return Etherpad URL path
-            String padURL = "localhost:9001/p/group";
+            String padURL = null;
+            if(readOnly){
+                 padURL = "localhost:9001/p/"+ readOnlyId;
+            } else {
+                 padURL = "localhost:9001/p/"+ groupPadId;
+            }
+
             return new ResponseEntity<>(padURL, HttpStatus.CREATED);
         };
+
     }
 
     @Transactional(readOnly = false)
