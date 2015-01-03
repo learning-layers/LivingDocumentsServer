@@ -1,5 +1,6 @@
 package de.hska.ld.content.service.impl;
 
+import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.DocumentEtherpadInfo;
 import de.hska.ld.content.persistence.repository.DocumentEtherpadInfoRepository;
 import de.hska.ld.content.service.DocumentEtherpadInfoService;
@@ -14,8 +15,26 @@ public class DocumentEtherpadInfoServiceImpl implements DocumentEtherpadInfoServ
     private DocumentEtherpadInfoRepository documentEtherpadInfoRepository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = false)
     public DocumentEtherpadInfo save(DocumentEtherpadInfo documentEtherpadInfo) {
         return documentEtherpadInfoRepository.save(documentEtherpadInfo);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentEtherpadInfo findByDocument(Document document) {
+        return documentEtherpadInfoRepository.findByDocument(document);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getReadOnlyIdForDocument(Document document) {
+        DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoRepository.findByDocument(document);
+        if (documentEtherpadInfo == null) {
+            return null;
+        } else {
+            return documentEtherpadInfo.getReadOnlyId();
+        }
+    }
+
 }

@@ -41,6 +41,17 @@ public class EtherpadSessionDto {
         String groupID;
         Long validUntil;
 
+        //{code: 0, message:"ok", data: {readOnlyID: "r.s8oes9dhwrvt0zif"}}
+        String readOnlyID;
+
+        public String getReadOnlyID() {
+            return readOnlyID;
+        }
+
+        public void setReadOnlyID(String readOnlyID) {
+            this.readOnlyID = readOnlyID;
+        }
+
         public String getAuthorID() {
             return authorID;
         }

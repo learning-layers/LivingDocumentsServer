@@ -1045,8 +1045,9 @@ public class DocumentController {
 
         //{code: 0, message:"ok", data: {readOnlyID: "r.s8oes9dhwrvt0zif"}}
         //{code: 1, message:"padID does not exist", data: null}
-
-        return result.toString();
+        ObjectMapper mapper = new ObjectMapper();
+        EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
+        return etherpadSessionDto.getData().getReadOnlyID();
     }
 
     private String createAuthor(String authorName) throws IOException {
@@ -1233,13 +1234,16 @@ public class DocumentController {
                 storeGroupPadIdForDocument(groupPadId, document);
             }
 
-            // TODO check if ReadOnlyID exist in the DB if not :
+            // TODO check if ReadOnlyID exist in the DB if not create it:
             String readOnlyId= null;
+            readOnlyId = documentEtherpadInfoService.getReadOnlyIdForDocument(document);
             if(readOnly){
                 readOnlyId = getReadOnlyID(groupPadId);
             }
             // TODO store ReadOnlyID in DataBase
+            storeReadOnlyIdForDocument(readOnlyId, document);
             // TODO deliver ReadOnlyID if User has only Read Access
+            //already done
 
             // 4. create a session between Author and GroupPad
             String groupId = groupPadId.split("\\$")[0];
@@ -1322,12 +1326,20 @@ public class DocumentController {
         documentEtherpadInfo.setDocument(document);
         documentEtherpadInfoService.save(documentEtherpadInfo);
     }
-
+    
     @Transactional(readOnly = false)
     private void storeSessionForUser(String sessionId, Long validUntil, UserEtherpadInfo userEtherpadInfo) {
         userEtherpadInfo = userEtherpadInfoService.findById(userEtherpadInfo.getId());
         userEtherpadInfo.setSessionId(sessionId);
         userEtherpadInfo.setValidUntil(validUntil);
         userEtherpadInfoService.save(userEtherpadInfo);
+    }
+
+
+    @Transactional(readOnly = false)
+    private void storeReadOnlyIdForDocument(String readOnlyId, Document document) {
+        DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoService.findByDocument(document);
+        documentEtherpadInfo.setGroupPadId(readOnlyId);
+        documentEtherpadInfoService.save(documentEtherpadInfo);
     }
 }

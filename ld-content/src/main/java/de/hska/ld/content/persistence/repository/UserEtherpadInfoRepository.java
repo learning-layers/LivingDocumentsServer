@@ -6,7 +6,6 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface UserEtherpadInfoRepository extends CrudRepository<UserEtherpadInfo, Long> {
     UserEtherpadInfo findByUser(User user);
-    UserEtherpadInfo findByAuthorId(String AuthorId);
 
     UserEtherpadInfo findById(Long id);
 }

@@ -6,8 +6,6 @@ public interface UserEtherpadInfoService {
 
     public UserEtherpadInfo save(UserEtherpadInfo userEtherpadInfo);
 
-    public UserEtherpadInfo getUserEtherpadInfo (String AuthorId);
-
     public UserEtherpadInfo findById(Long id);
 
 }

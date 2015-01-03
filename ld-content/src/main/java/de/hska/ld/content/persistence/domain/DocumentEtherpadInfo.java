@@ -26,7 +26,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "ld_document_etherpad_info")
-public class DocumentEtherpadInfo {
+public class DocumentEtherpadInfo extends Document {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,11 +34,22 @@ public class DocumentEtherpadInfo {
     private Long id;
 
     @Column(name = "group_pad_id")
-    String groupPadId;
+    private String groupPadId;
+
+    @Column(name = "read_only_id")
+    private String readOnlyId;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "document_id")
     private Document document;
+
+    public String getReadOnlyId() {
+        return readOnlyId;
+    }
+
+    public void setReadOnlyId(String readOnlyId) {
+        this.readOnlyId = readOnlyId;
+    }
 
     public Long getId() {
         return id;
