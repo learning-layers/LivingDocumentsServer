@@ -23,7 +23,9 @@
 package de.hska.ld.content.controller;
 
 import com.rits.cloning.Cloner;
-import de.hska.ld.content.dto.*;
+import de.hska.ld.content.dto.BreadcrumbDto;
+import de.hska.ld.content.dto.DiscussionSectionDto;
+import de.hska.ld.content.etherpad.client.EtherpadClient;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.*;
 import de.hska.ld.content.util.Content;
@@ -33,14 +35,6 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -51,7 +45,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -913,291 +910,13 @@ public class DocumentController {
         };
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/session")
-    public Callable getSession(HttpServletResponse response) {
-        return () -> {
-            String padName = "HelloWorld3";
-            //StringBuffer createPadResult = createPad(padName);
-            //StringBuffer createGroupResult = createGroup();
-            // group: g.SVR3zflpnZEkaWTp
-            String groupID = "g.SVR3zflpnZEkaWTp";
-            //StringBuffer createGroupPad = createGroupPad(groupID, padName);
-            String authorName = "Martin";
-            //StringBuffer createAuthor = createAuthor(authorName);
-            // {"code":0,"message":"ok","data":{"authorID":"a.sSX1zBtP8LNK029e"}}
-            String groupPadID = "g.SVR3zflpnZEkaWTp$HelloWorld3";
-            String authorID = "a.sSX1zBtP8LNK029e";
-            String validUntil = "1417634057";
-            //StringBuffer createSession = createSession(groupID, authorID, validUntil);
-            // {"code":0,"message":"ok","data":{"sessionID":"s.eb3eeec087a2a23e0283631612740c69"}}
-            javax.servlet.http.Cookie myCookie = new javax.servlet.http.Cookie("sessionID", "s.eb3eeec087a2a23e0283631612740c69");
-            myCookie.setPath("/");
-            response.addCookie(myCookie);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        };
-    }
-
-    public boolean checkIfSessionStillValid(Long currentTime, String sessionId) throws IOException { // TODO move somewhere else
-        String url = "http://localhost:9001/api/1/getSessionInfo";
-
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(url);
-
-        // add header
-        post.setHeader("User-Agent", "Mozilla/5.0");
-
-        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
-        urlParameters.add(new BasicNameValuePair("sessionID", sessionId));
-
-        post.setEntity(new UrlEncodedFormEntity(urlParameters));
-
-        HttpResponse response = client.execute(post);
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
-
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
-        if(etherpadSessionDto.getCode() == 1){
-            return false;
-        }else {
-            if(etherpadSessionDto.getData().getValidUntil() - currentTime >= 10800){
-                return true;
-            }else
-                return false;
-        }
-    }
-
-    private String createSession(String groupID, String authorID, Long validUntil) throws IOException { // TODO move somewhere else
-        String sessionId = "";
-
-        String url = "http://localhost:9001/api/1/createSession";
-
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(url);
-
-        // add header
-        post.setHeader("User-Agent", "Mozilla/5.0");
-
-        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
-        urlParameters.add(new BasicNameValuePair("groupID", groupID));
-        urlParameters.add(new BasicNameValuePair("authorID", authorID));
-        urlParameters.add(new BasicNameValuePair("validUntil", String.valueOf(validUntil)));
-
-        post.setEntity(new UrlEncodedFormEntity(urlParameters));
-
-        HttpResponse response = client.execute(post);
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
-
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
-        return etherpadSessionDto.getData().getSessionID();
-    }
-
-    private String getReadOnlyID(String groupPadId) throws IOException { // TODO move somewhere else
-
-        String url = "http://localhost:9001/api/1/getReadOnlyID";
-
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(url);
-
-        // add header
-        post.setHeader("User-Agent", "Mozilla/5.0");
-
-        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
-        urlParameters.add(new BasicNameValuePair("padID", groupPadId));
-
-        post.setEntity(new UrlEncodedFormEntity(urlParameters));
-
-        HttpResponse response = client.execute(post);
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
-
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
-
-        //{code: 0, message:"ok", data: {readOnlyID: "r.s8oes9dhwrvt0zif"}}
-        //{code: 1, message:"padID does not exist", data: null}
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
-        if (etherpadSessionDto.getCode() != 1) {
-            return etherpadSessionDto.getData().getReadOnlyID();
-        } else {
-            return null;
-        }
-    }
-
-    private String createAuthor(String authorName) throws IOException { // TODO move somewhere else
-        String sessionId = "";
-
-        String url = "http://localhost:9001/api/1/createAuthor";
-
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(url);
-
-        // add header
-        post.setHeader("User-Agent", "Mozilla/5.0");
-
-        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
-        urlParameters.add(new BasicNameValuePair("name", authorName));
-
-        post.setEntity(new UrlEncodedFormEntity(urlParameters));
-
-        HttpResponse response = client.execute(post);
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
-
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadAuthorDto etherpadAuthorDto = mapper.readValue(result.toString(), EtherpadAuthorDto.class);
-        return etherpadAuthorDto.getData().getAuthorID();
-    }
-
-    private String createGroupPad(String groupId, String padName) throws IOException { // TODO move somewhere else
-        String sessionId = "";
-
-        String url = "http://localhost:9001/api/1/createGroupPad";
-
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(url);
-
-        // add header
-        post.setHeader("User-Agent", "Mozilla/5.0");
-
-        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
-        urlParameters.add(new BasicNameValuePair("groupID", groupId));
-        urlParameters.add(new BasicNameValuePair("padName", padName));
-
-        post.setEntity(new UrlEncodedFormEntity(urlParameters));
-
-        HttpResponse response = client.execute(post);
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
-
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
-
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadGroupPadDto etherpadGroupPadDto = mapper.readValue(result.toString(), EtherpadGroupPadDto.class);
-        return etherpadGroupPadDto.getData().getPadID();
-
-    }
-
-    private String createGroup() throws IOException { // TODO move somewhere else
-        String sessionId = "";
-
-        String url = "http://localhost:9001/api/1/createGroup";
-
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(url);
-
-        // add header
-        post.setHeader("User-Agent", "Mozilla/5.0");
-
-        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
-
-        post.setEntity(new UrlEncodedFormEntity(urlParameters));
-
-        HttpResponse response = client.execute(post);
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
-
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadGroupDto etherpadGroupDto = mapper.readValue(result.toString(), EtherpadGroupDto.class);
-        return etherpadGroupDto.getData().getGroupID();
-    }
-
-    private StringBuffer createPad(String padName) throws IOException { // TODO move somewhere else
-        String sessionId = "";
-
-        String url = "http://localhost:9001/api/1/createPad";
-
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(url);
-
-        // add header
-        post.setHeader("User-Agent", "Mozilla/5.0");
-
-        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
-        urlParameters.add(new BasicNameValuePair("padID", padName));
-        urlParameters.add(new BasicNameValuePair("text", "API"));
-
-        post.setEntity(new UrlEncodedFormEntity(urlParameters));
-
-        HttpResponse response = client.execute(post);
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
-
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
-        return result;
-    }
-
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/edit/{documentId}")
     @Transactional(readOnly = true)
     public Callable editDocumentContent(HttpServletResponse response , @PathVariable Long documentId) {
         return () -> {
             Document document = documentService.findById(documentId);
-            boolean readOnly = false;
+            boolean readOnly = true;
 
             // check if the User is allowed to access the current Document
             if (document != null) {
@@ -1222,7 +941,7 @@ public class DocumentController {
             if (authorId == null) {
 
                 // if there is no AuthorId present register an AuthorId for the current User
-                authorId = createAuthor(Core.currentUser().getFullName());
+                authorId = EtherpadClient.createAuthor(Core.currentUser().getFullName());
                 userEtherpadInfoService.storeAuthorIdForCurrentUser(authorId);
             }
 
@@ -1230,8 +949,8 @@ public class DocumentController {
             String groupPadId =  documentService.getGroupPadIdForDocument(document);
             if(groupPadId == null){
                 //  otherwise create a GroupPad
-                String groupId = createGroup();
-                groupPadId = createGroupPad(groupId, document.getTitle());
+                String groupId = EtherpadClient.createGroup();
+                groupPadId = EtherpadClient.createGroupPad(groupId, document.getTitle());
                 //  groupPad is available associate GroupPadId for the Document
                 documentEtherpadInfoService.storeGroupPadIdForDocument(groupPadId, document);
             }
@@ -1240,7 +959,7 @@ public class DocumentController {
             if(readOnly){
                 readOnlyId = documentEtherpadInfoService.getReadOnlyIdForDocument(document);
                 if (readOnlyId == null) {
-                    readOnlyId = getReadOnlyID(groupPadId);
+                    readOnlyId = EtherpadClient.getReadOnlyID(groupPadId);
                     if (readOnlyId == null) {
                         throw new ValidationException("Read only id is null"); // TODO change exception type
                     }
@@ -1278,14 +997,14 @@ public class DocumentController {
 
                 if (isStillValid) {
                     // check if the session still exists on the etherpad server (GET)
-                    isStillValid = checkIfSessionStillValid(currentTime, sessionId);
+                    isStillValid = EtherpadClient.checkIfSessionStillValid(currentTime, sessionId);
                     if (!isStillValid) {
                         newSessionRequired = true;
                     }
                 }
             }
             if (newSessionRequired) {
-                sessionId = createSession(groupId, authorId, validUntil);
+                sessionId = EtherpadClient.createSession(groupId, authorId, validUntil);
 
                 // store the sessionID into UserEtherpadInfo object
                 // store the validUntil value also
