@@ -916,7 +916,7 @@ public class DocumentController {
     public Callable editDocumentContent(HttpServletResponse response , @PathVariable Long documentId) {
         return () -> {
             Document document = documentService.findById(documentId);
-            boolean readOnly = true;
+            boolean readOnly = false;
 
             // check if the User is allowed to access the current Document
             if (document != null) {
