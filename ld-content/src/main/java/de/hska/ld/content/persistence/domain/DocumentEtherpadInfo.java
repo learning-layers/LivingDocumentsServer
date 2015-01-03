@@ -26,7 +26,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "ld_document_etherpad_info")
-public class DocumentEtherpadInfo extends Document {
+public class DocumentEtherpadInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
