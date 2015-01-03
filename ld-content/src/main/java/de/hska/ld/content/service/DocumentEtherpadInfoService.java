@@ -11,6 +11,9 @@ public interface DocumentEtherpadInfoService {
 
     public String getReadOnlyIdForDocument(Document document);
 
+    public void storeReadOnlyIdForDocument(String readOnlyId, Document document);
+
+    public void storeGroupPadIdForDocument(String groupPadId, Document document);
 }
 
 

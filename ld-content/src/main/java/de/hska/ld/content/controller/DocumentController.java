@@ -937,7 +937,7 @@ public class DocumentController {
         };
     }
 
-    public boolean checkIfSessionStillValid(Long currentTime, String sessionId) throws IOException {
+    public boolean checkIfSessionStillValid(Long currentTime, String sessionId) throws IOException { // TODO move somewhere else
         String url = "http://localhost:9001/api/1/getSessionInfo";
 
         HttpClient client = HttpClientBuilder.create().build();
@@ -977,7 +977,7 @@ public class DocumentController {
         }
     }
 
-    private String createSession(String groupID, String authorID, Long validUntil) throws IOException {
+    private String createSession(String groupID, String authorID, Long validUntil) throws IOException { // TODO move somewhere else
         String sessionId = "";
 
         String url = "http://localhost:9001/api/1/createSession";
@@ -1014,7 +1014,7 @@ public class DocumentController {
         return etherpadSessionDto.getData().getSessionID();
     }
 
-    private String getReadOnlyID(String groupPadId) throws IOException {
+    private String getReadOnlyID(String groupPadId) throws IOException { // TODO move somewhere else
 
         String url = "http://localhost:9001/api/1/getReadOnlyID";
 
@@ -1047,10 +1047,14 @@ public class DocumentController {
         //{code: 1, message:"padID does not exist", data: null}
         ObjectMapper mapper = new ObjectMapper();
         EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
-        return etherpadSessionDto.getData().getReadOnlyID();
+        if (etherpadSessionDto.getCode() != 1) {
+            return etherpadSessionDto.getData().getReadOnlyID();
+        } else {
+            return null;
+        }
     }
 
-    private String createAuthor(String authorName) throws IOException {
+    private String createAuthor(String authorName) throws IOException { // TODO move somewhere else
         String sessionId = "";
 
         String url = "http://localhost:9001/api/1/createAuthor";
@@ -1084,7 +1088,7 @@ public class DocumentController {
         return etherpadAuthorDto.getData().getAuthorID();
     }
 
-    private String createGroupPad(String groupId, String padName) throws IOException {
+    private String createGroupPad(String groupId, String padName) throws IOException { // TODO move somewhere else
         String sessionId = "";
 
         String url = "http://localhost:9001/api/1/createGroupPad";
@@ -1121,7 +1125,7 @@ public class DocumentController {
 
     }
 
-    private String createGroup() throws IOException {
+    private String createGroup() throws IOException { // TODO move somewhere else
         String sessionId = "";
 
         String url = "http://localhost:9001/api/1/createGroup";
@@ -1154,7 +1158,7 @@ public class DocumentController {
         return etherpadGroupDto.getData().getGroupID();
     }
 
-    private StringBuffer createPad(String padName) throws IOException {
+    private StringBuffer createPad(String padName) throws IOException { // TODO move somewhere else
         String sessionId = "";
 
         String url = "http://localhost:9001/api/1/createPad";
@@ -1192,10 +1196,10 @@ public class DocumentController {
     @Transactional(readOnly = true)
     public Callable editDocumentContent(HttpServletResponse response , @PathVariable Long documentId) {
         return () -> {
-
             Document document = documentService.findById(documentId);
-            boolean readOnly = true;
-            // 2. check if the User is allowed to access the current Document
+            boolean readOnly = false;
+
+            // check if the User is allowed to access the current Document
             if (document != null) {
                 documentService.checkPermission(document, Access.Permission.READ);
                 try {
@@ -1207,50 +1211,50 @@ public class DocumentController {
                 throw new NotFoundException("id");
             }
 
-            // 1. for the given User check whether there is an AuthorId registered in Etherpad
+            // for the given User check whether there is an AuthorId registered in Etherpad
             UserEtherpadInfo firstUserEtherPadInfoCheck = documentService.getUserEtherpadInfoForCurrentUser();
             String authorId = null;
             if (firstUserEtherPadInfoCheck != null) {
                 authorId = firstUserEtherPadInfoCheck.getAuthorId();
             }
 
-            //  1.1 look up if there is an existing AuthorId associated with the current user
+            //  look up if there is an existing AuthorId associated with the current user
             if (authorId == null) {
 
-                // 1.1.2 if there is no AuthorId present register an AuthorId for the current User
+                // if there is no AuthorId present register an AuthorId for the current User
                 authorId = createAuthor(Core.currentUser().getFullName());
-                storeAuthorIdForCurrentUser(authorId);
-
-                // Continue with 1.1.1
+                userEtherpadInfoService.storeAuthorIdForCurrentUser(authorId);
             }
 
-            // 3. is the GroupPad available for the Document :
+            // is the GroupPad available for the Document :
             String groupPadId =  documentService.getGroupPadIdForDocument(document);
             if(groupPadId == null){
-                //  3.2. otherwise create a GroupPad
+                //  otherwise create a GroupPad
                 String groupId = createGroup();
                 groupPadId = createGroupPad(groupId, document.getTitle());
-                //  3.1. GroupPad is available associate GroupPadId for the Document
-                storeGroupPadIdForDocument(groupPadId, document);
+                //  groupPad is available associate GroupPadId for the Document
+                documentEtherpadInfoService.storeGroupPadIdForDocument(groupPadId, document);
             }
 
-            // TODO check if ReadOnlyID exist in the DB if not create it:
-            String readOnlyId= null;
-            readOnlyId = documentEtherpadInfoService.getReadOnlyIdForDocument(document);
+            String readOnlyId = null;
             if(readOnly){
-                readOnlyId = getReadOnlyID(groupPadId);
+                readOnlyId = documentEtherpadInfoService.getReadOnlyIdForDocument(document);
+                if (readOnlyId == null) {
+                    readOnlyId = getReadOnlyID(groupPadId);
+                    if (readOnlyId == null) {
+                        throw new ValidationException("Read only id is null"); // TODO change exception type
+                    }
+                }
             }
-            // TODO store ReadOnlyID in DataBase
-            storeReadOnlyIdForDocument(readOnlyId, document);
-            // TODO deliver ReadOnlyID if User has only Read Access
-            //already done
 
-            // 4. create a session between Author and GroupPad
+            documentEtherpadInfoService.storeReadOnlyIdForDocument(readOnlyId, document);
+
+            // create a session between Author and GroupPad
             String groupId = groupPadId.split("\\$")[0];
             long currentTime = System.currentTimeMillis() / 1000L; // current time
             long validUntil = currentTime + 86400L;
 
-            String sessionId = null; // TODO fetch info from database, also the info about valid until (sessionId)
+            String sessionId = null;
             UserEtherpadInfo userEtherpadInfo = documentService.getUserEtherpadInfoForCurrentUser();
             sessionId = userEtherpadInfo.getSessionId();
             Long currentValidUntil = userEtherpadInfo.getValidUntil();
@@ -1287,14 +1291,14 @@ public class DocumentController {
                 // store the validUntil value also
                 User currentUser = Core.currentUser();
                 User dbUser = userService.findById(currentUser.getId());
-                storeSessionForUser(sessionId, validUntil, userEtherpadInfo);
+                userEtherpadInfoService.storeSessionForUser(sessionId, validUntil, userEtherpadInfo);
             }
 
-            // 4.1. we need return types, cookie with sessionId and the URL of Etherpads Pad
+            // we need return types, cookie with sessionId and the URL of Etherpads Pad
             javax.servlet.http.Cookie myCookie = new javax.servlet.http.Cookie("sessionID", sessionId);
             myCookie.setPath("/");
             response.addCookie(myCookie);
-            // 5. Return Etherpad URL path
+            // return Etherpad URL path
             String padURL = null;
             if(readOnly){
                  padURL = "localhost:9001/p/"+ readOnlyId;
@@ -1304,42 +1308,5 @@ public class DocumentController {
 
             return new ResponseEntity<>(padURL, HttpStatus.CREATED);
         };
-
-    }
-
-    @Transactional(readOnly = false)
-    private void storeAuthorIdForCurrentUser(String authorId) {
-        // 1.1.2.1 register an AuthorId for the Etherpad Server and store the Author Id for current user
-        UserEtherpadInfo userEtherpadInfo = new UserEtherpadInfo();
-        userEtherpadInfo.setAuthorId(authorId);
-        User currentUser = Core.currentUser();
-        User user = userService.findById(currentUser.getId());
-        userEtherpadInfo.setUser(user);
-        userEtherpadInfoService.save(userEtherpadInfo);
-    }
-
-    @Transactional(readOnly = false)
-    private void storeGroupPadIdForDocument(String groupPadId, Document document) {
-        // associate GroupPadId for the Document and save it
-        DocumentEtherpadInfo documentEtherpadInfo = new DocumentEtherpadInfo();
-        documentEtherpadInfo.setGroupPadId(groupPadId);
-        documentEtherpadInfo.setDocument(document);
-        documentEtherpadInfoService.save(documentEtherpadInfo);
-    }
-    
-    @Transactional(readOnly = false)
-    private void storeSessionForUser(String sessionId, Long validUntil, UserEtherpadInfo userEtherpadInfo) {
-        userEtherpadInfo = userEtherpadInfoService.findById(userEtherpadInfo.getId());
-        userEtherpadInfo.setSessionId(sessionId);
-        userEtherpadInfo.setValidUntil(validUntil);
-        userEtherpadInfoService.save(userEtherpadInfo);
-    }
-
-
-    @Transactional(readOnly = false)
-    private void storeReadOnlyIdForDocument(String readOnlyId, Document document) {
-        DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoService.findByDocument(document);
-        documentEtherpadInfo.setGroupPadId(readOnlyId);
-        documentEtherpadInfoService.save(documentEtherpadInfo);
     }
 }

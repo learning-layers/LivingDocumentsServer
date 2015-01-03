@@ -37,4 +37,21 @@ public class DocumentEtherpadInfoServiceImpl implements DocumentEtherpadInfoServ
         }
     }
 
+    @Override
+    @Transactional(readOnly = false)
+    public void storeReadOnlyIdForDocument(String readOnlyId, Document document) {
+        DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoRepository.findByDocument(document);
+        documentEtherpadInfo.setGroupPadId(readOnlyId);
+        documentEtherpadInfoRepository.save(documentEtherpadInfo);
+    }
+
+    @Override
+    @Transactional(readOnly = false)
+    public void storeGroupPadIdForDocument(String groupPadId, Document document) {
+        // associate GroupPadId for the Document and save it
+        DocumentEtherpadInfo documentEtherpadInfo = new DocumentEtherpadInfo();
+        documentEtherpadInfo.setGroupPadId(groupPadId);
+        documentEtherpadInfo.setDocument(document);
+        documentEtherpadInfoRepository.save(documentEtherpadInfo);
+    }
 }
