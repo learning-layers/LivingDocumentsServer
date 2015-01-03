@@ -8,3 +8,5 @@ def projectDir = file('../project-name')
 def rootProjectDescriptor = settings.rootProject
 settings.createProjectDescriptor(rootProjectDescriptor, 'project-name', projectDir) */
 
+include 'ld-etherpad'
+

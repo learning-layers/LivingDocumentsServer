@@ -1,6 +1,6 @@
-package de.hska.ld.content.service;
+package de.hska.ld.etherpad.service;
 
-import de.hska.ld.content.persistence.domain.UserEtherpadInfo;
+import de.hska.ld.etherpad.persistence.domain.UserEtherpadInfo;
 
 public interface UserEtherpadInfoService {
 
@@ -11,4 +11,6 @@ public interface UserEtherpadInfoService {
     public void storeSessionForUser(String sessionId, Long validUntil, UserEtherpadInfo userEtherpadInfo);
 
     public void storeAuthorIdForCurrentUser(String authorId);
+
+    public UserEtherpadInfo getUserEtherpadInfoForCurrentUser();
 }

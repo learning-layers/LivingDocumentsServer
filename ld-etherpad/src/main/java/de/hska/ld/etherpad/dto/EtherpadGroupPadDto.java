@@ -1,7 +1,7 @@
-package de.hska.ld.content.dto;
+package de.hska.ld.etherpad.dto;
 
-public class EtherpadAuthorDto {
-    // {"code":0,"message":"ok","data":{"authorID":"a.unuYg2A8XHecmx7K"}}
+public class EtherpadGroupPadDto {
+    //{"code":0,"message":"ok","data":{"padID":"g.6Afu7ex013SEocl5$Sandbox_Document"}}
 
     long code;
     String message;
@@ -32,14 +32,14 @@ public class EtherpadAuthorDto {
     }
 
     public class Data {
-        String authorID;
+        String padID;
 
-        public String getAuthorID() {
-            return authorID;
+        public String getPadID() {
+            return padID;
         }
 
-        public void setAuthorID(String authorID) {
-            this.authorID = authorID;
+        public void setPadID(String padID) {
+            this.padID = padID;
         }
     }
 }

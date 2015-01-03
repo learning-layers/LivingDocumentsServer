@@ -25,9 +25,7 @@ package de.hska.ld.content.service.impl;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
 import de.hska.ld.content.persistence.domain.*;
-import de.hska.ld.content.persistence.repository.DocumentEtherpadInfoRepository;
 import de.hska.ld.content.persistence.repository.DocumentRepository;
-import de.hska.ld.content.persistence.repository.UserEtherpadInfoRepository;
 import de.hska.ld.content.service.*;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
@@ -63,12 +61,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Autowired
     private SubscriptionService subscriptionService;
-
-    @Autowired
-    private UserEtherpadInfoRepository userEtherpadInfoRepository;
-
-    @Autowired
-    private DocumentEtherpadInfoRepository documentEtherpadInfoRepository;
 
     @Autowired
     private UserService userService;
@@ -648,28 +640,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         userAccess.setUser(user);
         document.getAccessList().remove(userAccess);
         save(document);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public UserEtherpadInfo getUserEtherpadInfoForCurrentUser() {
-        User currentUser = Core.currentUser();
-        User user = userService.findById(currentUser.getId());
-        UserEtherpadInfo userEtherpadInfo = userEtherpadInfoRepository.findByUser(user);
-
-            return userEtherpadInfo;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public String getGroupPadIdForDocument(Document document) {
-        Document dbDocument = findById(document.getId());
-        DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoRepository.findByDocument(dbDocument);
-        if (documentEtherpadInfo == null) {
-            return null;
-        } else {
-            return documentEtherpadInfo.getGroupPadId();
-        }
     }
 
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {

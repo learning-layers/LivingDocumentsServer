@@ -20,49 +20,37 @@
  * limitations under the License.
  */
 
-package de.hska.ld.content.persistence.domain;
+package de.hska.ld.etherpad.persistence.domain;
 
-import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.content.persistence.domain.Document;
 
 import javax.persistence.*;
 
 @Entity
-@Table(name = "ld_user_etherpad_info")
-public class UserEtherpadInfo {
+@Table(name = "ld_document_etherpad_info")
+public class DocumentEtherpadInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
+    @Column(name = "group_pad_id")
+    private String groupPadId;
+
+    @Column(name = "read_only_id")
+    private String readOnlyId;
+
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "document_id")
+    private Document document;
 
-
-    @Column(name = "author_id", columnDefinition = "TEXT")
-    String authorId;
-
-    @Column(name = "session_id")
-    private String sessionId;
-
-    @Column(name = "valid_until")
-    private Long validUntil;
-
-    public String getSessionId() {
-        return sessionId;
+    public String getReadOnlyId() {
+        return readOnlyId;
     }
 
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    public Long getValidUntil() {
-        return validUntil;
-    }
-
-    public void setValidUntil(Long validUntil) {
-        this.validUntil = validUntil;
+    public void setReadOnlyId(String readOnlyId) {
+        this.readOnlyId = readOnlyId;
     }
 
     public Long getId() {
@@ -73,19 +61,19 @@ public class UserEtherpadInfo {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public String getGroupPadId() {
+        return groupPadId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setGroupPadId(String groupPadId) {
+        this.groupPadId = groupPadId;
     }
 
-    public String getAuthorId() {
-        return authorId;
+    public Document getDocument() {
+        return document;
     }
 
-    public void setAuthorId(String authorId) {
-        this.authorId = authorId;
+    public void setDocument(Document document) {
+        this.document = document;
     }
 }

@@ -1,4 +1,4 @@
-package de.hska.ld.content.dto;
+package de.hska.ld.etherpad.dto;
 
 public class EtherpadSessionDto {
 

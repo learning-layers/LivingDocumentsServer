@@ -1,9 +1,9 @@
-package de.hska.ld.content.etherpad.client;
+package de.hska.ld.etherpad.client;
 
-import de.hska.ld.content.dto.EtherpadAuthorDto;
-import de.hska.ld.content.dto.EtherpadGroupDto;
-import de.hska.ld.content.dto.EtherpadGroupPadDto;
-import de.hska.ld.content.dto.EtherpadSessionDto;
+import de.hska.ld.etherpad.dto.EtherpadAuthorDto;
+import de.hska.ld.etherpad.dto.EtherpadGroupDto;
+import de.hska.ld.etherpad.dto.EtherpadGroupPadDto;
+import de.hska.ld.etherpad.dto.EtherpadSessionDto;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;

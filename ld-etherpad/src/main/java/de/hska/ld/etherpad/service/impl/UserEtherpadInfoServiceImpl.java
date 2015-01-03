@@ -1,11 +1,11 @@
-package de.hska.ld.content.service.impl;
+package de.hska.ld.etherpad.service.impl;
 
-import de.hska.ld.content.persistence.domain.UserEtherpadInfo;
-import de.hska.ld.content.persistence.repository.UserEtherpadInfoRepository;
-import de.hska.ld.content.service.UserEtherpadInfoService;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
+import de.hska.ld.etherpad.persistence.domain.UserEtherpadInfo;
+import de.hska.ld.etherpad.persistence.repository.UserEtherpadInfoRepository;
+import de.hska.ld.etherpad.service.UserEtherpadInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,5 +49,13 @@ public class UserEtherpadInfoServiceImpl implements UserEtherpadInfoService {
         User user = userService.findById(currentUser.getId());
         userEtherpadInfo.setUser(user);
         userEtherpadInfoRepository.save(userEtherpadInfo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserEtherpadInfo getUserEtherpadInfoForCurrentUser() {
+        User currentUser = Core.currentUser();
+        User user = userService.findById(currentUser.getId());
+        return userEtherpadInfoRepository.findByUser(user);
     }
 }

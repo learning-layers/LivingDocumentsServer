@@ -1,7 +1,7 @@
-package de.hska.ld.content.persistence.repository;
+package de.hska.ld.etherpad.persistence.repository;
 
-import de.hska.ld.content.persistence.domain.UserEtherpadInfo;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.etherpad.persistence.domain.UserEtherpadInfo;
 import org.springframework.data.repository.CrudRepository;
 
 public interface UserEtherpadInfoRepository extends CrudRepository<UserEtherpadInfo, Long> {

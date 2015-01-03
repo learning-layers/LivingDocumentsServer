@@ -1,15 +1,19 @@
-package de.hska.ld.content.service.impl;
+package de.hska.ld.etherpad.service.impl;
 
 import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.content.persistence.domain.DocumentEtherpadInfo;
-import de.hska.ld.content.persistence.repository.DocumentEtherpadInfoRepository;
-import de.hska.ld.content.service.DocumentEtherpadInfoService;
+import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.etherpad.persistence.domain.DocumentEtherpadInfo;
+import de.hska.ld.etherpad.persistence.repository.DocumentEtherpadInfoRepository;
+import de.hska.ld.etherpad.service.DocumentEtherpadInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DocumentEtherpadInfoServiceImpl implements DocumentEtherpadInfoService {
+
+    @Autowired
+    private DocumentService documentService;
 
     @Autowired
     private DocumentEtherpadInfoRepository documentEtherpadInfoRepository;
@@ -41,7 +45,7 @@ public class DocumentEtherpadInfoServiceImpl implements DocumentEtherpadInfoServ
     @Transactional(readOnly = false)
     public void storeReadOnlyIdForDocument(String readOnlyId, Document document) {
         DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoRepository.findByDocument(document);
-        documentEtherpadInfo.setGroupPadId(readOnlyId);
+        documentEtherpadInfo.setReadOnlyId(readOnlyId);
         documentEtherpadInfoRepository.save(documentEtherpadInfo);
     }
 
@@ -54,4 +58,17 @@ public class DocumentEtherpadInfoServiceImpl implements DocumentEtherpadInfoServ
         documentEtherpadInfo.setDocument(document);
         documentEtherpadInfoRepository.save(documentEtherpadInfo);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getGroupPadIdForDocument(Document document) {
+        Document dbDocument = documentService.findById(document.getId());
+        DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoRepository.findByDocument(dbDocument);
+        if (documentEtherpadInfo == null) {
+            return null;
+        } else {
+            return documentEtherpadInfo.getGroupPadId();
+        }
+    }
+
 }
