@@ -32,9 +32,10 @@ public class UserEtherpadInfoServiceImpl implements UserEtherpadInfoService {
 
     @Override
     @Transactional(readOnly = false)
-    public void storeSessionForUser(String sessionId, Long validUntil, UserEtherpadInfo userEtherpadInfo) {
+    public void storeSessionForUser(String sessionId, String groupId, Long validUntil, UserEtherpadInfo userEtherpadInfo) {
         userEtherpadInfo = userEtherpadInfoRepository.findById(userEtherpadInfo.getId());
         userEtherpadInfo.setSessionId(sessionId);
+        userEtherpadInfo.setGroupId(groupId);
         userEtherpadInfo.setValidUntil(validUntil);
         userEtherpadInfoRepository.save(userEtherpadInfo);
     }

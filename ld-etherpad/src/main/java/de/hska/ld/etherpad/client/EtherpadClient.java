@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EtherpadClient {
-    public static boolean checkIfSessionStillValid(Long currentTime, String sessionId) throws IOException {
+    public static boolean checkIfSessionStillValid(Long currentTime, String sessionId, String groupID) throws IOException {
         String url = "http://localhost:9001/api/1/getSessionInfo";
 
         HttpClient client = HttpClientBuilder.create().build();
@@ -53,7 +53,7 @@ public class EtherpadClient {
         if (etherpadSessionDto.getCode() == 1) {
             return false;
         } else {
-            if (etherpadSessionDto.getData().getValidUntil() - currentTime >= 10800) {
+            if (etherpadSessionDto.getData().getGroupID().equals(groupID) && etherpadSessionDto.getData().getValidUntil() - currentTime >= 10800) {
                 return true;
             } else
                 return false;

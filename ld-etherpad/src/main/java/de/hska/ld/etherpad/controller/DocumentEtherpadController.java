@@ -118,22 +118,20 @@ public class DocumentEtherpadController {
                 boolean isStillValid = false;
                 // check if valid until is still valid for more than 3h
                 // check if sessionID is still valid (valid for more than 3h)
-                if (currentValidUntil - currentTime >= 10800) {
+                /*boolean sameGroupId = userEtherpadInfo.getGroupId().equals(groupId);
+                if (sameGroupId && userEtherpadInfo.getGroupId().equals(groupId) && currentValidUntil - currentTime >= 10800) {
                     // if sessionID is still valid longer than 3h
                     // then send the sessionID to the client
                     isStillValid = true;
-                }
-                if (currentValidUntil - currentTime < 10800) {
+                } else if (currentValidUntil - currentTime < 10800) {
+                    newSessionRequired = true;
+                } else if (isStillValid) {*/
+                    // check if the session still exists on the etherpad server (GET)
+                isStillValid = EtherpadClient.checkIfSessionStillValid(currentTime, sessionId, groupId);
+                if (!isStillValid) {
                     newSessionRequired = true;
                 }
-
-                if (isStillValid) {
-                    // check if the session still exists on the etherpad server (GET)
-                    isStillValid = EtherpadClient.checkIfSessionStillValid(currentTime, sessionId);
-                    if (!isStillValid) {
-                        newSessionRequired = true;
-                    }
-                }
+                //}
             }
             if (newSessionRequired) {
                 sessionId = EtherpadClient.createSession(groupId, authorId, validUntil);
@@ -142,7 +140,7 @@ public class DocumentEtherpadController {
                 // store the validUntil value also
                 User currentUser = Core.currentUser();
                 User dbUser = userService.findById(currentUser.getId());
-                userEtherpadInfoService.storeSessionForUser(sessionId, validUntil, userEtherpadInfo);
+                userEtherpadInfoService.storeSessionForUser(sessionId, groupId, validUntil, userEtherpadInfo);
             }
 
             // we need return types, cookie with sessionId and the URL of Etherpads Pad
