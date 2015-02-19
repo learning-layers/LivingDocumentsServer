@@ -26,7 +26,6 @@ import org.apache.commons.io.FileUtils;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -57,21 +56,9 @@ public class PersistenceConfig {
     @Autowired
     private Environment env;
 
-    @Value("${ld.db.url}")
-    private String ldDbUrl;
-
-    @Value("${ld.db.username}")
-    private String ldDbUsername;
-
-    @Value("${ld.db.password}")
-    private String ldDbPassword;
-
-    @Value("${ld.db.ddl}")
-    private String ldDbDdl;
-
     @Autowired
     private void init() {
-        String ddl = ldDbDdl.trim();
+        String ddl = env.getProperty("module.core.db.ddl");
         if (ddl != null && ddl.contains("update")) {
             try {
                 FileUtils.deleteDirectory(new File(env.getProperty("module.core.search.location")));
@@ -85,9 +72,9 @@ public class PersistenceConfig {
     public DataSource dataSource() throws SQLException {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(env.getProperty("module.core.db.driver"));
-        dataSource.setUrl(ldDbUrl.trim());
-        dataSource.setUsername(ldDbUsername.trim());
-        dataSource.setPassword(ldDbPassword.trim());
+        dataSource.setUrl(env.getProperty("module.core.db.url"));
+        dataSource.setUsername(env.getProperty("module.core.db.username"));
+        dataSource.setPassword(env.getProperty("module.core.db.password"));
         return dataSource;
     }
 
@@ -100,7 +87,7 @@ public class PersistenceConfig {
         //factory.setJpaDialect(new HibernateJpaDialect());
 
         Properties jpaProperties = new Properties();
-        jpaProperties.setProperty("hibernate.hbm2ddl.auto", ldDbDdl.trim());
+        jpaProperties.setProperty("hibernate.hbm2ddl.auto", env.getProperty("module.core.db.ddl"));
         jpaProperties.setProperty("hibernate.search.default.indexBase", env.getProperty("module.core.search.location"));
 
         factory.setJpaProperties(jpaProperties);
