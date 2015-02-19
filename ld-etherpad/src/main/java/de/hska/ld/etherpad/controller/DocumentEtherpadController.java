@@ -42,6 +42,9 @@ public class DocumentEtherpadController {
     @Autowired
     private DocumentEtherpadInfoService documentEtherpadInfoService;
 
+    @Autowired
+    private EtherpadClient etherpadClient;
+
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/edit/{documentId}")
     @Transactional(readOnly = true)
@@ -73,7 +76,7 @@ public class DocumentEtherpadController {
             if (authorId == null) {
 
                 // if there is no AuthorId present register an AuthorId for the current User
-                authorId = EtherpadClient.createAuthor(Core.currentUser().getFullName());
+                authorId = etherpadClient.createAuthor(Core.currentUser().getFullName());
                 userEtherpadInfoService.storeAuthorIdForCurrentUser(authorId);
             }
 
@@ -81,8 +84,8 @@ public class DocumentEtherpadController {
             String groupPadId = documentEtherpadInfoService.getGroupPadIdForDocument(document);
             if (groupPadId == null) {
                 //  otherwise create a GroupPad
-                String groupId = EtherpadClient.createGroup();
-                groupPadId = EtherpadClient.createGroupPad(groupId, document.getTitle());
+                String groupId = etherpadClient.createGroup();
+                groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle());
                 //  groupPad is available associate GroupPadId for the Document
                 documentEtherpadInfoService.storeGroupPadIdForDocument(groupPadId, document);
             }
@@ -91,7 +94,7 @@ public class DocumentEtherpadController {
             if (readOnly) {
                 readOnlyId = documentEtherpadInfoService.getReadOnlyIdForDocument(document);
                 if (readOnlyId == null) {
-                    readOnlyId = EtherpadClient.getReadOnlyID(groupPadId);
+                    readOnlyId = etherpadClient.getReadOnlyID(groupPadId);
                     if (readOnlyId == null) {
                         throw new ValidationException("Read only id is null"); // TODO change exception type
                     } else {
@@ -127,14 +130,14 @@ public class DocumentEtherpadController {
                     newSessionRequired = true;
                 } else if (isStillValid) {*/
                     // check if the session still exists on the etherpad server (GET)
-                isStillValid = EtherpadClient.checkIfSessionStillValid(currentTime, sessionId, groupId);
+                isStillValid = etherpadClient.checkIfSessionStillValid(currentTime, sessionId, groupId);
                 if (!isStillValid) {
                     newSessionRequired = true;
                 }
                 //}
             }
             if (newSessionRequired) {
-                sessionId = EtherpadClient.createSession(groupId, authorId, validUntil);
+                sessionId = etherpadClient.createSession(groupId, authorId, validUntil);
 
                 // store the sessionID into UserEtherpadInfo object
                 // store the validUntil value also
