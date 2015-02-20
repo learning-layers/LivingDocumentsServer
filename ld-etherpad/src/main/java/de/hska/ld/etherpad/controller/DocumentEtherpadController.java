@@ -14,6 +14,7 @@ import de.hska.ld.etherpad.service.DocumentEtherpadInfoService;
 import de.hska.ld.etherpad.service.UserEtherpadInfoService;
 import de.hska.ld.etherpad.util.Etherpad;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -44,6 +45,9 @@ public class DocumentEtherpadController {
 
     @Autowired
     private EtherpadClient etherpadClient;
+
+    @Autowired
+    private Environment env;
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/edit/{documentId}")
@@ -153,9 +157,9 @@ public class DocumentEtherpadController {
             // return Etherpad URL path
             String padURL = null;
             if (readOnly) {
-                padURL = "localhost:9001/p/" + readOnlyId;
+                padURL = env.getProperty("module.etherpad.endpoint") + "/p/" + readOnlyId;
             } else {
-                padURL = "localhost:9001/p/" + groupPadId;
+                padURL = env.getProperty("module.etherpad.endpoint") + "/p/" + groupPadId;
             }
 
             return new ResponseEntity<>(padURL, HttpStatus.CREATED);
