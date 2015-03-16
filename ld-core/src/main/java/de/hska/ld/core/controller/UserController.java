@@ -88,6 +88,8 @@ public class UserController {
         };
     }
 
+
+    //TODO done with default parameters
     /**
      * <pre>
      * Gets a list with all users.
@@ -145,11 +147,26 @@ public class UserController {
         };
     }
 
+    //TODO Description
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST, value = "/activate/{userid}")
     public Callable activateUser(@PathVariable Long userid) {
         return () -> {
             User user = userService.activateUser(userid);
+            if (user != null) {
+                return new ResponseEntity<>(HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
+    }
+
+    //TODO Description
+    @Secured(Core.ROLE_ADMIN)
+    @RequestMapping(method = RequestMethod.POST, value = "/deactivate/{userid}")
+    public Callable deactivateUser(@PathVariable Long userid) {
+        return () -> {
+            User user = userService.deactivateUser(userid);
             if (user != null) {
                 return new ResponseEntity<>(HttpStatus.OK);
             } else {
@@ -320,6 +337,7 @@ public class UserController {
         };
     }
 
+    //TODO: describe functionality of Methode
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/avatars")
     @Transactional(readOnly = true)
@@ -327,6 +345,7 @@ public class UserController {
         return () -> userService.getAvatars(userIdsString);
     }
 
+    //TODO: describe functionality of Methode
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/avatar")
     @Transactional(readOnly = true)
@@ -362,6 +381,7 @@ public class UserController {
         }
     }
 
+    //TODO: describe functionality of Methode
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/avatar/{id}")
     @Transactional(readOnly = true)
@@ -396,6 +416,8 @@ public class UserController {
         }
     }
 
+
+    //TODO: describe functionality of Methode
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/avatar")
     public Callable uploadAvatar(@RequestParam MultipartFile file) {
@@ -410,6 +432,7 @@ public class UserController {
         };
     }
 
+    //TODO: describe functionality of Methode
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/suggestions/list")
     @Transactional(readOnly = true)
@@ -425,6 +448,8 @@ public class UserController {
         };
     }
 
+
+    //TODO: describe functionality of Methode
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.GET, value = "/suggestions")
     @Transactional(readOnly = true)
@@ -443,6 +468,8 @@ public class UserController {
         };
     }
 
+
+    //TODO: describe functionality of Methode
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/username")
     @Transactional(readOnly = true)
@@ -456,6 +483,8 @@ public class UserController {
         };
     }
 
+
+    //TODO: describe functionality of Methode
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/id")
     @Transactional(readOnly = true)
@@ -470,6 +499,7 @@ public class UserController {
         };
     }
 
+    //TODO: describe functionality of Methode (Update password for current user)
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/password")
     public Callable updatePassword(@RequestBody User user) {
@@ -479,6 +509,7 @@ public class UserController {
         };
     }
 
+    //TODO: describe functionality of Methode
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/profile")
     public Callable updateProfile(@RequestBody User user) {
