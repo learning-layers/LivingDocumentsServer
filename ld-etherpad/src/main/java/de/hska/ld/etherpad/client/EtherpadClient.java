@@ -12,6 +12,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,8 +22,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EtherpadClient {
-    public static boolean checkIfSessionStillValid(Long currentTime, String sessionId) throws IOException {
-        String url = "http://localhost:9001/api/1/getSessionInfo";
+
+    @Autowired
+    private Environment env;
+
+    public boolean checkIfSessionStillValid(Long currentTime, String sessionId, String groupID) throws IOException {
+        String endpoint = env.getProperty("module.etherpad.endpoint");
+        String url = endpoint + "/api/1/getSessionInfo";
 
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
@@ -30,7 +37,7 @@ public class EtherpadClient {
         post.setHeader("User-Agent", "Mozilla/5.0");
 
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("apikey", env.getProperty("module.etherpad.apikey")));
         urlParameters.add(new BasicNameValuePair("sessionID", sessionId));
 
         post.setEntity(new UrlEncodedFormEntity(urlParameters));
@@ -42,7 +49,7 @@ public class EtherpadClient {
         BufferedReader rd = new BufferedReader(
                 new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         String line = "";
         while ((line = rd.readLine()) != null) {
             result.append(line);
@@ -53,17 +60,17 @@ public class EtherpadClient {
         if (etherpadSessionDto.getCode() == 1) {
             return false;
         } else {
-            if (etherpadSessionDto.getData().getValidUntil() - currentTime >= 10800) {
+            if (etherpadSessionDto.getData().getGroupID().equals(groupID) && etherpadSessionDto.getData().getValidUntil() - currentTime >= 10800) {
                 return true;
             } else
                 return false;
         }
     }
 
-    public static String createSession(String groupID, String authorID, Long validUntil) throws IOException {
+    public String createSession(String groupID, String authorID, Long validUntil) throws IOException {
         String sessionId = "";
-
-        String url = "http://localhost:9001/api/1/createSession";
+        String endpoint = env.getProperty("module.etherpad.endpoint");
+        String url = endpoint + "/api/1/createSession";
 
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
@@ -72,7 +79,7 @@ public class EtherpadClient {
         post.setHeader("User-Agent", "Mozilla/5.0");
 
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("apikey", env.getProperty("module.etherpad.apikey")));
         urlParameters.add(new BasicNameValuePair("groupID", groupID));
         urlParameters.add(new BasicNameValuePair("authorID", authorID));
         urlParameters.add(new BasicNameValuePair("validUntil", String.valueOf(validUntil)));
@@ -86,7 +93,7 @@ public class EtherpadClient {
         BufferedReader rd = new BufferedReader(
                 new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         String line = "";
         while ((line = rd.readLine()) != null) {
             result.append(line);
@@ -97,9 +104,9 @@ public class EtherpadClient {
         return etherpadSessionDto.getData().getSessionID();
     }
 
-    public static String getReadOnlyID(String groupPadId) throws IOException {
-
-        String url = "http://localhost:9001/api/1/getReadOnlyID";
+    public String getReadOnlyID(String groupPadId) throws IOException {
+        String endpoint = env.getProperty("module.etherpad.endpoint");
+        String url = endpoint + "/api/1/getReadOnlyID";
 
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
@@ -108,7 +115,7 @@ public class EtherpadClient {
         post.setHeader("User-Agent", "Mozilla/5.0");
 
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("apikey", env.getProperty("module.etherpad.apikey")));
         urlParameters.add(new BasicNameValuePair("padID", groupPadId));
 
         post.setEntity(new UrlEncodedFormEntity(urlParameters));
@@ -120,7 +127,7 @@ public class EtherpadClient {
         BufferedReader rd = new BufferedReader(
                 new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         String line = "";
         while ((line = rd.readLine()) != null) {
             result.append(line);
@@ -137,10 +144,10 @@ public class EtherpadClient {
         }
     }
 
-    public static String createAuthor(String authorName) throws IOException {
+    public String createAuthor(String authorName) throws IOException {
         String sessionId = "";
-
-        String url = "http://localhost:9001/api/1/createAuthor";
+        String endpoint = env.getProperty("module.etherpad.endpoint");
+        String url = endpoint + "/api/1/createAuthor";
 
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
@@ -149,7 +156,7 @@ public class EtherpadClient {
         post.setHeader("User-Agent", "Mozilla/5.0");
 
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("apikey", env.getProperty("module.etherpad.apikey")));
         urlParameters.add(new BasicNameValuePair("name", authorName));
 
         post.setEntity(new UrlEncodedFormEntity(urlParameters));
@@ -161,7 +168,7 @@ public class EtherpadClient {
         BufferedReader rd = new BufferedReader(
                 new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         String line = "";
         while ((line = rd.readLine()) != null) {
             result.append(line);
@@ -171,10 +178,10 @@ public class EtherpadClient {
         return etherpadAuthorDto.getData().getAuthorID();
     }
 
-    public static String createGroupPad(String groupId, String padName) throws IOException {
+    public String createGroupPad(String groupId, String padName) throws IOException {
         String sessionId = "";
-
-        String url = "http://localhost:9001/api/1/createGroupPad";
+        String endpoint = env.getProperty("module.etherpad.endpoint");
+        String url = endpoint + "/api/1/createGroupPad";
 
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
@@ -183,7 +190,7 @@ public class EtherpadClient {
         post.setHeader("User-Agent", "Mozilla/5.0");
 
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("apikey", env.getProperty("module.etherpad.apikey")));
         urlParameters.add(new BasicNameValuePair("groupID", groupId));
         urlParameters.add(new BasicNameValuePair("padName", padName));
 
@@ -196,7 +203,7 @@ public class EtherpadClient {
         BufferedReader rd = new BufferedReader(
                 new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         String line = "";
         while ((line = rd.readLine()) != null) {
             result.append(line);
@@ -208,10 +215,10 @@ public class EtherpadClient {
 
     }
 
-    public static String createGroup() throws IOException {
+    public String createGroup() throws IOException {
         String sessionId = "";
-
-        String url = "http://localhost:9001/api/1/createGroup";
+        String endpoint = env.getProperty("module.etherpad.endpoint");
+        String url = endpoint + "/api/1/createGroup";
 
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
@@ -220,7 +227,7 @@ public class EtherpadClient {
         post.setHeader("User-Agent", "Mozilla/5.0");
 
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("apikey", env.getProperty("module.etherpad.apikey")));
 
         post.setEntity(new UrlEncodedFormEntity(urlParameters));
 
@@ -231,7 +238,7 @@ public class EtherpadClient {
         BufferedReader rd = new BufferedReader(
                 new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         String line = "";
         while ((line = rd.readLine()) != null) {
             result.append(line);
@@ -241,10 +248,10 @@ public class EtherpadClient {
         return etherpadGroupDto.getData().getGroupID();
     }
 
-    public static StringBuffer createPad(String padName) throws IOException {
+    public StringBuilder createPad(String padName) throws IOException {
         String sessionId = "";
-
-        String url = "http://localhost:9001/api/1/createPad";
+        String endpoint = env.getProperty("module.etherpad.endpoint");
+        String url = endpoint + "/api/1/createPad";
 
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
@@ -253,7 +260,7 @@ public class EtherpadClient {
         post.setHeader("User-Agent", "Mozilla/5.0");
 
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("apikey", "0sDFF2pG4TDDGzO5Fik160kyw5D1lSDp"));
+        urlParameters.add(new BasicNameValuePair("apikey", env.getProperty("module.etherpad.apikey")));
         urlParameters.add(new BasicNameValuePair("padID", padName));
         urlParameters.add(new BasicNameValuePair("text", "API"));
 
@@ -266,7 +273,7 @@ public class EtherpadClient {
         BufferedReader rd = new BufferedReader(
                 new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         String line = "";
         while ((line = rd.readLine()) != null) {
             result.append(line);

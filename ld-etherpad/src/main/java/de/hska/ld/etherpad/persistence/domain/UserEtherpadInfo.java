@@ -49,6 +49,9 @@ public class UserEtherpadInfo {
     @Column(name = "valid_until")
     private Long validUntil;
 
+    @Column(name = "group_id")
+    private String groupId;
+
     public String getSessionId() {
         return sessionId;
     }
@@ -87,5 +90,13 @@ public class UserEtherpadInfo {
 
     public void setAuthorId(String authorId) {
         this.authorId = authorId;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
 }

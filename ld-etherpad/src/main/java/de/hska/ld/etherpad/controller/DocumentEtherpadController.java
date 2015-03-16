@@ -14,6 +14,7 @@ import de.hska.ld.etherpad.service.DocumentEtherpadInfoService;
 import de.hska.ld.etherpad.service.UserEtherpadInfoService;
 import de.hska.ld.etherpad.util.Etherpad;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -41,6 +42,12 @@ public class DocumentEtherpadController {
 
     @Autowired
     private DocumentEtherpadInfoService documentEtherpadInfoService;
+
+    @Autowired
+    private EtherpadClient etherpadClient;
+
+    @Autowired
+    private Environment env;
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/edit/{documentId}")
@@ -73,7 +80,7 @@ public class DocumentEtherpadController {
             if (authorId == null) {
 
                 // if there is no AuthorId present register an AuthorId for the current User
-                authorId = EtherpadClient.createAuthor(Core.currentUser().getFullName());
+                authorId = etherpadClient.createAuthor(Core.currentUser().getFullName());
                 userEtherpadInfoService.storeAuthorIdForCurrentUser(authorId);
             }
 
@@ -81,8 +88,8 @@ public class DocumentEtherpadController {
             String groupPadId = documentEtherpadInfoService.getGroupPadIdForDocument(document);
             if (groupPadId == null) {
                 //  otherwise create a GroupPad
-                String groupId = EtherpadClient.createGroup();
-                groupPadId = EtherpadClient.createGroupPad(groupId, document.getTitle());
+                String groupId = etherpadClient.createGroup();
+                groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle());
                 //  groupPad is available associate GroupPadId for the Document
                 documentEtherpadInfoService.storeGroupPadIdForDocument(groupPadId, document);
             }
@@ -91,7 +98,7 @@ public class DocumentEtherpadController {
             if (readOnly) {
                 readOnlyId = documentEtherpadInfoService.getReadOnlyIdForDocument(document);
                 if (readOnlyId == null) {
-                    readOnlyId = EtherpadClient.getReadOnlyID(groupPadId);
+                    readOnlyId = etherpadClient.getReadOnlyID(groupPadId);
                     if (readOnlyId == null) {
                         throw new ValidationException("Read only id is null"); // TODO change exception type
                     } else {
@@ -118,31 +125,29 @@ public class DocumentEtherpadController {
                 boolean isStillValid = false;
                 // check if valid until is still valid for more than 3h
                 // check if sessionID is still valid (valid for more than 3h)
-                if (currentValidUntil - currentTime >= 10800) {
+                /*boolean sameGroupId = userEtherpadInfo.getGroupId().equals(groupId);
+                if (sameGroupId && userEtherpadInfo.getGroupId().equals(groupId) && currentValidUntil - currentTime >= 10800) {
                     // if sessionID is still valid longer than 3h
                     // then send the sessionID to the client
                     isStillValid = true;
-                }
-                if (currentValidUntil - currentTime < 10800) {
+                } else if (currentValidUntil - currentTime < 10800) {
+                    newSessionRequired = true;
+                } else if (isStillValid) {*/
+                    // check if the session still exists on the etherpad server (GET)
+                isStillValid = etherpadClient.checkIfSessionStillValid(currentTime, sessionId, groupId);
+                if (!isStillValid) {
                     newSessionRequired = true;
                 }
-
-                if (isStillValid) {
-                    // check if the session still exists on the etherpad server (GET)
-                    isStillValid = EtherpadClient.checkIfSessionStillValid(currentTime, sessionId);
-                    if (!isStillValid) {
-                        newSessionRequired = true;
-                    }
-                }
+                //}
             }
             if (newSessionRequired) {
-                sessionId = EtherpadClient.createSession(groupId, authorId, validUntil);
+                sessionId = etherpadClient.createSession(groupId, authorId, validUntil);
 
                 // store the sessionID into UserEtherpadInfo object
                 // store the validUntil value also
                 User currentUser = Core.currentUser();
                 User dbUser = userService.findById(currentUser.getId());
-                userEtherpadInfoService.storeSessionForUser(sessionId, validUntil, userEtherpadInfo);
+                userEtherpadInfoService.storeSessionForUser(sessionId, groupId, validUntil, userEtherpadInfo);
             }
 
             // we need return types, cookie with sessionId and the URL of Etherpads Pad
@@ -152,9 +157,9 @@ public class DocumentEtherpadController {
             // return Etherpad URL path
             String padURL = null;
             if (readOnly) {
-                padURL = "localhost:9001/p/" + readOnlyId;
+                padURL = env.getProperty("module.etherpad.endpoint") + "/p/" + readOnlyId;
             } else {
-                padURL = "localhost:9001/p/" + groupPadId;
+                padURL = env.getProperty("module.etherpad.endpoint") + "/p/" + groupPadId;
             }
 
             return new ResponseEntity<>(padURL, HttpStatus.CREATED);
