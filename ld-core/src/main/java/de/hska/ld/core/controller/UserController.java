@@ -425,7 +425,7 @@ public class UserController {
         };
     }
 
-    @Secured(Core.ROLE_ADMIN)
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/suggestions")
     @Transactional(readOnly = true)
     public Callable getMentionSuggestions(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
