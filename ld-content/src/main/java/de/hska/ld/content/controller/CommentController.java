@@ -53,6 +53,8 @@ public class CommentController {
      *
      * <b>Required roles:</b> ROLE_USER
      * <b>Path:</b> GET /api/comments/{commentId}/comment?page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt
+     * http://localhost/api/comments/0/comment?page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt"
+     * http://localhos/api/comments/0/comment?page-number=0&amp;page-size=10&amp;sort-direction=DESC&amp;sort-property=createdAt%20*
      * </pre>
      *
      * @param commentId     the comment ID
@@ -161,6 +163,7 @@ public class CommentController {
      *                <tt>{text: 'The comment text'}</tt>
      * @return return the comment plus the parentId of the parent comment
      */
+    //TODO don't we need the CommentId ?
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST)
     public Callable updateComment(@RequestBody Comment comment) {

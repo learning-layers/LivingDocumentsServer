@@ -122,6 +122,7 @@ public class TagController {
      * @return <b>200 OK</b> with the update tag<br>
      * <b>400 Bad Request</b> if no title exists<br>
      */
+    //TODO but creates a new Tag also with the same name
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/{tagId}")
     public Callable updateTag(@PathVariable Long tagId, @RequestBody final Tag tag) {
@@ -146,7 +147,7 @@ public class TagController {
      *
      * @param tagName the name of the tags that shall be retrieved
      * @return the tag (TODO has to be changed to a tag list, multiple tags could have the same name, different description)
-     */
+     *///TODO can't get an output because of multiple response elements (tags have the same name)
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/name/{tagName}")
     public Callable getTagByName(@PathVariable String tagName) {

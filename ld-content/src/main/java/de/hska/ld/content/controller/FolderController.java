@@ -133,6 +133,7 @@ public class FolderController {
         return new ResponseEntity<>(folderDto, HttpStatus.OK);
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{newParentFolderId}/folders/{folderId}")
     public ResponseEntity<Folder> moveFolderToFolder(@PathVariable Long newParentFolderId, @PathVariable Long folderId,
@@ -225,6 +226,7 @@ public class FolderController {
         }
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/list")
     public ResponseEntity<List<Folder>> getFolderList() {
@@ -236,6 +238,7 @@ public class FolderController {
         }
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "{folderId}/folders/list")
     public ResponseEntity<List<Folder>> getSubFolderList(@PathVariable Long folderId) {
@@ -247,6 +250,7 @@ public class FolderController {
         }
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "{folderId}/documents/list")
     public ResponseEntity<List<Document>> getSubDocumentList(@PathVariable Long folderId) {
@@ -258,6 +262,7 @@ public class FolderController {
         }
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "{folderId}/documents")
     public ResponseEntity<Page<Document>> getSubDocumentsPage(@PathVariable Long folderId,

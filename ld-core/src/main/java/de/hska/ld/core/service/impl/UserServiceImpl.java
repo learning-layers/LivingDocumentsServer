@@ -164,7 +164,7 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         String subject = bundle.getString("email.user.registration.subject");
         String text = bundle.getString("email.user.registration.text");
         String confirmationUrl = env.getProperty("module.core.auth.registrationConfirmUrl") + user.getForgotPasswordConfirmationKey();
-        sendConfirmationMail(user, subject, text, confirmationUrl);
+        //sendConfirmationMail(user, subject, text, confirmationUrl);
     }
 
     @Override
@@ -250,6 +250,16 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         User user = super.findById(userid);
         if (user != null) {
             user.setEnabled(true);
+            super.save(user);
+        }
+        return user;
+    }
+
+    @Transactional
+    public User deactivateUser(Long userid) {
+        User user = super.findById(userid);
+        if (user != null) {
+            user.setEnabled(false);
             super.save(user);
         }
         return user;

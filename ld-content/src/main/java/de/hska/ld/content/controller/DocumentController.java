@@ -501,6 +501,7 @@ public class DocumentController {
         };
     }
 
+    //TODO specify role
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/uploadmain")
     public Callable uploadMainFile(@RequestParam MultipartFile file, @RequestParam Long documentId) {
@@ -687,6 +688,7 @@ public class DocumentController {
         };
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}/attachment/{attachmentId}")
     public Callable removeAttachment(@PathVariable Long documentId, @PathVariable Long attachmentId) {
@@ -696,6 +698,7 @@ public class DocumentController {
         };
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.PUT, value = "/{documentId}/attachment/{attachmentId}")
     public Callable updateAttachmentInfo(@PathVariable Long documentId, @PathVariable Long attachmentId, @RequestBody Attachment attachment) {
@@ -807,6 +810,7 @@ public class DocumentController {
         };
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/notifications/read")
     public Callable markNotificationsAsRead(@RequestBody List<Notification> notificationList) {
@@ -816,6 +820,7 @@ public class DocumentController {
         };
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/share")
     public Callable shareDocumentWithUser(@PathVariable Long documentId, @RequestParam String userIds, @RequestParam String permissions) {
@@ -825,6 +830,7 @@ public class DocumentController {
         };
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/public")
     public Callable makeDocumentPublic(@PathVariable Long documentId) {
@@ -834,6 +840,7 @@ public class DocumentController {
         };
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/users/permission")
     @Transactional(readOnly = true)
@@ -844,6 +851,7 @@ public class DocumentController {
         };
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/access/users")
     @Transactional(readOnly = true)
@@ -863,6 +871,7 @@ public class DocumentController {
         };
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}/access/users/{userId}")
     public Callable removeUserPermissions(@PathVariable Long documentId,
@@ -873,6 +882,7 @@ public class DocumentController {
         };
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}/currentuser/permission")
     @Transactional(readOnly = true)
@@ -883,6 +893,7 @@ public class DocumentController {
         };
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/expert")
     public Callable addExpertToDocument(@PathVariable Long documentId, @RequestParam String username) {
@@ -892,6 +903,7 @@ public class DocumentController {
         };
     }
 
+    //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/discuss/section")
     public Callable createDiscussion(@PathVariable Long documentId, @RequestBody DiscussionSectionDto discussionSectionDto) {
