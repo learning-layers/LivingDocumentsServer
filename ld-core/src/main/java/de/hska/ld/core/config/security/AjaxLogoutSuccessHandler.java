@@ -51,6 +51,8 @@ public class AjaxLogoutSuccessHandler extends AbstractAuthenticationTargetUrlReq
         cookie.setMaxAge(0);
         response.addCookie(cookie);
 
+        // TODO destory session in etherpad
+
         response.setStatus(HttpServletResponse.SC_OK);
     }
 }
