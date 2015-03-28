@@ -8,6 +8,8 @@ See AUTHORS.txt for a list of contributors. If you are author as well and are no
   
   Dennis Soehnen <info@soehnen.com>
 
+  Amine Afia <afia.amine@gmail.com>
+
 For vendor package license information see vendor// -> LICENSE or README files.
 
 
