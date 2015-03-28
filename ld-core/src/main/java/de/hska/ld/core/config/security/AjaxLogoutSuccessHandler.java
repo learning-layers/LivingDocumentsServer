@@ -27,6 +27,7 @@ import org.springframework.security.web.authentication.AbstractAuthenticationTar
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -38,6 +39,17 @@ public class AjaxLogoutSuccessHandler extends AbstractAuthenticationTargetUrlReq
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response,
                                 Authentication authentication)
             throws IOException, ServletException {
+
+        //
+        // To delete a cookie, we need to create a cookie that has the same
+        // name with the cookie that we want to delete. We also need to set
+        // the max age of the cookie to 0 and then add it to the Servlet's
+        // response method.
+        //
+        javax.servlet.http.Cookie cookie = new Cookie("sessionID", "");
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
 
         response.setStatus(HttpServletResponse.SC_OK);
     }
