@@ -34,7 +34,7 @@ public class DocumentEtherpadInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
-//Test
+//Test With all folder
     @Column(name = "group_pad_id")
     private String groupPadId;
 
