@@ -24,5 +24,5 @@ package de.hska.ld.ldToSSS.util;
 import de.hska.ld.core.util.Core;
 
 public class LDocsToSSS{
-    public static final String RESOURCE_DOCUMENT_LDToSSS = Core.RESOURCE_API + "/LDToSSS";
+    public static final String RESOURCE_DOCUMENT_LDToSSS = Core.RESOURCE_API + "/ldToSSS";
 }

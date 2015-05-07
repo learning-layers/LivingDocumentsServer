@@ -1,4 +1,4 @@
-package de.hska.ld.etherpad.controller;
+package de.hska.ld.ldToSSS.controller;
 
 import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
@@ -8,11 +8,6 @@ import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
-import de.hska.ld.etherpad.client.EtherpadClient;
-import de.hska.ld.etherpad.persistence.domain.UserEtherpadInfo;
-import de.hska.ld.etherpad.service.DocumentEtherpadInfoService;
-import de.hska.ld.etherpad.service.UserEtherpadInfoService;
-import de.hska.ld.etherpad.util.Etherpad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;

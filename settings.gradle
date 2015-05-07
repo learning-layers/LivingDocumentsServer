@@ -10,3 +10,5 @@ settings.createProjectDescriptor(rootProjectDescriptor, 'project-name', projectD
 
 include 'ld-etherpad'
 
+include 'ld-ldocsToSSS'
+
