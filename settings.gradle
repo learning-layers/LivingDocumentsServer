@@ -3,6 +3,8 @@ include 'ld-core'
 include 'ld-sandbox'
 include 'ld-content'
 
+include 'ld-sss'
+
 /* Include non-child project
 def projectDir = file('../project-name')
 def rootProjectDescriptor = settings.rootProject
@@ -10,5 +12,4 @@ settings.createProjectDescriptor(rootProjectDescriptor, 'project-name', projectD
 
 include 'ld-etherpad'
 
-include 'ld-ldocsToSSS'
 

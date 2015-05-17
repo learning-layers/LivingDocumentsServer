@@ -1,0 +1,6 @@
+dependencies {
+    compile project(':ld-content')
+    compile project(':ld-core')
+    //testCompile project(':ld-content').sourceSets.test.output
+
+}
