@@ -38,4 +38,14 @@ public class UserContentInfoServiceImpl implements UserContentInfoService {
         }
         return userContentInfoRepository.save(userContentInfo);
     }
+
+    @Override
+    public void removeTag(Long userId, Long tagId) {
+        UserContentInfo userContentInfo = userContentInfoRepository.findById(userId);
+        if (userContentInfo != null) {
+            Tag tag = tagService.findById(tagId);
+            userContentInfo.getTagList().remove(tag);
+            userContentInfoRepository.save(userContentInfo);
+        }
+    }
 }

@@ -45,4 +45,13 @@ public class UserContentController {
             }
         };
     }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.DELETE, value = "/{userId}/tag/{tagId}")
+    public Callable removeTag(@PathVariable Long userId, @PathVariable Long tagId) {
+        return () -> {
+            userContentInfoService.removeTag(userId, tagId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
+    }
 }
