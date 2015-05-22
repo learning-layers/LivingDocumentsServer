@@ -1,20 +1,20 @@
 package de.hska.ld.content.controller;
 
+import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.UserContentInfoService;
 import de.hska.ld.content.util.Content;
+import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.AsyncExecutor;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.Callable;
 
@@ -52,6 +52,24 @@ public class UserContentController {
         return () -> {
             userContentInfoService.removeTag(userId, tagId);
             return new ResponseEntity<>(HttpStatus.OK);
+        };
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/{userId}/tags")
+    @Transactional(readOnly = true)
+    public Callable getTagsPage(@PathVariable Long userId,
+                                @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                @RequestParam(value = "sort-property", defaultValue = "id") String sortProperty) {
+        return () -> {
+            Page<Tag> tagsPage = userContentInfoService.getUserContentTagsPage(userId, pageNumber, pageSize, sortDirection, sortProperty);
+            if (tagsPage != null && tagsPage.getNumberOfElements() > 0) {
+                return new ResponseEntity<>(tagsPage, HttpStatus.OK);
+            } else {
+                throw new NotFoundException();
+            }
         };
     }
 }

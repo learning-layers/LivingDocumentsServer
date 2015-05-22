@@ -8,6 +8,10 @@ import de.hska.ld.content.service.UserContentInfoService;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,5 +51,19 @@ public class UserContentInfoServiceImpl implements UserContentInfoService {
             userContentInfo.getTagList().remove(tag);
             userContentInfoRepository.save(userContentInfo);
         }
+    }
+
+    @Override
+    public Page<Tag> getUserContentTagsPage(Long userId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        User user = userService.findById(userId);
+        UserContentInfo userContentInfo = userContentInfoRepository.findByUser(user);
+        return userContentInfoRepository.findAllTagsForUserContent(userContentInfo.getId(), pageable);
     }
 }
