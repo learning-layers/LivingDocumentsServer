@@ -35,14 +35,14 @@ public class UserContentController {
     @Transactional(readOnly = true)
     public Callable addTag(@PathVariable Long userId, @PathVariable Long tagId) {
         return () -> {
-            User currentUser = Core.currentUser();
-            if (currentUser.getId().equals(userId)) {
+            //User currentUser = Core.currentUser();
+            //if (currentUser.getId().equals(userId)) {
                 User user = userService.findById(userId);
                 userContentInfoService.addTag(user.getId(), tagId);
                 return new ResponseEntity<>(HttpStatus.OK);
-            } else {
+            /*} else {
                 return new ResponseEntity<>(HttpStatus.OK);
-            }
+            }*/
         };
     }
 
