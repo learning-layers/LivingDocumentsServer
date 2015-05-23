@@ -1,30 +1,30 @@
 package de.hska.ld.ldToSSS.controller;
 
-import java.lang.Object;
-import de.hska.ld.content.persistence.domain.Access;
-import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.exception.NotFoundException;
-import de.hska.ld.core.exception.ValidationException;
-import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
+import de.hska.ld.core.util.Core;
 import de.hska.ld.ldToSSS.client.RecommClient;
 import de.hska.ld.ldToSSS.persistence.domain.RecommInfo;
 import de.hska.ld.ldToSSS.service.RecommInfoService;
 import de.hska.ld.ldToSSS.util.LDocsToSSS;
-import de.hska.ld.core.service.UserService;
-import de.hska.ld.core.util.Core;
-import org.apache.avro.data.Json;
-import org.apache.avro.generic.GenericData;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.concurrent.Callable;
 
 @RestController
@@ -45,19 +45,47 @@ public class RecommController {
     @Autowired
     private RecommClient recommClient;
 
-    //Id received is a user_id that already has recommendations
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/recomm/update/{id}")
     @Transactional(readOnly = true)
     public Callable editRecommUser(@PathVariable long id) {
         return () -> {
-
             RecommInfo recommInfo = recommInfoService.findOne(id);
 
+            //Make sure the user we are about to PUT in SSS exists in our DB as well
             if (recommInfo != null) {
-                //This update gets the documents in which user is Expert and retrieves tags of all of them
+
+                //GET DOCUMENTS in which user is EXPERT and update TAGS
                 recommInfo.updateTagList();
-                return new ResponseEntity<>(recommInfo, HttpStatus.CREATED);
+
+                URI uri = new URIBuilder()
+                        .setScheme("http")
+                        .setHost(LDocsToSSS.RESOURCE_SSS_HOST)
+                        .setPath(LDocsToSSS.RESOURCE_SSS_RECOMM_PATH + "/recomm/update")
+                        .build();
+
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("realm", recommInfo.getRealm());
+                jsonObject.put("forUser", recommInfo.getForUser());
+                jsonObject.put("entity", recommInfo.getEntity());
+                jsonObject.put("tags", recommInfo.getTags());
+
+                StringEntity bodyRequest = new StringEntity(jsonObject.toString());
+
+                //EXECUTE PUT REQUEST TO SSS server
+                HttpEntity entity = recommClient.httpPUTRequest(uri, recommClient.getTokenHeader(), bodyRequest);
+
+                if(entity!=null) {
+                    // CONVERT RESPONSE TO STRING
+                    String result = EntityUtils.toString(entity);
+
+                    //VERY IMPORTANT TO FREE RESOURCES AFTER CREATING HTTP ENTITY
+                    EntityUtils.consume(entity);
+                    return new ResponseEntity<>(result, HttpStatus.CREATED);
+                }else{
+                    return new ResponseEntity<>("We could't connect to Social Semantic Server, please report it to IT administrators", HttpStatus.CONFLICT);
+                }
+
             } else {
                 if(userService.findById(id) != null){
                     return new ResponseEntity<>("This user doesn't have any recommendations!", HttpStatus.ACCEPTED);
@@ -65,10 +93,40 @@ public class RecommController {
                 }else
                     throw new NotFoundException("id");
             }
+        };
+    }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/recomm/users/{realm}")
+    @Transactional(readOnly = true)
+    public Callable getRecommUsersRealm(@PathVariable String realm) {
+        return () -> {
+            /************************************************************************
+             * JUST AND EXAMPLE of how to perform a GET request to SSS server
+             ************************************************************************/
+            URI uri = new URIBuilder()
+                    .setScheme("http")
+                    .setHost(LDocsToSSS.RESOURCE_SSS_HOST)
+                    .setPath(LDocsToSSS.RESOURCE_SSS_RECOMM_PATH + "/recomm/users/realm/"+realm)
+                    .build();
 
+            //EXECUTE GET REQUEST TO SSS server
+            HttpEntity entity = recommClient.httpGETRequest(uri, recommClient.getTokenHeader());
+
+            if(entity!=null) {
+                // CONVERT RESPONSE TO STRING
+                String result = EntityUtils.toString(entity);
+
+                //VERY IMPORTANT TO FREE RESOURCES AFTER CREATING HTTP ENTITY
+                EntityUtils.consume(entity);
+                return new ResponseEntity<>(result, HttpStatus.ACCEPTED);
+            }else{
+                throw new NotFoundException("realm");
+            }
 
         };
     }
+
+
 
 }

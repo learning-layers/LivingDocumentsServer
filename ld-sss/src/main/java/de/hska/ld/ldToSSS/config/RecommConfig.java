@@ -26,11 +26,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+
 @Configuration
 public class RecommConfig {
+
     @Bean
     public RecommClient recommClient() {
-        return new RecommClient();
+        //This access token was provided to Martin Bachl
+        String token_sss = "886be164d6049c40b2e3d6ce7c22b0d0";
+
+        try {
+            return new RecommClient(token_sss);
+        } catch (Exception e) {
+            //e.printStackTrace();
+            System.out.println("There was an error connecting with Social Semantic Server, please contact the IT administrators");
+        }
+        return null;
     }
 }
 

@@ -23,7 +23,6 @@
 package de.hska.ld.ldToSSS.persistence.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
 import org.hibernate.validator.constraints.NotBlank;
@@ -127,13 +126,14 @@ public class RecommInfo {
     }
 
     public void updateTagList(){
-        ArrayList<String> tagList = new ArrayList<String>();
+        ArrayList<String> tagList = new ArrayList<>();
         for(Document document : documentList){
             for(Tag tag : document.getTagList()){
                 String tagName = tag.getName();
 
-                if(!tagName.isEmpty() && tagName != null)
+                if(!tagName.isEmpty() && !tagList.contains(tagName)) {
                     tagList.add(tagName);
+                }
             }
         }
         setTags(tagList);

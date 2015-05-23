@@ -1,6 +1,5 @@
 dependencies {
     compile project(':ld-content')
     compile project(':ld-core')
-    //testCompile project(':ld-content').sourceSets.test.output
-
+    compile 'com.googlecode.json-simple:json-simple:1.1.1'
 }
