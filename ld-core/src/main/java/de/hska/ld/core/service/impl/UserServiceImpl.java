@@ -163,8 +163,8 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         ResourceBundle bundle = ResourceBundle.getBundle("messages", LocaleContextHolder.getLocale());
         String subject = bundle.getString("email.user.registration.subject");
         String text = bundle.getString("email.user.registration.text");
-        String confirmationUrl = env.getProperty("module.core.auth.registrationConfirmUrl") + user.getForgotPasswordConfirmationKey();
-        //sendConfirmationMail(user, subject, text, confirmationUrl);
+        String confirmationUrl = env.getProperty("module.core.auth.registrationConfirmUrl") + user.getRegistrationConfirmationKey();
+        sendConfirmationMail(user, subject, text, confirmationUrl);
     }
 
     @Override
