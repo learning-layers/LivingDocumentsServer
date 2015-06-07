@@ -23,14 +23,28 @@ public class RecommClient{
 
     private String token_sss;
 
+    /**
+     *
+     * @param token_sss Security token
+     * @throws Exception
+     */
     public RecommClient(String token_sss) throws Exception{
         this.token_sss = token_sss;
     }
 
+    /**
+     *
+     * @return returns security token
+     */
     public String getToken_sss() {
         return token_sss;
     }
 
+
+    /**
+     *
+     * @param token_sss security token
+     */
     public void setToken_sss(String token_sss) {
         this.token_sss = token_sss;
     }
@@ -45,6 +59,15 @@ public class RecommClient{
             .setParameter("oq", "")
             .build();*/
 
+
+    /**
+     * Method for GET Requests
+     *
+     * @param uri URI for GET Request
+     * @param headers Header with authentification information
+     * @return  Response is the found entity object
+     * @throws Exception
+     */
     public HttpEntity httpGETRequest(URI uri, List<NameValuePair> headers) throws Exception{
 
         CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -73,6 +96,15 @@ public class RecommClient{
         }
     }
 
+    /**
+     * Method for POST Requests
+     *
+     * @param uri URI for POST Request
+     * @param headers Header with authentification information
+     * @param body content to POST
+     * @return returns the fully created entity
+     * @throws Exception
+     */
     public HttpEntity httpPOSTRequest(URI uri, List<NameValuePair> headers, HttpEntity body) throws Exception{
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(uri);
@@ -97,6 +129,16 @@ public class RecommClient{
             response.close();
         }
     }
+
+    /**
+     * Method for PUT Requests
+     *
+     * @param uri URI for PUT Request
+     * @param headers Header with authentification information
+     * @param body content to PUT
+     * @return returns the fully updated entity
+     * @throws Exception
+     */
 
     public HttpEntity httpPUTRequest(URI uri, List<NameValuePair> headers, HttpEntity body) throws Exception{
         CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -131,6 +173,11 @@ public class RecommClient{
             response.close();
         }
     }
+
+    /**
+     *
+     * @return
+     */
 
     public List<NameValuePair> getTokenHeader(){
         List<NameValuePair> nvps = new ArrayList<NameValuePair>();
