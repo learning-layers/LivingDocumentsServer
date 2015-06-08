@@ -30,7 +30,11 @@ import de.hska.ld.core.service.impl.RoleServiceImpl;
 import de.hska.ld.core.service.impl.UserServiceImpl;
 import de.hska.ld.core.util.AsyncExecutor;
 import de.hska.ld.core.util.SpringAsyncExecutor;
+import org.apache.catalina.connector.Connector;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
 import org.springframework.boot.context.embedded.MultipartConfigFactory;
+import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -68,4 +72,20 @@ public class CoreConfig {
     public AsyncExecutor asyncExecutor() {
         return new SpringAsyncExecutor();
     }
+
+    @Bean
+    public EmbeddedServletContainerFactory servletContainer() {
+        TomcatEmbeddedServletContainerFactory factory = new TomcatEmbeddedServletContainerFactory();
+        factory.addConnectorCustomizers(new TomcatConnectorCustomizer() {
+
+            @Override
+            public void customize(Connector connector) {
+
+                connector.setPort(9000);
+                connector.setAsyncTimeout(60000);
+            }
+        });
+        return factory;
+    }
+
 }

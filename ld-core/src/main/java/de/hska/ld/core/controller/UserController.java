@@ -234,7 +234,7 @@ public class UserController {
      * <b>400 Bad Request</b> if at least one property was invalid or <br>
      * <b>403 Forbidden</b> if authorization failed
      */
-    @Secured(Core.ROLE_ADMIN)
+    //@Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST)
     public Callable saveUser(@RequestBody @Valid final User user) {
         return () -> {

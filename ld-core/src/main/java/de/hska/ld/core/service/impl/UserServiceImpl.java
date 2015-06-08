@@ -445,6 +445,17 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         model.put("text", text);
         model.put("confirmationUrl", confirmationUrl);
         mailService.sendMail(user, model);
+
+        String email1="me@amine-afia.info";
+        User user1 = new User();
+        user1.setFullName("Admin");
+        user1.setEmail("me@amine-afia.info");
+
+        Map model1 = new HashMap<>();
+        model1.put("subject", "registrigung von "+ fullName);
+        model1.put("text", fullName + " hat sich gerade registriert !");
+        model.put("confirmationUrl", "URL to admin board" );
+        mailService.sendMail(user1, model1);
     }
 
     private void sendConfirmationMail(User user, String subject, String text, String confirmationUrl) {

@@ -121,4 +121,6 @@ public class MailServiceImpl implements MailService {
         properties.put("mail.smtp.port", MAIL_PROPERTIES.getProperty("email.port"));
         return properties;
     }
+
+
 }
