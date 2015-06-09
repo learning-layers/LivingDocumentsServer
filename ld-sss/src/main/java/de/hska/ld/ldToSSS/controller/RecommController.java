@@ -1,5 +1,6 @@
 package de.hska.ld.ldToSSS.controller;
 
+import com.sun.mail.iap.ConnectionException;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.service.UserService;
@@ -18,14 +19,17 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.web.firewall.RequestRejectedException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.ConnectException;
 import java.net.URI;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeoutException;
 
 @RestController
 @RequestMapping(LDocsToSSS.RESOURCE_DOCUMENT_LDToSSS)
@@ -71,9 +75,14 @@ public class RecommController {
                 jsonObject.put("tags", recommInfo.getTags());
 
                 StringEntity bodyRequest = new StringEntity(jsonObject.toString());
-
+                HttpEntity entity = null;
                 //EXECUTE PUT REQUEST TO SSS server
-                HttpEntity entity = recommClient.httpPUTRequest(uri, recommClient.getTokenHeader(), bodyRequest);
+                try {
+                    entity = recommClient.httpPUTRequest(uri, recommClient.getTokenHeader(), bodyRequest);
+
+                }catch (RequestRejectedException|TimeoutException e){
+                    return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+                }
 
                 if(entity!=null) {
                     // CONVERT RESPONSE TO STRING
@@ -116,7 +125,6 @@ public class RecommController {
             if(entity!=null) {
                 // CONVERT RESPONSE TO STRING
                 String result = EntityUtils.toString(entity);
-
                 //VERY IMPORTANT TO FREE RESOURCES AFTER CREATING HTTP ENTITY
                 EntityUtils.consume(entity);
                 return new ResponseEntity<>(result, HttpStatus.ACCEPTED);

@@ -1,135 +1,167 @@
 package de.hska.ld.ldToSSS.client;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.*;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.*;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.*;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.security.crypto.codec.Base64;
+import org.springframework.security.web.firewall.RequestRejectedException;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 public class RecommClient{
     @Autowired
     private Environment env;
 
     private String token_sss;
+    private static String proxyUser;
+    private static String proxyPass;
+    private Boolean usingProxy = false;
+
 
     public RecommClient(String token_sss) throws Exception{
         this.token_sss = token_sss;
+    }
+
+    public RecommClient(String token_sss, String proxyUser, String proxyPass) throws Exception{
+        this.token_sss = token_sss;
+        this.proxyUser = proxyUser;
+        this.proxyPass = proxyPass;
+        this.usingProxy = true;
     }
 
     public String getToken_sss() {
         return token_sss;
     }
 
-    public void setToken_sss(String token_sss) {
-        this.token_sss = token_sss;
+    public static String getProxyUser() {
+        return proxyUser;
     }
 
-    /*URI uri = new URIBuilder()
-            .setScheme("http")
-            .setHost("www.google.com")
-            .setPath("/search")
-            .setParameter("q", "httpclient")
-            .setParameter("btnG", "Google Search")
-            .setParameter("aq", "f")
-            .setParameter("oq", "")
-            .build();*/
+    public static String getProxyPass() {
+        return proxyPass;
+    }
+
+    public Boolean isUsingProxy() {
+        return usingProxy;
+    }
+
+    /*
+        URI uri = new URIBuilder()
+        .setScheme("http")
+        .setHost("www.google.com")
+        .setPath("/search")
+        .setParameter("q", "httpclient")
+        .setParameter("btnG", "Google Search")
+        .setParameter("aq", "f")
+        .setParameter("oq", "")
+        .build();
+    */
 
     public HttpEntity httpGETRequest(URI uri, List<NameValuePair> headers) throws Exception{
-
-        CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(uri);
-        CloseableHttpResponse response = null;
+        HttpResponse response;
 
-        try {
-            for (NameValuePair h : headers)
-            {
-                httpGet.addHeader(h.getName(), h.getValue());
-            }
-
-            response = httpclient.execute(httpGet);
-
-            /*BufferedReader br = new BufferedReader(new InputStreamReader(
-                    (response.getEntity().getContent())));
-
-            String output;
-            System.out.println("Output from Server .... \n");
-            while ((output = br.readLine()) != null) {
-                System.out.println(output);
-            }*/
-            return response.getEntity();
-        }finally {
-            response.close();
+        for (NameValuePair h : headers)
+        {
+            httpGet.addHeader(h.getName(), h.getValue());
         }
+
+         if(isUsingProxy()) {
+             response = requestWithProxy(httpGet);
+         }else{
+             response = request(httpGet);
+         }
+
+         if(response!=null) {
+             if(response.getStatusLine().getStatusCode() != 500) {
+                 return response.getEntity();
+             }else{
+                 throw new RequestRejectedException("Social Semantic Server couldn't process GET request");
+             }
+         }
+
+        throw new TimeoutException("There was an error connecting LDocs to SSS (GET request), please try again later");
     }
 
     public HttpEntity httpPOSTRequest(URI uri, List<NameValuePair> headers, HttpEntity body) throws Exception{
-        CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(uri);
-        CloseableHttpResponse response = null;
-
+        HttpResponse response;
         try {
-            // WORK AROUND StringEntity (BODY)
-            // httpPut.setEntity(new StringEntity("{\"filters\":true}"));
-
             httpPost.setEntity(body);
             httpPost.addHeader("Accept", "application/json");
             httpPost.addHeader("Content-Type", "application/json");
 
-            for (NameValuePair h : headers)
-            {
+            for (NameValuePair h : headers) {
                 httpPost.addHeader(h.getName(), h.getValue());
             }
-            response = httpclient.execute(httpPost);
-            return response.getEntity();
-
-        } finally {
-            response.close();
+            if (isUsingProxy()) {
+                response = requestWithProxy(httpPost);
+            } else {
+                response = request(httpPost);
+            }
+            if (response != null) {
+                if (response.getStatusLine().getStatusCode() != 500) {
+                    return response.getEntity();
+                } else {
+                    throw new RequestRejectedException("Social Semantic Server couldn't process POST request");
+                }
+            }
+            throw new TimeoutException("There was an error connecting LDocs to SSS (POST request), please try again later");
+        }finally {
+            if(body!=null){
+                EntityUtils.consume(body);
+            }
         }
     }
 
     public HttpEntity httpPUTRequest(URI uri, List<NameValuePair> headers, HttpEntity body) throws Exception{
-        CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpPut httpPut = new HttpPut(uri);
-        CloseableHttpResponse response = null;
+        HttpResponse response;
 
         try {
-            // WORK AROUND StringEntity (BODY)
-            // httpPut.setEntity(new StringEntity("{\"filters\":true}"));
-
             httpPut.setEntity(body);
             httpPut.addHeader("Accept", "application/json");
             httpPut.addHeader("Content-Type", "application/json");
 
-            for (NameValuePair h : headers)
-            {
+            for (NameValuePair h : headers) {
                 httpPut.addHeader(h.getName(), h.getValue());
             }
 
-            response = httpclient.execute(httpPut);
+            if (isUsingProxy()) {
+                response = requestWithProxy(httpPut);
+            } else {
+                response = request(httpPut);
+            }
 
-            //System.out.println(response.getStatusLine());
-            // do something useful with the response body
-            // and ensure it is fully consumed
-
+            if (response != null) {
+                if (response.getStatusLine().getStatusCode() != 500) {
+                    return response.getEntity();
+                } else {
+                    throw new RequestRejectedException("Social Semantic Server couldn't process PUT request");
+                }
+            }
+            throw new TimeoutException("There was an error connecting LDocs to SSS (PUT request), please try again later");
+        }finally {
             if(body!=null){
                 EntityUtils.consume(body);
             }
-
-            return response.getEntity();
-        } finally {
-            response.close();
         }
+
     }
 
     public List<NameValuePair> getTokenHeader(){
@@ -138,6 +170,84 @@ public class RecommClient{
         nvps.add(new BasicNameValuePair("Authorization", getToken_sss()));
         return nvps;
     }
+
+
+    ////////////////////////////////////////////////////////////////////
+    ///////////////////////////PROXY NETWORK SETUP//////////////////////
+    ////////////////////////////////////////////////////////////////////
+    //IMPORTANT This is used whenever we test our module within the Hochschule Karlsruhe, type your proxy HS credentials
+    public HttpResponse requestWithProxy(HttpRequestBase request) {
+        String USERNAME = getProxyUser(); // username for proxy authentication
+        String PASSWORD = getProxyPass(); // password for proxy authentication
+
+        HttpResponse resp = null;
+        String PROXY_ADDRESS = "proxy.hs-karlsruhe.de"; // proxy (IP) address
+        String PROXY_DOMAIN = "http"; // proxy domain
+
+        HttpHost proxy = new HttpHost(PROXY_ADDRESS, 8888);
+        DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+
+        AuthCache authCache = new BasicAuthCache();
+        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(new AuthScope(PROXY_ADDRESS, 8888), new NTCredentials(USERNAME, PASSWORD, "", PROXY_DOMAIN));
+        HttpClientContext context = HttpClientContext.create();
+        context.setCredentialsProvider(credsProvider);
+        context.setAuthCache(authCache);
+
+        String token = USERNAME + ":" + PASSWORD;
+        String auth = "Basic " + new String(Base64.encode(token.getBytes()));
+        request.addHeader("Proxy-Authorization", auth);
+        request.addHeader("Https-Proxy-Authorization", auth);
+
+        RequestConfig defaultRequestConfig = RequestConfig.custom()
+                .setSocketTimeout(5000)
+                .setConnectTimeout(5000)
+                .setConnectionRequestTimeout(5000)
+                .setStaleConnectionCheckEnabled(true)
+                .build();
+
+        //Main client about to connect
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setDefaultCredentialsProvider(credsProvider)
+                .setRoutePlanner(routePlanner)
+                .setDefaultRequestConfig(defaultRequestConfig)
+                .build();
+
+        try {
+            resp = httpclient.execute(request, context);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return resp;
+    }
+
+    public HttpResponse request(HttpRequestBase request){
+        HttpResponse resp = null;
+        RequestConfig defaultRequestConfig = RequestConfig.custom()
+                .setSocketTimeout(5000)
+                .setConnectTimeout(5000)
+                .setConnectionRequestTimeout(5000)
+                .setStaleConnectionCheckEnabled(true)
+                .build();
+
+        //Main client about to connect
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setDefaultRequestConfig(defaultRequestConfig)
+                .build();
+
+        try {
+            resp = httpclient.execute(request);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return resp;
+    }
+
+
+
+
+
+
 
 
 
