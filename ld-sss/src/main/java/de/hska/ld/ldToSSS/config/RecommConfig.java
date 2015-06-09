@@ -30,6 +30,10 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @Configuration
 public class RecommConfig {
 
+    /**
+     *
+     * @return returns new Recommendation Client Object
+     */
     @Bean
     public RecommClient recommClient() {
         //This access token was provided to Martin Bachl

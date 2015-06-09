@@ -32,7 +32,11 @@ public class RecommClient{
     private static String proxyPass;
     private Boolean usingProxy = false;
 
-
+    /**
+     *
+     * @param token_sss Security token
+     * @throws Exception
+     */
     public RecommClient(String token_sss) throws Exception{
         this.token_sss = token_sss;
     }
@@ -44,14 +48,27 @@ public class RecommClient{
         this.usingProxy = true;
     }
 
+    /**
+     *
+     * @return returns security token
+     */
     public String getToken_sss() {
         return token_sss;
     }
 
+
+    /**
+     *
+     * @param token_sss security token
+     */
+    public void setToken_sss(String token_sss) {
+        this.token_sss = token_sss;
+    }
+    
     public static String getProxyUser() {
         return proxyUser;
     }
-
+    
     public static String getProxyPass() {
         return proxyPass;
     }
@@ -59,7 +76,7 @@ public class RecommClient{
     public Boolean isUsingProxy() {
         return usingProxy;
     }
-
+    
     /*
         URI uri = new URIBuilder()
         .setScheme("http")
@@ -71,8 +88,16 @@ public class RecommClient{
         .setParameter("oq", "")
         .build();
     */
-
+    /**
+     * Method for GET Requests
+     *
+     * @param uri URI for GET Request
+     * @param headers Header with authentification information
+     * @return  Response is the found entity object
+     * @throws Exception
+     */
     public HttpEntity httpGETRequest(URI uri, List<NameValuePair> headers) throws Exception{
+        CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(uri);
         HttpResponse response;
 
@@ -129,6 +154,16 @@ public class RecommClient{
         }
     }
 
+    /**
+     * Method for PUT Requests
+     *
+     * @param uri URI for PUT Request
+     * @param headers Header with authentification information
+     * @param body content to PUT
+     * @return returns the fully updated entity
+     * @throws Exception
+     */
+
     public HttpEntity httpPUTRequest(URI uri, List<NameValuePair> headers, HttpEntity body) throws Exception{
         HttpPut httpPut = new HttpPut(uri);
         HttpResponse response;
@@ -161,8 +196,12 @@ public class RecommClient{
                 EntityUtils.consume(body);
             }
         }
-
     }
+
+    /**
+     *
+     * @return
+     */
 
     public List<NameValuePair> getTokenHeader(){
         List<NameValuePair> nvps = new ArrayList<NameValuePair>();
