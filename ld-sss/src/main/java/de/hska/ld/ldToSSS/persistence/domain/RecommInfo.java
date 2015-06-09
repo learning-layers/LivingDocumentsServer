@@ -53,7 +53,7 @@ public class RecommInfo {
     @Column(name = "entity", nullable = false)
     private String entity;
 
-    private ArrayList<String> tags;
+    private ArrayList<Tag> tags;
 
     public RecommInfo(){
     }
@@ -69,7 +69,7 @@ public class RecommInfo {
     @JoinTable(name = "ld_document_expert",
             joinColumns = {@JoinColumn(name = "user_id")},
             inverseJoinColumns = {@JoinColumn(name = "document_id")})
-    List<Document> documentList;
+    private List<Document> documentList;
 //
 //    @ManyToMany(cascade = CascadeType.ALL)
 //    @JoinTable(name = "ld_category_sss_recomm",
@@ -117,25 +117,33 @@ public class RecommInfo {
         this.documentList = documentList;
     }
 
-    public ArrayList<String> getTags() {
+    public ArrayList<Tag> getTags() {
         return tags;
     }
 
-    public void setTags(ArrayList<String> tags) {
+    public void setTags(ArrayList<Tag> tags) {
         this.tags = tags;
     }
 
     public void updateTagList(){
-        ArrayList<String> tagList = new ArrayList<>();
+        tags= new ArrayList<Tag>();
         for(Document document : documentList){
             for(Tag tag : document.getTagList()){
-                String tagName = tag.getName();
-
-                if(!tagName.isEmpty() && !tagList.contains(tagName)) {
-                    tagList.add(tagName);
+                if(!tags.contains(tag)) {
+                    tags.add(tag);
                 }
             }
         }
-        setTags(tagList);
     }
+
+    public ArrayList<String> retrieveTagNames(ArrayList<Tag> tagList){
+        ArrayList<String> tagNamesList = new ArrayList<String>();
+        for(Tag tag: tagList){
+            if(!tagNamesList.contains(tag.getName())) {
+                tagNamesList.add(tag.getName());
+            }
+        }
+        return tagNamesList;
+    }
+
 }

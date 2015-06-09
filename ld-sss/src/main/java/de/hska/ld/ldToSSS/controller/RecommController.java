@@ -1,7 +1,9 @@
 package de.hska.ld.ldToSSS.controller;
 
 import com.sun.mail.iap.ConnectionException;
+import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.content.service.UserContentInfoService;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.net.ConnectException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 
@@ -39,6 +42,9 @@ public class RecommController {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private UserContentInfoService userContentInfoService;
 
     @Autowired
     private RecommInfoService recommInfoService;
@@ -58,9 +64,10 @@ public class RecommController {
 
             //Make sure the user we are about to PUT in SSS exists in our DB as well
             if (recommInfo != null) {
-
-                //GET DOCUMENTS in which user is EXPERT and update TAGS
+                //GET DOCUMENTS in which user is EXPERT and update TAGS, INDIRECT TAGS
                 recommInfo.updateTagList();
+                ArrayList<Tag> userDirectTags = recommInfo.getTags();
+                //userContentInfoService.getUserContentTagsPage(id,0,10, "DESC","id");
 
                 URI uri = new URIBuilder()
                         .setScheme("http")
@@ -72,7 +79,7 @@ public class RecommController {
                 jsonObject.put("realm", recommInfo.getRealm());
                 jsonObject.put("forUser", recommInfo.getForUser());
                 jsonObject.put("entity", recommInfo.getEntity());
-                jsonObject.put("tags", recommInfo.getTags());
+                jsonObject.put("tags", recommInfo.retrieveTagNames(userDirectTags));
 
                 StringEntity bodyRequest = new StringEntity(jsonObject.toString());
                 HttpEntity entity = null;
