@@ -79,7 +79,9 @@ public class RecommController {
                     userDirTags.addAll(tagsPage.getContent());
                 }
 
-                //TODO distinguish in the SSS about what to do with DIRECT TAGS and INDIRECT TAGS (Just as an expert on the topic)
+                //TODO DIFFERENTIATE in the SSS about what to do with DIRECT TAGS
+                // INDIRECT TAGS (Just as an expert on the topic)
+                //currently tags are only for one
                 if(userDirTags != null && userDirTags.size()>0){
                     userINDirectTags.addAll(userDirTags);
                 }
