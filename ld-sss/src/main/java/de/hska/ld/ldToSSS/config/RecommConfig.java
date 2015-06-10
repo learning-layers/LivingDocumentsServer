@@ -40,11 +40,11 @@ public class RecommConfig {
         String token_sss = "886be164d6049c40b2e3d6ce7c22b0d0";
 
         //CHANGE Flag whenever you test module within the Hochschule
-        Boolean requiresProxy = false;
+        Boolean requiresProxy = true;
 
         //PROXY personal credentials to access within the Hochschule
-        String proxy_username = "personal_username";
-        String proxy_password = "personal_password";
+        String proxy_username = "vigr1011";
+        String proxy_password = "Stellate91";
         try {
             if(requiresProxy) {
                 return new RecommClient(token_sss, proxy_username, proxy_password);

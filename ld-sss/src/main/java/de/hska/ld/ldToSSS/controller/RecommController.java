@@ -1,6 +1,5 @@
 package de.hska.ld.ldToSSS.controller;
 
-import com.sun.mail.iap.ConnectionException;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.UserContentInfoService;
@@ -18,6 +17,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.net.ConnectException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
@@ -64,10 +63,26 @@ public class RecommController {
 
             //Make sure the user we are about to PUT in SSS exists in our DB as well
             if (recommInfo != null) {
-                //GET DOCUMENTS in which user is EXPERT and update TAGS, INDIRECT TAGS
+                //UPDATE INDIRECT TAGS in which user is EXPERT
                 recommInfo.updateTagList();
-                ArrayList<Tag> userDirectTags = recommInfo.getTags();
-                //userContentInfoService.getUserContentTagsPage(id,0,10, "DESC","id");
+
+                //GET TAGS from DOCUMENTS in which this user is an EXPERT
+                ArrayList<Tag> userINDirectTags = recommInfo.getTags();
+
+                //GET user DIRECT TAGS from user-content_Info
+                //User is strongly attached to published document
+                Page<Tag> tagsPage = userContentInfoService.getUserContentTagsPage(id, 0, 10, "DESC", "id");
+                ArrayList<Tag> userDirTags = null;
+
+                if (tagsPage != null && tagsPage.getNumberOfElements() > 0) {
+                    userDirTags = new ArrayList<Tag>();
+                    userDirTags.addAll(tagsPage.getContent());
+                }
+
+                //TODO distinguish in the SSS about what to do with DIRECT TAGS and INDIRECT TAGS (Just as an expert on the topic)
+                if(userDirTags != null && userDirTags.size()>0){
+                    userINDirectTags.addAll(userDirTags);
+                }
 
                 URI uri = new URIBuilder()
                         .setScheme("http")
@@ -79,7 +94,7 @@ public class RecommController {
                 jsonObject.put("realm", recommInfo.getRealm());
                 jsonObject.put("forUser", recommInfo.getForUser());
                 jsonObject.put("entity", recommInfo.getEntity());
-                jsonObject.put("tags", recommInfo.retrieveTagNames(userDirectTags));
+                jsonObject.put("tags", recommInfo.retrieveUniqueTagNames(userINDirectTags));
 
                 StringEntity bodyRequest = new StringEntity(jsonObject.toString());
                 HttpEntity entity = null;

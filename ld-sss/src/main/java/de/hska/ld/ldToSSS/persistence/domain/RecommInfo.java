@@ -136,7 +136,7 @@ public class RecommInfo {
         }
     }
 
-    public ArrayList<String> retrieveTagNames(ArrayList<Tag> tagList){
+    public ArrayList<String> retrieveUniqueTagNames(ArrayList<Tag> tagList){
         ArrayList<String> tagNamesList = new ArrayList<String>();
         for(Tag tag: tagList){
             if(!tagNamesList.contains(tag.getName())) {

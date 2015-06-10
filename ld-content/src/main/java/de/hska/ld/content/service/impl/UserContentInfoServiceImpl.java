@@ -64,6 +64,9 @@ public class UserContentInfoServiceImpl implements UserContentInfoService {
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         User user = userService.findById(userId);
         UserContentInfo userContentInfo = userContentInfoRepository.findByUser(user);
-        return userContentInfoRepository.findAllTagsForUserContent(userContentInfo.getId(), pageable);
+        if(userContentInfo!= null) {
+            return userContentInfoRepository.findAllTagsForUserContent(userContentInfo.getId(), pageable);
+        }else
+            return null;
     }
 }
