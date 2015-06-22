@@ -59,6 +59,8 @@ public interface UserService extends UserDetailsService, Service<User> {
 
     Page<User> getUsersDisabledPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
+    Page<User> getUsersActivePage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+
     User activateUser(Long userid);
 
     User deactivateUser(Long userid);

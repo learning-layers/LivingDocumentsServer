@@ -245,6 +245,19 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     }
 
     @Override
+    public Page<User> getUsersActivePage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        User user = Core.currentUser();
+        return repository.findActivatedAll(pageable);
+    }
+
+    @Override
     @Transactional
     public User activateUser(Long userid) {
         User user = super.findById(userid);

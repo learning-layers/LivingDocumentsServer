@@ -120,7 +120,7 @@ public class UserController {
 
     /**
      * <pre>
-     * Gets a list with all users.
+     * Gets a list with disabled users.
      *
      * <b>Required roles:</b> ROLE_ADMIN
      * <b>Path:</b> GET {@value Core#RESOURCE_USER}
@@ -146,6 +146,38 @@ public class UserController {
             }
         };
     }
+
+
+    //TODO add to APIDoc
+    /**
+     * <pre>
+     * Gets a list with activated users.
+     *
+     * <b>Required roles:</b> ROLE_ADMIN
+     * <b>Path:</b> GET {@value Core#RESOURCE_USER}
+     * </pre>
+     *
+     * @return <b>200 OK</b> and a list with all users or <br>
+     * <b>403 Forbidden</b> if authorization failed or <br>
+     * <b>404 Not Found</b> if no users are in the system
+     */
+    @Secured(Core.ROLE_ADMIN)
+    @RequestMapping(method = RequestMethod.GET, value = "/activated")
+    @Transactional(readOnly = true)
+    public Callable getUsersActivePage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                         @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                         @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                         @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        return () -> {
+            Page<User> usersPage = userService.getUsersActivePage(pageNumber, pageSize, sortDirection, sortProperty);
+            if (usersPage != null) {
+                return new ResponseEntity<>(usersPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
+    }
+
 
     //TODO Description
     @Secured(Core.ROLE_ADMIN)

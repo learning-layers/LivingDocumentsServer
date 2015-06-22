@@ -55,6 +55,9 @@ public interface UserRepository extends CrudRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.enabled is not true")
     Page<User> findDisabledAll(Pageable pageable);
 
+    @Query("SELECT u FROM User u WHERE u.enabled is true")
+    Page<User> findActivatedAll(Pageable pageable);
+
     @Query("SELECT u FROM User u WHERE u.username LIKE :term")
     List<User> findMentionSuggestions(@Param("term") String term);
 
