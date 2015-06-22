@@ -214,7 +214,7 @@ public class RecommClient{
     ////////////////////////////////////////////////////////////////////
     ///////////////////////////PROXY NETWORK SETUP//////////////////////
     ////////////////////////////////////////////////////////////////////
-    //IMPORTANT This is used whenever we test our module within the Hochschule Karlsruhe, type your proxy HS credentials
+    //IMPORTANT This is used whenever we test our module within the Hochschule Karlsruhe
     public HttpResponse requestWithProxy(HttpRequestBase request) {
         String USERNAME = getProxyUser(); // username for proxy authentication
         String PASSWORD = getProxyPass(); // password for proxy authentication

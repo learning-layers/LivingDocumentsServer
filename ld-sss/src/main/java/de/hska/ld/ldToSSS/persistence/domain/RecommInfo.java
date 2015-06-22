@@ -53,6 +53,9 @@ public class RecommInfo {
     @Column(name = "entity", nullable = false)
     private String entity;
 
+    @Column(name = "deleted", nullable = false)
+    private Byte deleted = 0;
+
     private ArrayList<Tag> tags;
 
     public RecommInfo(){
@@ -125,6 +128,14 @@ public class RecommInfo {
         this.tags = tags;
     }
 
+    public Byte isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Byte deleted) {
+        this.deleted = deleted;
+    }
+
     public void updateTagList(){
         tags= new ArrayList<Tag>();
         for(Document document : documentList){
@@ -138,9 +149,11 @@ public class RecommInfo {
 
     public ArrayList<String> retrieveUniqueTagNames(ArrayList<Tag> tagList){
         ArrayList<String> tagNamesList = new ArrayList<String>();
-        for(Tag tag: tagList){
-            if(!tagNamesList.contains(tag.getName())) {
-                tagNamesList.add(tag.getName());
+        if(tagList!=null) {
+            for (Tag tag : tagList) {
+                if (!tagNamesList.contains(tag.getName())) {
+                    tagNamesList.add(tag.getName());
+                }
             }
         }
         return tagNamesList;
