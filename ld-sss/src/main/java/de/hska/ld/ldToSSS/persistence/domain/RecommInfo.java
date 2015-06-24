@@ -25,6 +25,7 @@ package de.hska.ld.ldToSSS.persistence.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
@@ -35,24 +36,28 @@ import java.util.List;
 @Table(name = "ld_sss_recomm")
 public class RecommInfo {
 
-//    @JsonIgnore
+    //@JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private Long id;
+
+    @Column(name = "type_id", nullable = false)
+    private Long typeID;
+
+    @NotBlank
+    @Column(name = "type", nullable = false)
+    @Length(max = 20)
+    private String type = "USER";
 
     @NotBlank
     @Column(name = "realm", nullable = false)
     private String realm;
 
     @NotBlank
-    @Column(name = "forUser", nullable = false)
-    private String forUser;
-
-    @NotBlank
     @Column(name = "entity", nullable = false)
     private String entity;
 
+    @JsonIgnore
     @Column(name = "deleted", nullable = false)
     private Byte deleted = 0;
 
@@ -61,10 +66,11 @@ public class RecommInfo {
     public RecommInfo(){
     }
 
-    public RecommInfo(Long userId, String realm, String forUser){
-        this.userId = userId;
+    public RecommInfo(Long typeID, String type, String realm, String entity){
+        this.typeID = typeID;
+        this.type = type;
         this.realm = realm;
-        this.forUser = forUser;
+        this.entity = entity;
     }
 
     @JsonIgnore
@@ -80,20 +86,17 @@ public class RecommInfo {
 //            inverseJoinColumns = {@JoinColumn(name = "category_id", referencedColumnName="id")})
 //    List<Category> categoryList;
 
+
+    public Long getTypeID() {
+        return typeID;
+    }
+
     public String getRealm() {
         return realm;
     }
 
     public void setRealm(String realm) {
         this.realm = realm;
-    }
-
-    public String getForUser() {
-        return forUser;
-    }
-
-    public void setForUser(String forUser) {
-        this.forUser = forUser;
     }
 
     public String getEntity() {
@@ -104,12 +107,20 @@ public class RecommInfo {
         this.entity = entity;
     }
 
-    public Long getUserId() {
-        return userId;
+    public Long getId() {
+        return id;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public List<Document> getDocumentList() {
@@ -138,10 +149,12 @@ public class RecommInfo {
 
     public void updateTagList(){
         tags= new ArrayList<Tag>();
-        for(Document document : documentList){
-            for(Tag tag : document.getTagList()){
-                if(!tags.contains(tag)) {
-                    tags.add(tag);
+        if(getDocumentList() != null) {
+            for (Document document : documentList) {
+                for (Tag tag : document.getTagList()) {
+                    if (!tags.contains(tag)) {
+                        tags.add(tag);
+                    }
                 }
             }
         }

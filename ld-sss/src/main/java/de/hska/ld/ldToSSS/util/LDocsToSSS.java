@@ -27,5 +27,6 @@ public class LDocsToSSS{
     public static final String RESOURCE_DOCUMENT_LDToSSS = Core.RESOURCE_API + "/ldToSSS";
     public static final String RESOURCE_SSS_HOST = "test-ll.know-center.tugraz.at";
     public static final String RESOURCE_SSS_RECOMM_PATH = "/ld/recomm";
+    public static final String RESOURCE_LD_URI = "http://www.ldocs.org";
 
 }
