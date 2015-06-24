@@ -74,4 +74,6 @@ public interface UserService extends UserDetailsService, Service<User> {
     void changeEmail(User user, String emailToBeConfirmed);
 
     void changeEmailConfirm(String confirmationKey);
+
+    User findBySubIdAndIssuer(String subId, String issuer);
 }

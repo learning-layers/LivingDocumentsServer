@@ -374,6 +374,11 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         }
     }
 
+    @Override
+    public User findBySubIdAndIssuer(String subId, String issuer) {
+        return repository.findBySubIdAndIssuer(subId, issuer);
+    }
+
     private void createRoleListForUser(User user) {
         Collection<Role> roleList;
         boolean adminAvailable = findByUsername(Core.BOOTSTRAP_ADMIN) != null;
