@@ -36,7 +36,8 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-@Table(name = "ld_user", indexes = @Index(name = "ld_user_username_idx", columnList = "username"))
+@Table(name = "ld_user", indexes = @Index(name = "ld_user_username_idx", columnList = "username"), uniqueConstraints=
+@UniqueConstraint(columnNames = {"subId", "issuer"}))
 public class User implements UserDetails {
 
     public User() {
@@ -60,6 +61,12 @@ public class User implements UserDetails {
     @Email
     @Column(name = "email", unique = true)
     private String email;
+
+    @Column(name = "subId", nullable = true)
+    private String subId;
+
+    @Column(name = "issuer", nullable = true)
+    private String issuer;
 
     @Email
     private String emailToBeConfirmed;
