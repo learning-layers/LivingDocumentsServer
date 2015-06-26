@@ -123,6 +123,16 @@ public class RecommClient{
         throw new TimeoutException("There was an error connecting LDocs to SSS (GET request), please try again later");
     }
 
+
+    /**
+     * Method for POST Request
+     *
+     * @param uri URI for POST Request
+     * @param headers Header with authentification information
+     * @param body POST content sent to Server
+     * @return Response is the created entity object
+     * @throws Exception
+     */
     public HttpEntity httpPOSTRequest(URI uri, List<NameValuePair> headers, HttpEntity body) throws Exception{
         HttpPost httpPost = new HttpPost(uri);
         HttpResponse response;
@@ -163,7 +173,6 @@ public class RecommClient{
      * @return returns the fully updated entity
      * @throws Exception
      */
-
     public HttpEntity httpPUTRequest(URI uri, List<NameValuePair> headers, HttpEntity body) throws Exception{
         HttpPut httpPut = new HttpPut(uri);
         HttpResponse response;
@@ -200,9 +209,8 @@ public class RecommClient{
 
     /**
      *
-     * @return
+     * @return returns authorization token
      */
-
     public List<NameValuePair> getTokenHeader(){
         List<NameValuePair> nvps = new ArrayList<NameValuePair>();
         //nvps.add(new BasicNameValuePair("content-type", "application/json"));
@@ -215,6 +223,12 @@ public class RecommClient{
     ///////////////////////////PROXY NETWORK SETUP//////////////////////
     ////////////////////////////////////////////////////////////////////
     //IMPORTANT This is used whenever we test our module within the Hochschule Karlsruhe
+
+    /**
+     *
+     * @param request
+     * @return returns HTTP Response through proxy
+     */
     public HttpResponse requestWithProxy(HttpRequestBase request) {
         String USERNAME = getProxyUser(); // username for proxy authentication
         String PASSWORD = getProxyPass(); // password for proxy authentication
@@ -260,6 +274,11 @@ public class RecommClient{
         return resp;
     }
 
+    /**
+     *
+     * @param request HTTP Request
+     * @return returns HTTP Respons without proxy
+     */
     public HttpResponse request(HttpRequestBase request){
         HttpResponse resp = null;
         RequestConfig defaultRequestConfig = RequestConfig.custom()
