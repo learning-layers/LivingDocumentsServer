@@ -91,9 +91,11 @@ public class RecommController {
                         .setPath(LDocsToSSS.RESOURCE_SSS_RECOMM_PATH + "/recomm/update")
                         .build();
 
+                String postingEntity = LDocsToSSS.RESOURCE_LD_URI + "/user/" + Core.currentUser().getId(); ;
+
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("realm", recommInfo.getRealm());
-                jsonObject.put("forUser", recommInfo.getEntity());
+                jsonObject.put("forUser", postingEntity);
                 jsonObject.put("entity", recommInfo.getEntity());
 
                 if(tagsJSON!=null)
@@ -167,9 +169,11 @@ public class RecommController {
                         .setPath(LDocsToSSS.RESOURCE_SSS_RECOMM_PATH + "/recomm/update")
                         .build();
 
+                String postingEntity = LDocsToSSS.RESOURCE_LD_URI + "/user/" + Core.currentUser().getId(); ;
+
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("realm", recommInfo.getRealm());
-                jsonObject.put("forUser", recommInfo.getEntity());
+                jsonObject.put("forUser", postingEntity);
                 jsonObject.put("entity", recommInfo.getEntity());
                 jsonObject.put("tags", recommInfo.retrieveUniqueTagNames(userINDirectTags));
 
@@ -226,7 +230,6 @@ public class RecommController {
                     userDirTags.addAll(tagsPage.getContent());
                 }
 
-                //TODO DIFFERENTIATE in the SSS about what to do with DIRECT TAGS
                 // INDIRECT TAGS (Just as an expert on the topic)
                 //currently tags are only for one
                 if(userDirTags != null && userDirTags.size()>0){
@@ -239,9 +242,11 @@ public class RecommController {
                         .setPath(LDocsToSSS.RESOURCE_SSS_RECOMM_PATH + "/recomm/update")
                         .build();
 
+                String postingEntity = LDocsToSSS.RESOURCE_LD_URI + "/user/" + Core.currentUser().getId(); ;
+
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("realm", recommInfo.getRealm());
-                jsonObject.put("forUser", recommInfo.getEntity());
+                jsonObject.put("forUser", postingEntity);
                 jsonObject.put("entity", recommInfo.getEntity());
                 jsonObject.put("tags", recommInfo.retrieveUniqueTagNames(userINDirectTags));
 
@@ -302,9 +307,11 @@ public class RecommController {
                         .setPath(LDocsToSSS.RESOURCE_SSS_RECOMM_PATH + "/recomm/update")
                         .build();
 
+                String postingEntity = LDocsToSSS.RESOURCE_LD_URI + "/user/" + Core.currentUser().getId(); ;
+
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("realm", recommInfo.getRealm());
-                jsonObject.put("forUser", recommInfo.getEntity());
+                jsonObject.put("forUser", postingEntity);
                 jsonObject.put("entity", recommInfo.getEntity());
                 jsonObject.put("tags", tagsJSON);
 
