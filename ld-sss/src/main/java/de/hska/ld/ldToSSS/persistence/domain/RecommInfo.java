@@ -61,6 +61,7 @@ public class RecommInfo {
     @Column(name = "deleted", nullable = false)
     private Byte deleted = 0;
 
+    @JsonIgnore
     private ArrayList<Tag> tags;
 
     public RecommInfo(){
@@ -132,11 +133,18 @@ public class RecommInfo {
     }
 
     public ArrayList<Tag> getTags() {
+        if(tags==null)
+            tags= new ArrayList<Tag>();
+        if(getDocumentList() != null) {
+            for (Document document : documentList) {
+                for (Tag tag : document.getTagList()) {
+                    if (!tags.contains(tag)) {
+                        tags.add(tag);
+                    }
+                }
+            }
+        }
         return tags;
-    }
-
-    public void setTags(ArrayList<Tag> tags) {
-        this.tags = tags;
     }
 
     public Byte isDeleted() {
@@ -147,8 +155,9 @@ public class RecommInfo {
         this.deleted = deleted;
     }
 
-    public void updateTagList(){
-        tags= new ArrayList<Tag>();
+    /*public void updateTagList(){
+        if(tags==null)
+            tags= new ArrayList<Tag>();
         if(getDocumentList() != null) {
             for (Document document : documentList) {
                 for (Tag tag : document.getTagList()) {
@@ -158,7 +167,7 @@ public class RecommInfo {
                 }
             }
         }
-    }
+    }*/
 
     public ArrayList<String> retrieveUniqueTagNames(ArrayList<Tag> tagList){
         ArrayList<String> tagNamesList = new ArrayList<String>();

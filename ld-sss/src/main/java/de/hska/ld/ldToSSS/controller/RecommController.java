@@ -79,8 +79,7 @@ public class RecommController {
                 List<Tag> fileTags = document.getTagList();
 
                 if(fileTags!= null && !fileTags.isEmpty()){
-                    recommInfo.setTags(new ArrayList<>(fileTags));
-                    tagsJSON = recommInfo.retrieveUniqueTagNames(recommInfo.getTags());
+                    tagsJSON = recommInfo.retrieveUniqueTagNames(new ArrayList<>(fileTags));
                 }
 
                 //First we store new object in our local DB before sending it to the SSS
@@ -135,8 +134,8 @@ public class RecommController {
             Long id = postRecommInfo.getTypeID();
             if(id != null && userService.findById(id) != null){
                 RecommInfo recommInfo = generateUserData(postRecommInfo);
-                //UPDATE INDIRECT TAGS in which user is EXPERT
-                recommInfo.updateTagList();
+//                UPDATE INDIRECT TAGS in which user is EXPERT
+//                recommInfo.updateTagList();
 
                 //GET TAGS from DOCUMENTS in which this user is an EXPERT
                 ArrayList<Tag> userINDirectTags = recommInfo.getTags();
@@ -207,8 +206,8 @@ public class RecommController {
 
             //Make sure the user we are about to PUT in SSS exists in our DB as well
             if (recommInfo != null) {
-                //UPDATE INDIRECT TAGS in which user is EXPERT
-                recommInfo.updateTagList();
+//                UPDATE INDIRECT TAGS in which user is EXPERT
+//                recommInfo.updateTagList();
 
                 //GET TAGS from DOCUMENTS in which this user is an EXPERT
                 ArrayList<Tag> userINDirectTags = recommInfo.getTags();
@@ -290,8 +289,7 @@ public class RecommController {
                 List<Tag> fileTags = document.getTagList();
 
                 if(fileTags!= null && !fileTags.isEmpty()){
-                    recommInfo.setTags(new ArrayList<Tag>(fileTags));
-                    tagsJSON = recommInfo.retrieveUniqueTagNames(recommInfo.getTags());
+                    tagsJSON = recommInfo.retrieveUniqueTagNames(new ArrayList<Tag>(fileTags));
                 }
 
                 URI uri = new URIBuilder()
@@ -339,53 +337,6 @@ public class RecommController {
     }
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.PUT, value = "/recomm/update",headers = {"Content-type=application/json", "Content-Type:text/plain;charset=UTF-8"})
-    @Transactional(readOnly = true)
-    public Callable updateUserSSS(@RequestBody RecommInfo recommInfo) {
-        return () -> {
-
-            if (recommInfo != null) {
-
-                URI uri = new URIBuilder()
-                        .setScheme("http")
-                        .setHost(LDocsToSSS.RESOURCE_SSS_HOST)
-                        .setPath(LDocsToSSS.RESOURCE_SSS_RECOMM_PATH + "/recomm/update")
-                        .build();
-                HttpEntity entity = null;
-                //EXECUTE PUT REQUEST TO SSS server
-                try {
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("realm", recommInfo.getRealm());
-                    jsonObject.put("forUser", recommInfo.getEntity());
-                    jsonObject.put("entity", recommInfo.getEntity());
-                    jsonObject.put("tags", recommInfo.getTags());
-
-                    StringEntity bodyRequest = new StringEntity(jsonObject.toString());
-                    entity = recommClient.httpPUTRequest(uri, recommClient.getTokenHeader(), bodyRequest);
-
-                }catch (RequestRejectedException|TimeoutException e){
-                    return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
-                }
-
-                if(entity!=null) {
-                    // CONVERT RESPONSE TO STRING
-                    String result = EntityUtils.toString(entity);
-                    JSONObject jsonObject = convertToJson(result);
-
-                    //VERY IMPORTANT TO FREE RESOURCES AFTER CREATING HTTP ENTITY
-                    EntityUtils.consume(entity);
-                    return new ResponseEntity<>(jsonObject, HttpStatus.CREATED);
-                }else{
-                    return new ResponseEntity<>("We could't connect to Social Semantic Server, please report it to IT administrators", HttpStatus.CONFLICT);
-                }
-
-            } else {
-                    return new ResponseEntity<>("Not possible to process your request! Please verify your object", HttpStatus.BAD_REQUEST);
-            }
-        };
-    }
-
-    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/recomm/users/{realm}")
     @Transactional(readOnly = true)
     public Callable getRecommUsersRealm(@PathVariable String realm) {
@@ -416,7 +367,6 @@ public class RecommController {
 
         };
     }
-
 
     //This function is called when you want to get recomm for an entity (many objects (users, documents, etc) can belong to an entity but not
     //the other way around
@@ -493,11 +443,51 @@ public class RecommController {
         };
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/recomm/file/{fileId}")
+    @Transactional(readOnly = true)
+    public Callable getRecommForFile(@PathVariable("fileId") long fileId) {
+        return () -> {
+            RecommInfo recommInfo = recommInfoService.findOneFile(fileId);
+
+            //Make sure the user we are about to PUT in SSS exists in our DB as well
+            if (recommInfo != null) {
+                String realm = URLEncoder.encode(recommInfo.getRealm(), "UTF-8");
+                String entity = URLEncoder.encode(recommInfo.getEntity(), "UTF-8");
+                URI uri = new URIBuilder()
+                        .setScheme("http")
+                        .setHost(LDocsToSSS.RESOURCE_SSS_HOST)
+                        .setPath(LDocsToSSS.RESOURCE_SSS_RECOMM_PATH + "/recomm/users/realm/" + realm + "/entity/" + entity)
+                        .build();
+                //EXECUTE GET REQUEST TO SSS server
+                HttpEntity httpEntity = recommClient.httpGETRequest(uri, recommClient.getTokenHeader());
+
+                if(httpEntity!=null) {
+                    // CONVERT RESPONSE TO STRING
+                    String result = EntityUtils.toString(httpEntity);
+                    JSONObject jsonResult = convertToJson(result);
+
+                    //VERY IMPORTANT TO FREE RESOURCES AFTER CREATING HTTP ENTITY
+                    EntityUtils.consume(httpEntity);
+                    return new ResponseEntity<>(jsonResult, HttpStatus.ACCEPTED);
+                }else{
+                    return new ResponseEntity<>("FILE was not found within the SSS, please contact IT administrators", HttpStatus.CONFLICT);
+                }
+            }else {
+                if(documentService.findById(fileId) != null){
+                    return new ResponseEntity<>("This file doesn't have any recommendations!", HttpStatus.ACCEPTED);
+                }else
+                    throw new NotFoundException("fileId");
+            }
+
+        };
+    }
+
     //This functions helps to get recommendations for a specific user (NOTE: you have to provide realm as well)
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/recomm/users/{realm}/user/{forUser}")
     @Transactional(readOnly = true)
-    public Callable getRecommForUser(@PathVariable String realm,@PathVariable("forUser") String forUser) {
+    public Callable getRecommForSendingUser(@PathVariable String realm,@PathVariable("forUser") String forUser) {
         return () -> {
             URI uri = new URIBuilder()
                     .setScheme("http")
@@ -525,7 +515,7 @@ public class RecommController {
     //NOT SURE IF DOCUMENT IS CREATED WHEN THEY ARE TYPING IT THE FIRST TIME....
     //TOCHECK  First we must add tag to document      POST /api/documents/{documentId}/tag/{tagId}
     //Then we add tag to user                         POST /api/users/{userId}/tag/{tagId}
-    //Update user in SSS                              POST /api/ldToSSS/recomm/update/{userId}
+    //Update user in SSS                              POST /api/ldToSSS/recomm/user/updateSSS/{id}
     //Get current recomm from SSS                     GET  /api/ldToSSS/recomm/user/{userId}
 
     public JSONObject convertToJson(String object){
