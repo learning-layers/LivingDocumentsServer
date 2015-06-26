@@ -70,7 +70,7 @@ public class RecommController {
         return () -> {
             Long id = postRecommInfo.getTypeID();
 
-            if(id != null && documentService.findById(id) != null){
+            if(id != null && documentService.findById(id) != null && recommInfoService.findOneFile(id) == null){
                 RecommInfo recommInfo = generateFileData(postRecommInfo);
                 Document document = documentService.findById(id);
                 ArrayList<String> tagsJSON = null;
@@ -119,8 +119,10 @@ public class RecommController {
                 }else{
                     return new ResponseEntity<>("We could't connect to Social Semantic Server, please report it to IT administrators", HttpStatus.CONFLICT);
                 }
-            }else {
+            }else if(id == null || documentService.findById(id) == null){
                 throw new NotFoundException("id_file");
+            }else {
+                return new ResponseEntity<>("This FILE already existed in the recomm datatable, try updating it!", HttpStatus.CONFLICT);
             }
         };
     }
@@ -132,7 +134,7 @@ public class RecommController {
     public Callable createRecommUser(@RequestBody RecommInfo postRecommInfo) {
         return () -> {
             Long id = postRecommInfo.getTypeID();
-            if(id != null && userService.findById(id) != null){
+            if(id != null && userService.findById(id) != null && recommInfoService.findOneUser(id) == null){
                 RecommInfo recommInfo = generateUserData(postRecommInfo);
 //                UPDATE INDIRECT TAGS in which user is EXPERT
 //                recommInfo.updateTagList();
@@ -191,8 +193,10 @@ public class RecommController {
                 }else{
                     return new ResponseEntity<>("We could't connect to Social Semantic Server, please report it to IT administrators", HttpStatus.CONFLICT);
                 }
-            }else {
+            }else if(id == null || userService.findById(id) == null){
                 throw new NotFoundException("id_user");
+            }else {
+                return new ResponseEntity<>("This USER already existed in the recomm datatable, try updating it!", HttpStatus.CONFLICT);
             }
         };
     }
