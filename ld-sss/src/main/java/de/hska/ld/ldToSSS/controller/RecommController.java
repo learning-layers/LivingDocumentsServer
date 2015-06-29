@@ -62,6 +62,12 @@ public class RecommController {
     @Autowired
     private RecommClient recommClient;
 
+
+    /**
+     *
+     * @param postRecommInfo sending recommendation info for the recommendation file
+     * @return
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/recomm/file/create",
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_PLAIN_VALUE})
@@ -129,6 +135,11 @@ public class RecommController {
         };
     }
 
+    /**
+     *
+     * @param postRecommInfo sending recommendation info to the user tags
+     * @return
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/recomm/user/create",
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_PLAIN_VALUE})
@@ -205,6 +216,11 @@ public class RecommController {
         };
     }
 
+    /**
+     *
+     * @param id id of the User which is to be getting updated
+     * @return
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/recomm/user/updateSSS/{id}")
     @Transactional(readOnly = true)
@@ -282,6 +298,12 @@ public class RecommController {
         };
     }
 
+
+    /**
+     *
+     * @param id id if the file which is getting new tags
+     * @return
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/recomm/file/updateSSS/{id}")
     @Transactional(readOnly = true)
@@ -347,6 +369,12 @@ public class RecommController {
         };
     }
 
+    /**
+     *
+     * @param realm
+     * @return
+     */
+
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/recomm/users/{realm}")
     @Transactional(readOnly = true)
@@ -379,10 +407,15 @@ public class RecommController {
         };
     }
 
-    //This function is called when you want to get recomm for an entity (many objects (users, documents, etc) can belong to an entity but not
-    //the other way around
-    //This function can be used when another realm is used in the request
-    //Remember entity has to be encoded to be accepted as a request
+    /**
+     * This function is called when you want to get recomm for an entity (many objects (users, documents, etc) can belong to an entity but not
+     * the other way around
+     * This function can be used when another realm is used in the request
+     * Remember entity has to be encoded to be accepted as a request
+     * @param realm
+     * @param entity
+     * @return
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/recomm/users/{realm}/{entity}")
     @Transactional(readOnly = true)
@@ -411,8 +444,11 @@ public class RecommController {
         };
     }
 
-
-    //This functions helps to get recommendations for a specific user (NOTE: you only need the id)
+    /**
+     * This functions helps to get recommendations for a specific user (NOTE: you only need the id)
+     * @param userId
+     * @return
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/recomm/user/{userId}")
     @Transactional(readOnly = true)
@@ -454,6 +490,11 @@ public class RecommController {
         };
     }
 
+    /**
+     * Get method for recommendation of a file
+     * @param fileId id of the wanted file
+     * @return returns the file which is ordered
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/recomm/file/{fileId}")
     @Transactional(readOnly = true)
@@ -494,7 +535,12 @@ public class RecommController {
         };
     }
 
-    //This functions helps to get recommendations for a specific user (NOTE: you have to provide realm as well)
+    /**
+     * This functions helps to get recommendations for a specific user (NOTE: you have to provide realm as well)
+     * @param realm
+     * @param forUser
+     * @return
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/recomm/users/{realm}/user/{forUser}")
     @Transactional(readOnly = true)
@@ -529,6 +575,11 @@ public class RecommController {
     //Update user in SSS                              POST /api/ldToSSS/recomm/user/updateSSS/{id}
     //Get current recomm from SSS                     GET  /api/ldToSSS/recomm/user/{userId}
 
+    /**
+     * Method to convert into JSON file format
+     * @param object object which is converted to JSON
+     * @return returns JSON object
+     */
     public JSONObject convertToJson(String object){
         try {
             JSONParser jsonParser = new JSONParser();
@@ -542,6 +593,11 @@ public class RecommController {
         return null;
     }
 
+    /**
+     * Method to generate Recommendation Info for users
+     * @param recommInfo Recommendation info
+     * @return returns updated recommendation info object
+     */
     public RecommInfo generateUserData(RecommInfo recommInfo){
         String entity = LDocsToSSS.RESOURCE_LD_URI + "/user/" + recommInfo.getTypeID();
         recommInfo.setType("USER");
@@ -549,6 +605,11 @@ public class RecommController {
         return recommInfo;
     }
 
+    /**
+     * Method to generate Recommendation Info for files
+     * @param recommInfo Recommendation info
+     * @return returns updated recommendation info object
+     */
     public RecommInfo generateFileData(RecommInfo recommInfo){
         String entity = LDocsToSSS.RESOURCE_LD_URI + "/file/" + recommInfo.getTypeID();
         recommInfo.setType("FILE");

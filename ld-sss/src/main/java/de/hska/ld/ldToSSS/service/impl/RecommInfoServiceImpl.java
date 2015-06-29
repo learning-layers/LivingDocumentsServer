@@ -52,6 +52,12 @@ public class RecommInfoServiceImpl implements RecommInfoService {
         return recommInfoRepository.findByID(id,"FILE");
     }
 
+    /**
+     * Update method for user recommendations
+     * @param id Id of the user
+     * @param recommInfo new recommendation info for this user
+     * @return returns updated user recommendation info
+     */
     @Override
     @Transactional(readOnly = false)
     public RecommInfo updateUser(Long id, RecommInfo recommInfo) {
@@ -67,6 +73,12 @@ public class RecommInfoServiceImpl implements RecommInfoService {
         }
     }
 
+    /**
+     * Update method for file recommendations
+     * @param id Id of the file
+     * @param recommInfo new recommendation info for this user
+     * @return returns updated file recommendation info
+     */
     @Override
     @Transactional(readOnly = false)
     public RecommInfo updateFile(Long id, RecommInfo recommInfo) {
