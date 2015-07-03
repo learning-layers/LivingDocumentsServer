@@ -47,6 +47,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 
@@ -449,5 +450,16 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
     @Override
     public UserRepository getRepository() {
         return repository;
+    }
+
+    private static UserService instance;
+
+    @PostConstruct
+    public void afterPropertiesSet() throws Exception {
+        instance = this;
+    }
+
+    public static UserService get() {
+        return instance;
     }
 }

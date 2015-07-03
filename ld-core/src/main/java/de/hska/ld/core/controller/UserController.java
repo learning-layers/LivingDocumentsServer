@@ -36,11 +36,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.ByteArrayInputStream;
@@ -48,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -62,6 +66,13 @@ public class UserController {
 
     @Autowired
     private AsyncExecutor asyncExecutor;
+
+    public static UserService userServiceStatic;
+
+    @PostConstruct
+    public void postConstruct() {
+        userServiceStatic = this.userService;
+    }
 
     @RequestMapping(method = RequestMethod.GET, value = "/hello")
     public Callable helloWorld() {
@@ -181,7 +192,28 @@ public class UserController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
     public Callable authenticate(@AuthenticationPrincipal User user) {
-        return () -> new ResponseEntity<>(user, HttpStatus.OK);
+        final User user2 = Core.currentUser();
+        return () -> new ResponseEntity<>(user2, HttpStatus.OK);
+    }
+
+    public boolean isAuthenticated() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        return securityContext != null && securityContext.getAuthentication() != null &&
+                securityContext.getAuthentication().isAuthenticated();
+    }
+
+    public User currentUser() {
+        if (isAuthenticated()) {
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (principal instanceof User) {
+                return (User) principal;
+            } else {
+                Map principalMap = (Map) principal;
+                User user = userService.findBySubIdAndIssuer((String) principalMap.get("sub"), (String) principalMap.get("iss"));
+                return user;
+            }
+        }
+        return null;
     }
 
     /**
