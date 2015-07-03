@@ -22,9 +22,12 @@
 
 package de.hska.ld.core.util;
 
+import de.hska.ld.core.controller.UserController;
 import de.hska.ld.core.persistence.domain.User;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Map;
 
 public class Core {
 
@@ -51,6 +54,10 @@ public class Core {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             if (principal instanceof User) {
                 return (User) principal;
+            } else {
+                Map principalMap = (Map) principal;
+                User user = UserController.userServiceStatic.findBySubIdAndIssuer((String) principalMap.get("sub"), (String) principalMap.get("iss"));
+                return user;
             }
         }
         return null;
