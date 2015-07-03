@@ -1,11 +1,14 @@
 package de.hska.ld.core.config.security.openidconnect;
 
+import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.UserService;
 import org.mitre.oauth2.service.impl.DefaultClientUserDetailsService;
 import org.mitre.openid.connect.client.*;
 import org.mitre.openid.connect.client.service.impl.*;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
+import org.mitre.openid.connect.model.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -19,6 +22,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
@@ -58,6 +63,9 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RoleService roleService;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         OIDCAuthenticationFilter oidcFilter = openIdConnectAuthenticationFilter();
@@ -77,13 +85,18 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         if ("sub".equals(entry.getKey())) {
                             // check if sub id is already present in the database
                             subId = entry.getValue();
+                            if (subId == null) {
+                                throw new UnsupportedOperationException("No subId found!");
+                            }
                         }
                     }
                     if (iterator.hasNext()) {
                         Map.Entry<String, String> entry = (Map.Entry<String, String>) iterator.next();
                         if ("iss".equals(entry.getKey())) {
-                            //TODO add checking against issuers here
                             issuer = entry.getValue();
+                            if (!"https://api.learning-layers.eu/o/oauth2/".equals(issuer)) {
+                                throw new UnsupportedOperationException("Wrong or no issuer found!");
+                            }
                         }
                     }
 
@@ -92,21 +105,45 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
 
                     // TODO 2.0 otherwise check if the info is in the db
                     User currentUserInDb = userService.findBySubIdAndIssuer(subId, issuer);
-                    if (currentUserInDb == null) {
+                    UserInfo oidcUserInfo = ((OIDCAuthenticationToken) source).getUserInfo();
+
+                    if (currentUserInDb == null && oidcUserInfo != null) {
                         // create a new user
                         User user = new User();
-                        user.setUsername("Test");
-                        user.setFullName("Test test");
-                        /*List<Role> roleList = new ArrayList<Role>();
-                        roleList.add(Role.class.);
-                        user.setRoleList();
-                        userService.register();*/
+                        // TODO check for colliding user names (preferred user name)
+                        user.setUsername(oidcUserInfo.getPreferredUsername());
+                        user.setFullName(oidcUserInfo.getName());
+                        user.setEnabled(true);
+                        // apply roles
+                        List<Role> roleList = new ArrayList<Role>();
+                        Role userRole = roleService.findByName("ROLE_USER");
+                        if (userRole == null) {
+                            // create initial roles
+                            String newUserRoleName = "ROLE_USER";
+                            userRole = createNewUserRole(newUserRoleName);
+                            String newAdminRoleName = "ROLE_ADMIN";
+                            Role adminRole = createNewUserRole(newAdminRoleName);
+                            // For the first user add the admin role
+                            roleList.add(adminRole);
+                            roleList.add(userRole);
+                        }
+                        roleList.add(userRole);
+                        user.setRoleList(roleList);
+                        // TODO a password is required so we set a uuid generated one
+                        user.setPassword(UUID.randomUUID().toString());
+                        userService.save(user);
                     }
                     // check for colliding user names (preffered user name)
                     // TODO in this case check for profile updates
                     // TODO check via equals if the user data is still up to date
                     // TODO 3.0 if the info is not in the db then create a new user in the db
                 }
+            }
+
+            private Role createNewUserRole(String newRoleName) {
+                Role newUserRole = new Role();
+                newUserRole.setName(newRoleName);
+                return roleService.save(newUserRole);
             }
         });
         http
@@ -198,4 +235,9 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
         };
         return filter;
     }*/
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 }
