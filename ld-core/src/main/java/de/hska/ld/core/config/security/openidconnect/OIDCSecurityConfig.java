@@ -14,6 +14,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -22,12 +23,17 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 @Configuration
@@ -125,14 +131,68 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                             Role adminRole = createNewUserRole(newAdminRoleName);
                             // For the first user add the admin role
                             roleList.add(adminRole);
+                        } else {
                             roleList.add(userRole);
                         }
-                        roleList.add(userRole);
                         user.setRoleList(roleList);
                         // TODO a password is required so we set a uuid generated one
                         user.setPassword(UUID.randomUUID().toString());
+                        user.setSubId(subId);
+                        user.setIssuer(issuer);
                         userService.save(user);
+                        // update security context
+                        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                        Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
+                        final SubjectIssuerGrantedAuthority[] oidcAuthority = new SubjectIssuerGrantedAuthority[1];
+                        authorities.forEach(authority -> {
+                            if (authority instanceof SubjectIssuerGrantedAuthority) {
+                                oidcAuthority[0] = (SubjectIssuerGrantedAuthority) authority;
+                            }
+                        });
+
+                        ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
+                        newAuthorities.add(oidcAuthority[0]);
+                        newAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                        newAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                        try {
+                            Field authoritiesField = AbstractAuthenticationToken.class.getDeclaredField("authorities");
+                            authoritiesField.setAccessible(true);
+                            authoritiesField.set(auth, newAuthorities);
+                        } catch (NoSuchFieldException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+
+                        SecurityContextHolder.getContext().setAuthentication(auth);
                     }
+                    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                    Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
+                    final SubjectIssuerGrantedAuthority[] oidcAuthority = new SubjectIssuerGrantedAuthority[1];
+                    authorities.forEach(authority -> {
+                        if (authority instanceof SubjectIssuerGrantedAuthority) {
+                            oidcAuthority[0] = (SubjectIssuerGrantedAuthority) authority;
+                        }
+                    });
+
+                    ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
+                    newAuthorities.add(oidcAuthority[0]);
+                    newAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                    newAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+
+                    try {
+                        Field authoritiesField = AbstractAuthenticationToken.class.getDeclaredField("authorities");
+                        authoritiesField.setAccessible(true);
+                        authoritiesField.set(auth, newAuthorities);
+                    } catch (NoSuchFieldException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                    Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
+                    System.out.println(auth2);
                     // check for colliding user names (preffered user name)
                     // TODO in this case check for profile updates
                     // TODO check via equals if the user data is still up to date
