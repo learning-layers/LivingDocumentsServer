@@ -35,9 +35,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+//, uniqueConstraints=@UniqueConstraint(columnNames = {"subId", "issuer"})
 @Entity
-@Table(name = "ld_user", indexes = @Index(name = "ld_user_username_idx", columnList = "username"), uniqueConstraints=
-@UniqueConstraint(columnNames = {"subId", "issuer"}))
+@Table(name = "ld_user", indexes = @Index(name = "ld_user_username_idx", columnList = "username")
+)
 public class User implements UserDetails {
 
     public User() {
@@ -256,6 +257,22 @@ public class User implements UserDetails {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getSubId() {
+        return subId;
+    }
+
+    public void setSubId(String subId) {
+        this.subId = subId;
+    }
+
+    public String getIssuer() {
+        return issuer;
+    }
+
+    public void setIssuer(String issuer) {
+        this.issuer = issuer;
     }
 
     @Override
