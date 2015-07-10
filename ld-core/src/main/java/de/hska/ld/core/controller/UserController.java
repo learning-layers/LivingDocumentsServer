@@ -43,7 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.ByteArrayInputStream;
@@ -62,17 +61,10 @@ import java.util.concurrent.Callable;
 public class UserController {
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private AsyncExecutor asyncExecutor;
 
-    public static UserService userServiceStatic;
-
-    @PostConstruct
-    public void postConstruct() {
-        userServiceStatic = this.userService;
-    }
+    @Autowired
+    private UserService userService;
 
     @RequestMapping(method = RequestMethod.GET, value = "/hello")
     public Callable helloWorld() {
