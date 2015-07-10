@@ -104,6 +104,26 @@ public class User implements UserDetails {
     @JsonIgnore
     private byte[] avatar;
 
+    @Transient
+    private Date fetchedFromDB;
+
+    @PostPersist
+    public void setFetchedFromDBPersist() {
+        this.fetchedFromDB = new Date();
+    }
+
+    @PostLoad
+    public void setFetchedFromDBLoad() {
+        this.fetchedFromDB = new Date();
+    }
+
+    public Date getFetchedFromDB() {
+        if (this.fetchedFromDB == null) {
+            this.fetchedFromDB = new Date();
+        }
+        return this.fetchedFromDB;
+    }
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "ld_user_role",
             joinColumns = {@JoinColumn(name = "user_id")},

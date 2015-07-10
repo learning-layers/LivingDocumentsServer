@@ -32,9 +32,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.regex.Pattern;
 
 @Configuration
 @EnableWebMvcSecurity
@@ -207,8 +211,35 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
             }
         });
         http
+                //.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
+                //.and()
                 .addFilterBefore(oidcFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                .logout();
+                        //.csrf().disable()
+                .csrf().requireCsrfProtectionMatcher(new RequestMatcher() {
+            private Pattern allowedMethods =
+                    Pattern.compile("^(GET|HEAD|TRACE|OPTIONS)$");
+
+            private RegexRequestMatcher apiMatcher =
+                    new RegexRequestMatcher("/v[0-9]*/.*", null);
+
+            @Override
+            public boolean matches(HttpServletRequest request) {
+                // CSRF disabled on allowedMethod
+                if (allowedMethods.matcher(request.getMethod()).matches())
+                    return false;
+
+                // CSRF disabled on api calls
+                if (apiMatcher.matches(request))
+                    return false;
+
+                // CSRF enables for other requests
+                //TODO change later on
+                return false;
+            }
+        })
+                .and()
+                .logout()
+                .deleteCookies("JSESSIONID");
     }
 
     @Override

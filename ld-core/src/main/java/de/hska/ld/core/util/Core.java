@@ -22,14 +22,48 @@
 
 package de.hska.ld.core.util;
 
-import de.hska.ld.core.controller.UserController;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class Core {
+
+    @Autowired
+    private UserService userService;
+
+    private static UserService userServiceStatic;
+
+    private static Core INSTANCE = null;
+
+    @Autowired
+    public Core(UserService userService) {
+        this.userService = userService;
+    }
+
+    @PostConstruct
+    public void postConstruct() {
+        userServiceStatic = this.userService;
+        if (INSTANCE == null) {
+            INSTANCE = this;
+        }
+    }
+
+    public UserService getUserService() {
+        return userService;
+    }
+
+    public static Core getInstance() {
+        return Core.INSTANCE;
+    }
 
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     public static final String ROLE_USER = "ROLE_USER";
@@ -49,6 +83,8 @@ public class Core {
                 securityContext.getAuthentication().isAuthenticated();
     }
 
+    private static Map<String, User> currentUserMap = new HashMap<>();
+
     public static User currentUser() {
         if (isAuthenticated()) {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -56,11 +92,30 @@ public class Core {
                 return (User) principal;
             } else {
                 Map principalMap = (Map) principal;
-                User user = UserController.userServiceStatic.findBySubIdAndIssuer((String) principalMap.get("sub"), (String) principalMap.get("iss"));
+                User user = null;
+                String subId = (String) principalMap.get("sub");
+                if (!currentUserMap.containsKey(subId)) {
+                    user = currentUserBySubIdAndIssuer(subId, (String) principalMap.get("iss"));
+                    if (user != null) {
+                        currentUserMap.put(subId, user);
+                    }
+                } else {
+                    user = currentUserMap.get(subId);
+                    Long currentTime = (new Date()).getTime();
+                    Long dbLoadTime = user.getFetchedFromDB().getTime();
+                    if (currentTime - dbLoadTime > 20000) {
+                        currentUserMap.remove(subId);
+                        return Core.currentUser();
+                    }
+                }
                 return user;
             }
         }
         return null;
+    }
+
+    public static User currentUserBySubIdAndIssuer(String subId, String issuer) {
+        return Core.userServiceStatic.findBySubIdAndIssuer(subId, issuer);
     }
 
     public static boolean isAdmin() {
