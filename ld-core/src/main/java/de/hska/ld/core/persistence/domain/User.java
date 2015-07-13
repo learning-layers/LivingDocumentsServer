@@ -95,6 +95,10 @@ public class User implements UserDetails {
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
 
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "lastupdated_at", nullable = false)
+    private Date lastupdatedAt;
+
     @Column(name = "enabled")
     private boolean enabled;
 
@@ -293,6 +297,15 @@ public class User implements UserDetails {
 
     public void setIssuer(String issuer) {
         this.issuer = issuer;
+    }
+
+
+    public Date getLastupdatedAt() {
+        return lastupdatedAt;
+    }
+
+    public void setLastupdatedAt(Date lastupdatedAt) {
+        this.lastupdatedAt = lastupdatedAt;
     }
 
     @Override

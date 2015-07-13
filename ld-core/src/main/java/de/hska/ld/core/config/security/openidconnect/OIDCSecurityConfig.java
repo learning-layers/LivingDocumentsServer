@@ -37,6 +37,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -84,8 +86,11 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
             public void publishEvent(ApplicationEvent event) {
                 System.out.println(event);
                 Object source = event.getSource();
+                OIDCAuthenticationToken token = null;
                 if (source != null) {
-                    OIDCAuthenticationToken token = (OIDCAuthenticationToken) source;
+                    token = (OIDCAuthenticationToken) source;
+                }
+                if (token != null) {
                     Map<String, String> map = (Map) token.getPrincipal();
                     Iterator iterator = map.entrySet().iterator();
                     String subId = null;
@@ -149,16 +154,54 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         user.setPassword(UUID.randomUUID().toString());
                         user.setSubId(subId);
                         user.setIssuer(issuer);
+                        String oidcUpdatedTime = token.getUserInfo().getUpdatedTime();
+                        // oidc time: "20150701_090039"
+                        // oidc format: "yyyyMMdd_HHmmss"
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+                        try {
+                            Date date = sdf.parse(oidcUpdatedTime);
+                            user.setLastupdatedAt(date);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
                         userService.save(user);
                         // update security context
                         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                         enrichAuthoritiesWithStoredAuthorities(user, auth);
-                    } else {
+                    } else if (oidcUserInfo != null) {
                         // get the current authentication details of the user
                         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                         enrichAuthoritiesWithStoredAuthorities(currentUserInDb, auth);
+
+                        // check for profile updates since the last login
+                        String oidcUpdatedTime = token.getUserInfo().getUpdatedTime();
+                        // oidc time: "20150701_090039"
+                        // oidc format: "yyyyMMdd_HHmmss"
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+                        try {
+                            Date date = sdf.parse(oidcUpdatedTime);
+                            if (currentUserInDb.getLastupdatedAt().getTime() > date.getTime()) {
+                                User userWithGivenPreferredUserName = userService.findByUsername(oidcUserInfo.getPreferredUsername());
+                                int i = 0;
+                                if (userWithGivenPreferredUserName != null) {
+                                    while (userWithGivenPreferredUserName != null) {
+                                        String prefferedUsername = oidcUserInfo.getPreferredUsername() + "#" + i;
+                                        userWithGivenPreferredUserName = userService.findByUsername(prefferedUsername);
+                                    }
+                                } else {
+                                    currentUserInDb.setUsername(oidcUserInfo.getPreferredUsername());
+                                }
+
+                                currentUserInDb.setFullName(oidcUserInfo.getName());
+                                currentUserInDb = userService.save(currentUserInDb);
+                            }
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        // oidc information is null
+                        throw new UnsupportedOperationException("No OIDC information found!");
                     }
-                    // TODO check for profile updates
                 }
             }
 
@@ -196,8 +239,6 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 return roleService.save(newUserRole);
             }
         });
-
-        // TODO add updated user info check
 
         http
                 //.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
