@@ -210,6 +210,9 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 return roleService.save(newUserRole);
             }
         });
+
+        // TODO add updated user info check
+
         http
                 //.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
                 //.and()
