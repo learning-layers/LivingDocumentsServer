@@ -84,7 +84,6 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
         oidcFilter.setApplicationEventPublisher(new ApplicationEventPublisher() {
             @Override
             public void publishEvent(ApplicationEvent event) {
-                System.out.println(event);
                 Object source = event.getSource();
                 OIDCAuthenticationToken token = null;
                 if (source != null) {
