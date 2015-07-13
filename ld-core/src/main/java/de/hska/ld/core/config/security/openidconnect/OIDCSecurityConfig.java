@@ -156,8 +156,9 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
 
                         ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
                         newAuthorities.add(oidcAuthority[0]);
-                        newAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-                        newAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                        user.getRoleList().forEach(role -> {
+                            newAuthorities.add(new SimpleGrantedAuthority(role.getName()));
+                        });
                         try {
                             Field authoritiesField = AbstractAuthenticationToken.class.getDeclaredField("authorities");
                             authoritiesField.setAccessible(true);
@@ -169,34 +170,33 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         }
 
                         SecurityContextHolder.getContext().setAuthentication(auth);
-                    }
-                    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                    Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
-                    final SubjectIssuerGrantedAuthority[] oidcAuthority = new SubjectIssuerGrantedAuthority[1];
-                    authorities.forEach(authority -> {
-                        if (authority instanceof SubjectIssuerGrantedAuthority) {
-                            oidcAuthority[0] = (SubjectIssuerGrantedAuthority) authority;
+                    } else {
+                        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                        Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
+                        final SubjectIssuerGrantedAuthority[] oidcAuthority = new SubjectIssuerGrantedAuthority[1];
+                        authorities.forEach(authority -> {
+                            if (authority instanceof SubjectIssuerGrantedAuthority) {
+                                oidcAuthority[0] = (SubjectIssuerGrantedAuthority) authority;
+                            }
+                        });
+
+                        ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
+                        newAuthorities.add(oidcAuthority[0]);
+                        currentUserInDb.getRoleList().forEach(role -> {
+                            newAuthorities.add(new SimpleGrantedAuthority(role.getName()));
+                        });
+
+                        try {
+                            Field authoritiesField = AbstractAuthenticationToken.class.getDeclaredField("authorities");
+                            authoritiesField.setAccessible(true);
+                            authoritiesField.set(auth, newAuthorities);
+                        } catch (NoSuchFieldException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
                         }
-                    });
-
-                    ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
-                    newAuthorities.add(oidcAuthority[0]);
-                    newAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-                    newAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-
-                    try {
-                        Field authoritiesField = AbstractAuthenticationToken.class.getDeclaredField("authorities");
-                        authoritiesField.setAccessible(true);
-                        authoritiesField.set(auth, newAuthorities);
-                    } catch (NoSuchFieldException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                        SecurityContextHolder.getContext().setAuthentication(auth);
                     }
-
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                    Authentication auth2 = SecurityContextHolder.getContext().getAuthentication();
-                    System.out.println(auth2);
                     // check for colliding user names (preffered user name)
                     // TODO in this case check for profile updates
                     // TODO check via equals if the user data is still up to date
