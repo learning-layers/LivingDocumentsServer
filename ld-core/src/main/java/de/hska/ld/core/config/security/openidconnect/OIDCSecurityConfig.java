@@ -79,6 +79,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
     private RoleService roleService;
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void configure(HttpSecurity http) throws Exception {
         OIDCAuthenticationFilter oidcFilter = openIdConnectAuthenticationFilter();
         oidcFilter.setApplicationEventPublisher(new ApplicationEventPublisher() {
@@ -90,7 +91,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                     token = (OIDCAuthenticationToken) source;
                 }
                 if (token != null) {
-                    Map<String, String> map = (Map) token.getPrincipal();
+                    Map map = (Map) token.getPrincipal();
                     Iterator iterator = map.entrySet().iterator();
                     String subId = null;
                     String issuer = null;
@@ -277,8 +278,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public LoginUrlAuthenticationEntryPoint authenticationEntryPoint() {
-        LoginUrlAuthenticationEntryPoint loginUrlAuthenticationEntryPoint = new LoginUrlAuthenticationEntryPoint("/openid_connect_login");
-        return loginUrlAuthenticationEntryPoint;
+        return new LoginUrlAuthenticationEntryPoint("/openid_connect_login");
     }
 
     @Override
@@ -308,14 +308,9 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public Set<SubjectIssuerGrantedAuthority> namedAdmins() {
-        /*List<User> admins = userService.findAll(); //.findByRole("Admin");
-        System.out.println(admins.get(0));*/
-
-        SubjectIssuerGrantedAuthority subjectIssuerGrantedAuthority = new SubjectIssuerGrantedAuthority("90342.ASDFJWFA",
-                "https://mitreid.org/");
-        Set<SubjectIssuerGrantedAuthority> subjectIssuerGrantedAuthorities = new HashSet<>();
-        subjectIssuerGrantedAuthorities.add(subjectIssuerGrantedAuthority);
-        return subjectIssuerGrantedAuthorities;
+        // Remove this.
+        // Instead the first user to log in via open id connect automatically receives the admin role.
+        return new HashSet<>();
     }
 
     @Bean
@@ -330,30 +325,6 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
         oidcAuthenticationFilter.setAuthRequestUrlBuilder(plainAuthRequestUrlBuilder);
         return oidcAuthenticationFilter;
     }
-
-    /*@Bean
-    public GenericFilterBean afterLoginFilter() throws Exception {
-        GenericFilterBean filter = new GenericFilterBean() {
-            @Override
-            public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-                SecurityContext securityContext = SecurityContextHolder.getContext();
-                Authentication authentication = securityContext.getAuthentication();
-                if (authentication != null) {
-                    Object principalObj = authentication.getPrincipal();
-                    if (principalObj != null) {
-                        String currentUser = (String) principalObj;
-                        System.out.println(currentUser);
-                    }
-                }
-            }
-
-            @Override
-            public void destroy() {
-
-            }
-        };
-        return filter;
-    }*/
 
     @Bean
     public PasswordEncoder passwordEncoder() {
