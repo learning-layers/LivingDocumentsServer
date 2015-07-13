@@ -152,59 +152,42 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         userService.save(user);
                         // update security context
                         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                        Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
-                        final SubjectIssuerGrantedAuthority[] oidcAuthority = new SubjectIssuerGrantedAuthority[1];
-                        authorities.forEach(authority -> {
-                            if (authority instanceof SubjectIssuerGrantedAuthority) {
-                                oidcAuthority[0] = (SubjectIssuerGrantedAuthority) authority;
-                            }
-                        });
-
-                        ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
-                        newAuthorities.add(oidcAuthority[0]);
-                        user.getRoleList().forEach(role -> {
-                            newAuthorities.add(new SimpleGrantedAuthority(role.getName()));
-                        });
-                        try {
-                            Field authoritiesField = AbstractAuthenticationToken.class.getDeclaredField("authorities");
-                            authoritiesField.setAccessible(true);
-                            authoritiesField.set(auth, newAuthorities);
-                        } catch (NoSuchFieldException e) {
-                            e.printStackTrace();
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-
-                        SecurityContextHolder.getContext().setAuthentication(auth);
+                        enrichAuthoritiesWithStoredAuthorities(user, auth);
                     } else {
+                        // get the current authentication details of the user
                         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                        Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
-                        final SubjectIssuerGrantedAuthority[] oidcAuthority = new SubjectIssuerGrantedAuthority[1];
-                        authorities.forEach(authority -> {
-                            if (authority instanceof SubjectIssuerGrantedAuthority) {
-                                oidcAuthority[0] = (SubjectIssuerGrantedAuthority) authority;
-                            }
-                        });
-
-                        ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
-                        newAuthorities.add(oidcAuthority[0]);
-                        currentUserInDb.getRoleList().forEach(role -> {
-                            newAuthorities.add(new SimpleGrantedAuthority(role.getName()));
-                        });
-
-                        try {
-                            Field authoritiesField = AbstractAuthenticationToken.class.getDeclaredField("authorities");
-                            authoritiesField.setAccessible(true);
-                            authoritiesField.set(auth, newAuthorities);
-                        } catch (NoSuchFieldException e) {
-                            e.printStackTrace();
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                        SecurityContextHolder.getContext().setAuthentication(auth);
+                        enrichAuthoritiesWithStoredAuthorities(currentUserInDb, auth);
                     }
                     // TODO check for profile updates
                 }
+            }
+
+            private void enrichAuthoritiesWithStoredAuthorities(User currentUserInDb, Authentication auth) {
+                Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
+                final SubjectIssuerGrantedAuthority[] oidcAuthority = new SubjectIssuerGrantedAuthority[1];
+                authorities.forEach(authority -> {
+                    if (authority instanceof SubjectIssuerGrantedAuthority) {
+                        // extract the oidc authority information
+                        oidcAuthority[0] = (SubjectIssuerGrantedAuthority) authority;
+                    }
+                });
+
+                // create new authorities that includes the authorities stored in the database
+                // as well as the oidc authority
+                ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
+                newAuthorities.add(oidcAuthority[0]);
+                currentUserInDb.getRoleList().forEach(role -> {
+                    newAuthorities.add(new SimpleGrantedAuthority(role.getName()));
+                });
+                try {
+                    Field authoritiesField = AbstractAuthenticationToken.class.getDeclaredField("authorities");
+                    authoritiesField.setAccessible(true);
+                    authoritiesField.set(auth, newAuthorities);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                // update the authority information in the security context
+                SecurityContextHolder.getContext().setAuthentication(auth);
             }
 
             private Role createNewUserRole(String newRoleName) {
