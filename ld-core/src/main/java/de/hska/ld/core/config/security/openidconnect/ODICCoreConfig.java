@@ -35,6 +35,8 @@ public class ODICCoreConfig {
     public static final String CLIENT_ID = "fad42d7c-0ae5-41c7-98ef-10ab37f9d2e8";
     public static final String CLIENT_SECRET = "secret";
 
+    public static final String REDIRECT_AFTER_LOGIN_SUCCESS = "http://localhost:63342/NewLivingDocumentsClient/build/index.html#/home";
+
     @Autowired
     private ApplicationContext applicationContext;
 

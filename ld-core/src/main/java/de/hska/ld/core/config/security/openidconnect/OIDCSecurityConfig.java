@@ -18,7 +18,6 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -30,12 +29,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -82,6 +85,12 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
     @SuppressWarnings("unchecked")
     protected void configure(HttpSecurity http) throws Exception {
         OIDCAuthenticationFilter oidcFilter = openIdConnectAuthenticationFilter();
+        oidcFilter.setAuthenticationSuccessHandler(new AuthenticationSuccessHandler() {
+            @Override
+            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+                response.sendRedirect(ODICCoreConfig.REDIRECT_AFTER_LOGIN_SUCCESS);
+            }
+        });
         oidcFilter.setApplicationEventPublisher(new ApplicationEventPublisher() {
             @Override
             public void publishEvent(ApplicationEvent event) {
@@ -271,11 +280,6 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 .deleteCookies("JSESSIONID");
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) {
-
-    }
-
     @Bean
     public LoginUrlAuthenticationEntryPoint authenticationEntryPoint() {
         return new LoginUrlAuthenticationEntryPoint("/openid_connect_login");
@@ -302,8 +306,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public ClientDetailsService clientDetailsService() {
         DefaultClientUserDetailsService userDetailsService = new DefaultClientUserDetailsService();
-        ClientDetailsService clientDetailsService = userDetailsService.getClientDetailsService();
-        return clientDetailsService;
+        return userDetailsService.getClientDetailsService();
     }
 
     @Bean
