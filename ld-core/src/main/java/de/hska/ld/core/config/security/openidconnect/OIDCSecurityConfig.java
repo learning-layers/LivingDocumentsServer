@@ -120,8 +120,18 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                     if (currentUserInDb == null && oidcUserInfo != null) {
                         // create a new user
                         User user = new User();
-                        // TODO check for colliding user names (preferred user name)
-                        user.setUsername(oidcUserInfo.getPreferredUsername());
+                        // check for colliding user names (via preferred user name)
+                        User userWithGivenPreferredUserName = userService.findByUsername(oidcUserInfo.getPreferredUsername());
+                        int i = 0;
+                        if (userWithGivenPreferredUserName != null) {
+                            while (userWithGivenPreferredUserName != null) {
+                                String prefferedUsername = oidcUserInfo.getPreferredUsername() + "#" + i;
+                                userWithGivenPreferredUserName = userService.findByUsername(prefferedUsername);
+                            }
+                        } else {
+                            user.setUsername(oidcUserInfo.getPreferredUsername());
+                        }
+
                         user.setFullName(oidcUserInfo.getName());
                         user.setEnabled(true);
                         // apply roles
@@ -139,7 +149,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                             roleList.add(userRole);
                         }
                         user.setRoleList(roleList);
-                        // TODO a password is required so we set a uuid generated one
+                        // A password is required so we set a uuid generated one
                         user.setPassword(UUID.randomUUID().toString());
                         user.setSubId(subId);
                         user.setIssuer(issuer);
@@ -197,7 +207,6 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         }
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     }
-                    // check for colliding user names (preffered user name)
                     // TODO in this case check for profile updates
                     // TODO check via equals if the user data is still up to date
                     // TODO 3.0 if the info is not in the db then create a new user in the db
