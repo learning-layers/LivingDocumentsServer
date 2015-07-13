@@ -110,10 +110,6 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         }
                     }
 
-                    // TODO 1.0 check if sub is already stored in the cache (meaning that the info is already in the db)
-                    // TODO in this case don't check for profile updates for (5 minutes)
-
-                    // TODO 2.0 otherwise check if the info is in the db
                     User currentUserInDb = userService.findBySubIdAndIssuer(subId, issuer);
                     UserInfo oidcUserInfo = ((OIDCAuthenticationToken) source).getUserInfo();
 
@@ -207,9 +203,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         }
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     }
-                    // TODO in this case check for profile updates
-                    // TODO check via equals if the user data is still up to date
-                    // TODO 3.0 if the info is not in the db then create a new user in the db
+                    // TODO check for profile updates
                 }
             }
 
