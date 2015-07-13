@@ -104,7 +104,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         Map.Entry<String, String> entry = (Map.Entry<String, String>) iterator.next();
                         if ("iss".equals(entry.getKey())) {
                             issuer = entry.getValue();
-                            if (!"https://api.learning-layers.eu/o/oauth2/".equals(issuer)) {
+                            if (!ODICCoreConfig.OPENID_CONNECT_SERVER_WEBAPP.equals(issuer)) {
                                 throw new UnsupportedOperationException("Wrong or no issuer found!");
                             }
                         }

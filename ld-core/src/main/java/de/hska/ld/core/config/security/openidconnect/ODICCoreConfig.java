@@ -28,7 +28,7 @@ import java.util.*;
 @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
 public class ODICCoreConfig {
 
-    public static final String OPENID_CONNECT_SERVER_WEBAPP = "https://api.learning-layers.eu/"; //"http://localhost:8080/openid-connect-server-webapp/";
+    public static final String OPENID_CONNECT_SERVER_WEBAPP = "https://api.learning-layers.eu/o/oauth2/"; //"http://localhost:8080/openid-connect-server-webapp/";
     public static final String SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN = "http://localhost:9000/simple-web-app/openid_connect_login";
     public static final String SIMPLE_WEB_APP_JWK = "http://localhost:9000/simple-web-app/jwk";
     public static final String ACCOUNT_CHOOSER = "http://localhost/account-chooser/";
