@@ -240,10 +240,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
         });
 
         http
-                //.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
-                //.and()
                 .addFilterBefore(oidcFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                        //.csrf().disable()
                 .csrf().requireCsrfProtectionMatcher(new RequestMatcher() {
             private Pattern allowedMethods =
                     Pattern.compile("^(GET|HEAD|TRACE|OPTIONS)$");
@@ -266,6 +263,8 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 return false;
             }
         })
+                .and()
+                .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
                 .and()
                 .logout()
                 .deleteCookies("JSESSIONID");
