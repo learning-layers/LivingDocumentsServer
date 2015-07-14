@@ -72,9 +72,9 @@ public class PersistenceConfig {
     public DataSource dataSource() throws SQLException {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(env.getProperty("module.core.db.driver"));
-        dataSource.setUrl(env.getProperty("module.core.db.url"));
-        dataSource.setUsername(env.getProperty("module.core.db.username"));
-        dataSource.setPassword(env.getProperty("module.core.db.password"));
+        dataSource.setUrl(System.getenv("LDS_MYSQL_URL"));
+        dataSource.setUsername(System.getenv("LDS_MYSQL_USER"));
+        dataSource.setPassword(System.getenv("LDS_MYSQL_PASSWORD"));
         return dataSource;
     }
 

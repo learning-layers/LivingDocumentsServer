@@ -25,16 +25,27 @@ import java.util.*;
 @Component
 @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
 public class ODICCoreConfig {
+    public static String CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS = null;
+    public static String SERVER_ENDPOINT_EXTERNAL = null;
+    public static String OPENID_CONNECT_IDENTITY_PROVIDER = null;
 
-    public static final String CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS = "http://clever-it.info/#/home";
-    public static final String SERVER_ENDPOINT_EXTERNAL = "http://178.62.53.198:9000";
-    public static final String OPENID_CONNECT_IDENTITY_PROVIDER = "https://api.learning-layers.eu/o/oauth2/"; //"http://localhost:8080/openid-connect-server-webapp/";
+    public static String SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN = null;
+    public static String SIMPLE_WEB_APP_JWK = null;
+    public static String ACCOUNT_CHOOSER = null;
+    public static String CLIENT_ID = null;
+    public static String CLIENT_SECRET = null;
 
-    public static final String SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN = SERVER_ENDPOINT_EXTERNAL + "/simple-web-app/openid_connect_login";
-    public static final String SIMPLE_WEB_APP_JWK = SERVER_ENDPOINT_EXTERNAL + "/simple-web-app/jwk";
-    public static final String ACCOUNT_CHOOSER = SERVER_ENDPOINT_EXTERNAL + "/account-chooser/";
-    public static final String CLIENT_ID = "fad42d7c-0ae5-41c7-98ef-10ab37f9d2e8";
-    public static final String CLIENT_SECRET = "secret";
+    static {
+        CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS = System.getenv("LDS_CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS");
+        SERVER_ENDPOINT_EXTERNAL = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+        OPENID_CONNECT_IDENTITY_PROVIDER = System.getenv("LDS_OPENID_CONNECT_IDENTITY_PROVIDER");
+
+        SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN = SERVER_ENDPOINT_EXTERNAL + "/simple-web-app/openid_connect_login";
+        SIMPLE_WEB_APP_JWK = SERVER_ENDPOINT_EXTERNAL + "/simple-web-app/jwk";
+        ACCOUNT_CHOOSER = SERVER_ENDPOINT_EXTERNAL + "/account-chooser/";
+        CLIENT_ID = "fad42d7c-0ae5-41c7-98ef-10ab37f9d2e8";
+        CLIENT_SECRET = "secret";
+    }
 
     @Bean
     public StaticServerConfigurationService staticServerConfigurationService() {
