@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.util.concurrent.Callable;
 
@@ -48,6 +49,13 @@ public class DocumentEtherpadController {
 
     @Autowired
     private Environment env;
+
+    private String etherpadEndpoint = null;
+
+    @PostConstruct
+    public void postConstruct() {
+        etherpadEndpoint = System.getenv("LDS_ETHERPAD_ENDPOINT"); //env.getProperty("module.etherpad.endpoint");
+    }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/edit/{documentId}")
@@ -157,9 +165,9 @@ public class DocumentEtherpadController {
             // return Etherpad URL path
             String padURL = null;
             if (readOnly) {
-                padURL = env.getProperty("module.etherpad.endpoint") + "/p/" + readOnlyId;
+                padURL = etherpadEndpoint + "/p/" + readOnlyId;
             } else {
-                padURL = env.getProperty("module.etherpad.endpoint") + "/p/" + groupPadId;
+                padURL = etherpadEndpoint + "/p/" + groupPadId;
             }
 
             return new ResponseEntity<>(padURL, HttpStatus.CREATED);
