@@ -15,6 +15,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -26,8 +27,14 @@ public class EtherpadClient {
     @Autowired
     private Environment env;
 
-    private String etherpadEndpoint = env.getProperty("module.etherpad.endpoint");
-    private String etherpadAPIKey = env.getProperty("module.etherpad.apikey");
+    private String etherpadEndpoint = null;
+    private String etherpadAPIKey = null;
+
+    @PostConstruct
+    public void postConstruct() {
+        etherpadEndpoint = env.getProperty("module.etherpad.endpoint");
+        etherpadAPIKey = env.getProperty("module.etherpad.apikey");
+    }
 
     public boolean checkIfSessionStillValid(Long currentTime, String sessionId, String groupID) throws IOException {
         String endpoint = etherpadEndpoint;
