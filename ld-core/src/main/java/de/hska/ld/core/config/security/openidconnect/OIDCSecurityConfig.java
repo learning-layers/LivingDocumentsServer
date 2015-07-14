@@ -88,7 +88,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
         oidcFilter.setAuthenticationSuccessHandler(new AuthenticationSuccessHandler() {
             @Override
             public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                response.sendRedirect(ODICCoreConfig.REDIRECT_AFTER_LOGIN_SUCCESS);
+                response.sendRedirect(ODICCoreConfig.CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS);
             }
         });
         oidcFilter.setApplicationEventPublisher(new ApplicationEventPublisher() {
@@ -118,7 +118,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         Map.Entry<String, String> entry = (Map.Entry<String, String>) iterator.next();
                         if ("iss".equals(entry.getKey())) {
                             issuer = entry.getValue();
-                            if (!ODICCoreConfig.OPENID_CONNECT_SERVER_WEBAPP.equals(issuer)) {
+                            if (!ODICCoreConfig.OPENID_CONNECT_IDENTIY_PROVIDER.equals(issuer)) {
                                 throw new UnsupportedOperationException("Wrong or no issuer found!");
                             }
                         }

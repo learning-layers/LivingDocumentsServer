@@ -28,14 +28,17 @@ import java.util.*;
 @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
 public class ODICCoreConfig {
 
-    public static final String OPENID_CONNECT_SERVER_WEBAPP = "https://api.learning-layers.eu/o/oauth2/"; //"http://localhost:8080/openid-connect-server-webapp/";
-    public static final String SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN = "http://localhost:9000/simple-web-app/openid_connect_login";
-    public static final String SIMPLE_WEB_APP_JWK = "http://localhost:9000/simple-web-app/jwk";
-    public static final String ACCOUNT_CHOOSER = "http://localhost/account-chooser/";
+    public static final String CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS = "http://clever-it.info/#/home";
+    public static final String SERVER_ENDPOINT_EXTERNAL = "http://178.62.53.198:9000";
+    public static final String OPENID_CONNECT_IDENTIY_PROVIDER = "https://api.learning-layers.eu/o/oauth2/"; //"http://localhost:8080/openid-connect-server-webapp/";
+
+    public static final String SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN = SERVER_ENDPOINT_EXTERNAL + "/simple-web-app/openid_connect_login";
+    public static final String SIMPLE_WEB_APP_JWK = SERVER_ENDPOINT_EXTERNAL + "/simple-web-app/jwk";
+    public static final String ACCOUNT_CHOOSER = SERVER_ENDPOINT_EXTERNAL + "/account-chooser/";
     public static final String CLIENT_ID = "fad42d7c-0ae5-41c7-98ef-10ab37f9d2e8";
     public static final String CLIENT_SECRET = "secret";
 
-    public static final String REDIRECT_AFTER_LOGIN_SUCCESS = "http://localhost:63342/NewLivingDocumentsClient/build/index.html#/home";
+
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -45,12 +48,12 @@ public class ODICCoreConfig {
         StaticServerConfigurationService staticServerConfigurationService = new StaticServerConfigurationService();
         Map<String, ServerConfiguration> serverConfigs = new HashMap<>();
         ServerConfiguration serverConfig = new ServerConfiguration();
-        serverConfig.setIssuer(OPENID_CONNECT_SERVER_WEBAPP);
-        serverConfig.setAuthorizationEndpointUri(OPENID_CONNECT_SERVER_WEBAPP + "authorize");
-        serverConfig.setTokenEndpointUri(OPENID_CONNECT_SERVER_WEBAPP + "token");
-        serverConfig.setUserInfoUri(OPENID_CONNECT_SERVER_WEBAPP + "userinfo");
-        serverConfig.setJwksUri(OPENID_CONNECT_SERVER_WEBAPP + "jwk");
-        serverConfigs.put(OPENID_CONNECT_SERVER_WEBAPP, serverConfig);
+        serverConfig.setIssuer(OPENID_CONNECT_IDENTIY_PROVIDER);
+        serverConfig.setAuthorizationEndpointUri(OPENID_CONNECT_IDENTIY_PROVIDER + "authorize");
+        serverConfig.setTokenEndpointUri(OPENID_CONNECT_IDENTIY_PROVIDER + "token");
+        serverConfig.setUserInfoUri(OPENID_CONNECT_IDENTIY_PROVIDER + "userinfo");
+        serverConfig.setJwksUri(OPENID_CONNECT_IDENTIY_PROVIDER + "jwk");
+        serverConfigs.put(OPENID_CONNECT_IDENTIY_PROVIDER, serverConfig);
         staticServerConfigurationService.setServers(serverConfigs);
         return staticServerConfigurationService;
     }
@@ -60,12 +63,12 @@ public class ODICCoreConfig {
         HybridServerConfigurationService hybridServerConfigurationService = new HybridServerConfigurationService();
         Map<String, ServerConfiguration> serverConfigs = new HashMap<>();
         ServerConfiguration serverConfig = new ServerConfiguration();
-        serverConfig.setIssuer(OPENID_CONNECT_SERVER_WEBAPP);
-        serverConfig.setAuthorizationEndpointUri(OPENID_CONNECT_SERVER_WEBAPP + "authorize");
-        serverConfig.setTokenEndpointUri(OPENID_CONNECT_SERVER_WEBAPP + "token");
-        serverConfig.setUserInfoUri(OPENID_CONNECT_SERVER_WEBAPP + "userinfo");
-        serverConfig.setJwksUri(OPENID_CONNECT_SERVER_WEBAPP + "jwk");
-        serverConfigs.put(OPENID_CONNECT_SERVER_WEBAPP, serverConfig);
+        serverConfig.setIssuer(OPENID_CONNECT_IDENTIY_PROVIDER);
+        serverConfig.setAuthorizationEndpointUri(OPENID_CONNECT_IDENTIY_PROVIDER + "authorize");
+        serverConfig.setTokenEndpointUri(OPENID_CONNECT_IDENTIY_PROVIDER + "token");
+        serverConfig.setUserInfoUri(OPENID_CONNECT_IDENTIY_PROVIDER + "userinfo");
+        serverConfig.setJwksUri(OPENID_CONNECT_IDENTIY_PROVIDER + "jwk");
+        serverConfigs.put(OPENID_CONNECT_IDENTIY_PROVIDER, serverConfig);
         hybridServerConfigurationService.setServers(serverConfigs);
         return hybridServerConfigurationService;
     }
@@ -132,7 +135,7 @@ public class ODICCoreConfig {
         client.setTokenEndpointAuthMethod(ClientDetailsEntity.AuthMethod.SECRET_BASIC);
         client.setRedirectUris(redirectUris);
 
-        clientMap.put(OPENID_CONNECT_SERVER_WEBAPP, client);
+        clientMap.put(OPENID_CONNECT_IDENTIY_PROVIDER, client);
 
         staticClientConfigurationService.setClients(clientMap);
 
@@ -162,7 +165,7 @@ public class ODICCoreConfig {
         client.setTokenEndpointAuthMethod(ClientDetailsEntity.AuthMethod.SECRET_BASIC);
         client.setRedirectUris(redirectUris);
 
-        clientMap.put(OPENID_CONNECT_SERVER_WEBAPP, client);
+        clientMap.put(OPENID_CONNECT_IDENTIY_PROVIDER, client);
 
         hybridClientConfigurationService.setClients(clientMap);
 
@@ -203,7 +206,7 @@ public class ODICCoreConfig {
     @Bean
     public StaticSingleIssuerService staticIssuerService() {
         StaticSingleIssuerService staticSingleIssuerService = new StaticSingleIssuerService();
-        staticSingleIssuerService.setIssuer(OPENID_CONNECT_SERVER_WEBAPP);
+        staticSingleIssuerService.setIssuer(OPENID_CONNECT_IDENTIY_PROVIDER);
         return staticSingleIssuerService;
     }
 
