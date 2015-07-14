@@ -11,9 +11,7 @@ import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.keypublisher.ClientKeyPublisher;
 import org.mitre.openid.connect.client.service.impl.*;
 import org.mitre.openid.connect.config.ServerConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.InputStreamResource;
@@ -37,11 +35,6 @@ public class ODICCoreConfig {
     public static final String ACCOUNT_CHOOSER = SERVER_ENDPOINT_EXTERNAL + "/account-chooser/";
     public static final String CLIENT_ID = "fad42d7c-0ae5-41c7-98ef-10ab37f9d2e8";
     public static final String CLIENT_SECRET = "secret";
-
-
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     @Bean
     public StaticServerConfigurationService staticServerConfigurationService() {
