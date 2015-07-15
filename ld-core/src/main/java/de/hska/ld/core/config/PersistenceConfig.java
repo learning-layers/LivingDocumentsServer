@@ -61,7 +61,7 @@ public class PersistenceConfig {
         String ddl = env.getProperty("module.core.db.ddl");
         if (ddl != null && ddl.contains("update")) {
             try {
-                FileUtils.deleteDirectory(new File(env.getProperty("module.core.search.location")));
+                FileUtils.deleteDirectory(new File(System.getenv("LDS_SEARCH_INDEX_LOCATION"))); // env.getProperty("module.core.search.location")
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -88,7 +88,8 @@ public class PersistenceConfig {
 
         Properties jpaProperties = new Properties();
         jpaProperties.setProperty("hibernate.hbm2ddl.auto", env.getProperty("module.core.db.ddl"));
-        jpaProperties.setProperty("hibernate.search.default.indexBase", env.getProperty("module.core.search.location"));
+        String hibernateSearchIndexFileLocation = System.getenv("LDS_SEARCH_INDEX_LOCATION");
+        jpaProperties.setProperty("hibernate.search.default.indexBase", hibernateSearchIndexFileLocation); // env.getProperty("module.core.search.location")
 
         factory.setJpaProperties(jpaProperties);
         factory.afterPropertiesSet();
