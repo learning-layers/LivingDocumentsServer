@@ -246,7 +246,7 @@ public class UserController {
         return () -> {
             User user = userService.findByUsername(username);
             if (user == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
             }
             return new ResponseEntity<>(user, HttpStatus.OK);
         };
@@ -270,11 +270,9 @@ public class UserController {
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST)
-    public Callable saveUser(@RequestBody final User user) {
-        // @Valid
+    public Callable saveUser(@RequestBody @Valid final User user) {
         return () -> {
             user.setLastupdatedAt(new Date());
-            user.setPassword("pass");
             if (user.getId() == null) {
                 User savedUser = userService.save(user);
                 return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
@@ -365,12 +363,13 @@ public class UserController {
      * <b>403 Forbidden</b> if authorization failed or <br>
      * <b>404 Not Found</b> if no user with the given ID has been found
      */
-    @Secured(Core.ROLE_USER)
+    @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.DELETE, value = "/{id}")
     public Callable deleteUser(@PathVariable Long id) {
         return () -> {
-            userService.delete(id);
-            return new ResponseEntity(HttpStatus.OK);
+            User user = userService.findById(id);
+            userService.delete(user);
+            return new ResponseEntity<>(user.getId(), HttpStatus.OK);
         };
     }
 

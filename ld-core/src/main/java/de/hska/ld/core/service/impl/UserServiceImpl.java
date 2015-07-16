@@ -103,7 +103,7 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             // Check if a the current user wants to update an account owned by somebody else
             User currentUser = Core.currentUser();
             boolean isAdmin = hasRole(currentUser, Core.ROLE_ADMIN);
-            if (!isAdmin && !currentUser.getId().equals(user.getId())) {
+            if (!isAdmin && currentUser != null && !currentUser.getId().equals(user.getId())) {
                 throw new UserNotAuthorizedException();
             }
             if (userFoundByUsername != null && user.getUsername().equals(userFoundByUsername.getUsername()) &&

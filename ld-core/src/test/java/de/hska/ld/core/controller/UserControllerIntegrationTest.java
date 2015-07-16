@@ -22,26 +22,16 @@
 
 package de.hska.ld.core.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.UserSession;
 import de.hska.ld.core.dto.IdDto;
-import de.hska.ld.core.exception.ApplicationError;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.CookieStore;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,10 +39,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 
-import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
 import static de.hska.ld.core.fixture.CoreFixture.newUser;
 
 public class UserControllerIntegrationTest extends AbstractIntegrationTest {
@@ -66,79 +56,19 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testSaveUserUsesHttpCreatedOnPersist() {
-        CookieStore cookieStore = null;
-
+        UserSession adminSession = new UserSession();
         try {
-            String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
-            String url = endpoint + "/login";
-
-            cookieStore = new BasicCookieStore();
-            CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
-
-            HttpPost post = new HttpPost(url);
-
-            // add header
-            post.setHeader("User-Agent", "Mozilla/5.0");
-
-            List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-            urlParameters.add(new BasicNameValuePair("user", "admin"));
-            urlParameters.add(new BasicNameValuePair("password", "pass"));
-
-            post.setEntity(new UrlEncodedFormEntity(urlParameters));
-
-            HttpResponse response = client.execute(post);
-            List<Cookie> cookieList = cookieStore.getCookies();
-            System.out.println("Response Code : "
-                    + response.getStatusLine().getStatusCode());
+            adminSession.loginAsAdmin();
         } catch (Exception e) {
-            System.err.println(e);
+            Assert.fail();
         }
 
         try {
-            String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
-            String url = endpoint + RESOURCE_USER;
-
-            CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
-
-            HttpPost post = new HttpPost(url);
-
-            // add header
-            post.setHeader("User-Agent", "Mozilla/5.0");
-            post.setHeader("Content-type", "application/json");
-
-            List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-            urlParameters.add(new BasicNameValuePair("user", "admin"));
-            urlParameters.add(new BasicNameValuePair("password", "pass"));
-
-            post.setEntity(new UrlEncodedFormEntity(urlParameters));
-            String json = null;
-            User user = newUser();
-            if (user != null) {
-                try {
-                    json = objectMapper.writeValueAsString(user);
-                /*if (obj instanceof User) {
-                    // Workaround to transfer password
-                    json = json.substring(0, json.length() - 1);
-                    json += ",\"password\":\"" + PASSWORD + "\"}";
-                }*/
-                } catch (JsonProcessingException e) {
-                    // do nothing
-                }
-            }
-            HttpEntity entity = new ByteArrayEntity(json.getBytes("UTF-8"));
-            post.setEntity(entity);
-
-            HttpResponse response = client.execute(post);
-            System.out.println("Response Code : "
-                    + response.getStatusLine().getStatusCode());
+            HttpResponse response = adminSession.postJson(RESOURCE_USER, newUser());
             Assert.assertEquals(HttpStatus.CREATED, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
-        } catch (Exception e) {
-            System.err.println(e);
+        } catch (IOException e) {
+            Assert.fail();
         }
-
-        //HttpRequestWrapper requestWrapper = post().resource(RESOURCE_USER).body(newUser()).asAdmin();
-        //ResponseEntity<User> response = requestWrapper.exec(User.class);
-        //Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
@@ -146,56 +76,88 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         User user = userService.save(newUser());
         user.setFullName(user.getFullName() + " (updated)");
 
-        ResponseEntity<User> response = post().resource(RESOURCE_USER).asAdmin().body(user).exec(User.class);
-        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
+        UserSession adminSession = new UserSession();
+        try {
+            adminSession.loginAsAdmin();
+        } catch (Exception e) {
+            Assert.fail();
+        }
 
-    @Test
-    public void testSaveUserAsAdminUsesHttpOkOnUpdate() {
-        User user = userService.save(newUser());
-        user.setFullName(user.getFullName() + " (updated)");
-
-        ResponseEntity<User> response = post().resource(RESOURCE_USER).asAdmin().body(user).exec(User.class);
-        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+        try {
+            HttpResponse response = adminSession.postJson(RESOURCE_USER, user);
+            Assert.assertEquals(HttpStatus.OK, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+        } catch (IOException e) {
+            Assert.fail();
+        }
     }
 
     @Test
     public void testDeleteUserUsesHttpOkOnSuccess() {
         User user = userService.save(newUser());
-        delete().resource(RESOURCE_USER + "/" + user.getId()).asAdmin().exec(IdDto.class);
+
+        UserSession adminSession = new UserSession();
+        try {
+            adminSession.loginAsAdmin();
+        } catch (Exception e) {
+            Assert.fail();
+        }
+
+        try {
+            HttpResponse response = adminSession.delete(RESOURCE_USER + "/" + user.getId(), null);
+            Assert.assertEquals(HttpStatus.OK, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+            HttpEntity entity = response.getEntity();
+            String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
+            Assert.assertEquals(user.getId(), Long.valueOf(body));
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
     }
 
     @Test
     public void testDeleteUserUsesHttpForbiddenOnAuthorizationFailure() {
         User user = userService.save(newUser());
+
+        UserSession userSession = new UserSession();
         try {
-            delete().resource(RESOURCE_USER + "/" + user.getId()).asUser().exec(IdDto.class);
-        } catch (HttpStatusCodeException e) {
-            expectedClientException = e;
+            userSession.loginAsUser();
+        } catch (Exception e) {
+            Assert.fail();
         }
-        Assert.assertNotNull(expectedClientException);
-        Assert.assertEquals(HttpStatus.FORBIDDEN, expectedClientException.getStatusCode());
+
+        try {
+            HttpResponse response = userSession.delete(RESOURCE_USER + "/" + user.getId(), null);
+            Assert.assertEquals(HttpStatus.FORBIDDEN, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
     }
 
     @Test
     public void testUpdateUsernameUsesHttpConflictIfAlreadyExists() {
-        User user1 = userService.save(newUser());
-        User user2 = userService.save(newUser());
+        User user1 = newUser();
 
-        byte[] authUser2 = (user2.getUsername() + ":" + PASSWORD).getBytes();
-        user2.setUsername(user1.getUsername());
+        UserSession adminSession = new UserSession();
         try {
-            post().resource(RESOURCE_USER).as(authUser2).body(user2).asAdmin().exec(ApplicationError.class);
-        } catch (HttpStatusCodeException e) {
-            parseApplicationError(e.getResponseBodyAsString());
-            expectedClientException = e;
+            adminSession.loginAsAdmin();
+        } catch (Exception e) {
+            Assert.fail();
         }
 
-        Assert.assertNotNull(applicationError);
-        Assert.assertTrue(applicationError.getField().equals("username"));
-        Assert.assertTrue(applicationError.getKey().equals("ALREADY_EXISTS"));
-        Assert.assertNotNull(expectedClientException);
-        Assert.assertEquals(HttpStatus.CONFLICT, expectedClientException.getStatusCode());
+        try {
+            HttpResponse response = adminSession.postJson(RESOURCE_USER, user1);
+            Assert.assertEquals(HttpStatus.CREATED, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+        } catch (IOException e) {
+            Assert.fail();
+        }
+
+        try {
+            HttpResponse response = adminSession.postJson(RESOURCE_USER, user1);
+            Assert.assertEquals(HttpStatus.CONFLICT, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+        } catch (IOException e) {
+            Assert.fail();
+        }
     }
 
     @Test

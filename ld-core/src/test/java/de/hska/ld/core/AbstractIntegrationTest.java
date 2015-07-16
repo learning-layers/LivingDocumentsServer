@@ -98,13 +98,13 @@ public abstract class AbstractIntegrationTest {
         }
         testUser = userService.save(newUser());
         User admin = userService.findByUsername("admin");
-        //if (admin == null) {
+        if (admin == null) {
             createAdminAcc();
-        //}
+        }
         User user = userService.findByUsername("user");
-        //if (user == null) {
+        if (user == null) {
             createUserAcc();
-        //}
+        }
     }
 
     public User createAdminAcc() {
