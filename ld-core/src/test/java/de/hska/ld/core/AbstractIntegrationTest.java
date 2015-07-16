@@ -26,8 +26,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.TestApplication;
 import de.hska.ld.core.exception.ApplicationError;
+import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.UserService;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -45,10 +57,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
 import static de.hska.ld.core.fixture.CoreFixture.newUser;
@@ -66,6 +75,9 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RoleService roleService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate template = new RestTemplate();
 
@@ -76,7 +88,67 @@ public abstract class AbstractIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
+        Role userRole = roleService.findByName("ROLE_USER");
+        if (userRole == null) {
+            // create initial roles
+            String newUserRoleName = "ROLE_USER";
+            userRole = createNewUserRole(newUserRoleName);
+            String newAdminRoleName = "ROLE_ADMIN";
+            Role adminRole = createNewUserRole(newAdminRoleName);
+        }
         testUser = userService.save(newUser());
+        User admin = userService.findByUsername("admin");
+        if (admin == null) {
+            createAdminAcc();
+        }
+        User user = userService.findByUsername("user");
+        if (user == null) {
+            createUserAcc();
+        }
+    }
+
+    public User createAdminAcc() {
+        String firstName = "adminFirstName";
+        String lastName = "adminLastName";
+
+        User user = new User();
+        user.setPassword(PASSWORD);
+        user.setEmail(firstName + "." + lastName + "@learning-layers.de");
+        user.setUsername("admin");
+        user.setFullName(firstName + " " + lastName);
+        user.setLastupdatedAt(new Date());
+        List<Role> roleList = roleService.findAll();
+        user.setRoleList(roleList);
+
+        return userService.save(user);
+    }
+
+    public User createUserAcc() {
+        String firstName = "userFirstName";
+        String lastName = "userLastName";
+
+        User user = new User();
+        user.setPassword(PASSWORD);
+        user.setEmail(firstName + "." + lastName + "@learning-layers.de");
+        user.setUsername("user");
+        user.setFullName(firstName + " " + lastName);
+        user.setLastupdatedAt(new Date());
+        List<Role> roleList = roleService.findAll();
+        List<Role> userRoleList = new ArrayList<>();
+        roleList.forEach(role -> {
+            if ("ROLE_USER".equals(role.getName())) {
+                userRoleList.add(role);
+            }
+        });
+        user.setRoleList(userRoleList);
+
+        return userService.save(user);
+    }
+
+    private Role createNewUserRole(String newRoleName) {
+        Role newUserRole = new Role();
+        newUserRole.setName(newRoleName);
+        return roleService.save(newUserRole);
     }
 
     @After
@@ -92,7 +164,7 @@ public abstract class AbstractIntegrationTest {
         }
     }
 
-    private HttpEntity<String> createHeaderAndBody(Object obj, byte[] auth) {
+    private HttpEntity<String> createHeaderAndBody(Object obj, Cookie auth) {
         String json = null;
         if (obj != null) {
             try {
@@ -110,10 +182,7 @@ public abstract class AbstractIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        if (auth != null) {
-            byte[] encodedAuthorisation = Base64.encode(auth);
-            headers.add("Authorization", "Basic " + new String(encodedAuthorisation));
-        }
+        headers.add("Cookie", "JSESSIONID=" + auth.getValue());
 
         if (json == null) {
             return new HttpEntity<>(headers);
@@ -186,6 +255,7 @@ public abstract class AbstractIntegrationTest {
         private HttpMethod httpMethod;
         private Object body;
         private byte[] auth;
+        private SecurityFixture secFix;
 
         public HttpRequestWrapper(HttpMethod httpMethod) {
             this.httpMethod = httpMethod;
@@ -196,7 +266,10 @@ public abstract class AbstractIntegrationTest {
         }
 
         public <T> ResponseEntity<T> exec(Class<T> responseType) {
-            return template.exchange(BASE_URL + resource, httpMethod, createHeaderAndBody(body, auth), responseType);
+            if (secFix != null) {
+                template.setRequestFactory(secFix);
+            }
+            return template.exchange(BASE_URL + resource, httpMethod, createHeaderAndBody(body, secFix.getCookie()), responseType);
         }
 
         public HttpRequestWrapper resource(String resource) {
@@ -211,22 +284,128 @@ public abstract class AbstractIntegrationTest {
 
         public HttpRequestWrapper as(byte[] auth) {
             this.auth = auth;
+            String authString = new String(auth);
+            String[] splittedAuthString = authString.split(":");
+            try {
+                String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+                String url = endpoint + "/login";
+
+                CookieStore cookieStore = new BasicCookieStore();
+                CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+                ;
+                HttpPost post = new HttpPost(url);
+
+                // add header
+                post.setHeader("User-Agent", "Mozilla/5.0");
+
+                List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+                urlParameters.add(new BasicNameValuePair("user", splittedAuthString[0]));
+                urlParameters.add(new BasicNameValuePair("password", splittedAuthString[1]));
+
+                post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+                HttpResponse response = client.execute(post);
+                List<Cookie> cookieList = cookieStore.getCookies();
+                System.out.println("Response Code : "
+                        + response.getStatusLine().getStatusCode());
+                secFix = new SecurityFixture(cookieList.get(0));
+            } catch (Exception e) {
+                System.err.println(e);
+            }
             return this;
         }
 
         public HttpRequestWrapper as(User user) {
             String usernameAndPassword = user.getUsername() + ":" + PASSWORD;
             this.auth = usernameAndPassword.getBytes();
+            try {
+                String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+                String url = endpoint + "/login";
+
+                CookieStore cookieStore = new BasicCookieStore();
+                CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+                ;
+                HttpPost post = new HttpPost(url);
+
+                // add header
+                post.setHeader("User-Agent", "Mozilla/5.0");
+
+                List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+                urlParameters.add(new BasicNameValuePair("user", user.getUsername()));
+                urlParameters.add(new BasicNameValuePair("password", PASSWORD));
+
+                post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+                HttpResponse response = client.execute(post);
+                List<Cookie> cookieList = cookieStore.getCookies();
+                System.out.println("Response Code : "
+                        + response.getStatusLine().getStatusCode());
+                secFix = new SecurityFixture(cookieList.get(0));
+            } catch (Exception e) {
+                System.err.println(e);
+            }
             return this;
         }
 
         public HttpRequestWrapper asUser() {
             this.auth = AUTH_USER;
+            try {
+                String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+                String url = endpoint + "/login";
+
+                CookieStore cookieStore = new BasicCookieStore();
+                CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+                ;
+                HttpPost post = new HttpPost(url);
+
+                // add header
+                post.setHeader("User-Agent", "Mozilla/5.0");
+
+                List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+                urlParameters.add(new BasicNameValuePair("user", "user"));
+                urlParameters.add(new BasicNameValuePair("password", "pass"));
+
+                post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+                HttpResponse response = client.execute(post);
+                List<Cookie> cookieList = cookieStore.getCookies();
+                System.out.println("Response Code : "
+                        + response.getStatusLine().getStatusCode());
+                secFix = new SecurityFixture(cookieList.get(0));
+            } catch (Exception e) {
+                System.err.println(e);
+            }
             return this;
         }
 
         public HttpRequestWrapper asAdmin() {
             this.auth = AUTH_ADMIN;
+            try {
+                String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+                String url = endpoint + "/login";
+
+                CookieStore cookieStore = new BasicCookieStore();
+                CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+                ;
+                HttpPost post = new HttpPost(url);
+
+                // add header
+                post.setHeader("User-Agent", "Mozilla/5.0");
+
+                List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+                urlParameters.add(new BasicNameValuePair("user", "admin"));
+                urlParameters.add(new BasicNameValuePair("password", "pass"));
+
+                post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+                HttpResponse response = client.execute(post);
+                List<Cookie> cookieList = cookieStore.getCookies();
+                System.out.println("Response Code : "
+                        + response.getStatusLine().getStatusCode());
+                secFix = new SecurityFixture(cookieList.get(0));
+            } catch (Exception e) {
+                System.err.println(e);
+            }
             return this;
         }
     }

@@ -40,7 +40,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.AccessDeniedException;
 import java.security.Principal;
-import java.util.Base64;
 import java.util.Locale;
 import java.util.Set;
 
@@ -105,16 +104,10 @@ public class HomeController {
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public String login(HttpServletRequest request, Locale locale, Model model, Principal p) throws OperationNotSupportedException, AccessDeniedException {
-        String authorizationString = request.getHeader("Authorization");
-        String[] splittedAuthString = authorizationString.split("Basic ");
-        if (splittedAuthString[1] != null) {
-            String decodedAuthString = new String(Base64.getDecoder().decode(splittedAuthString[1]));
-            String username = null;
-            String password = null;
+        String username = request.getParameter("user");
+        String password = request.getParameter("password");
+        if (username != null && password != null) {
             try {
-                String[] splittedDecodedAuthString = decodedAuthString.split(":");
-                username = splittedDecodedAuthString[0];
-                password = splittedDecodedAuthString[1];
                 User user = userService.findByUsername(username);
                 if (user != null) {
                     UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user, password);

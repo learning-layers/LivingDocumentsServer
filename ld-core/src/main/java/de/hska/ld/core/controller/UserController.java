@@ -271,9 +271,8 @@ public class UserController {
     @RequestMapping(method = RequestMethod.POST)
     public Callable saveUser(@RequestBody @Valid final User user) {
         return () -> {
-            boolean isNew = user.getId() == null;
             User savedUser = userService.save(user);
-            if (isNew) {
+            if (user.getId() == null) {
                 return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
             } else {
                 return new ResponseEntity<>(savedUser, HttpStatus.OK);

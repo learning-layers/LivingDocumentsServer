@@ -269,12 +269,6 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .addFilterBefore(oidcFilter, AbstractPreAuthenticatedProcessingFilter.class)
-                /*.formLogin()
-                .successHandler(authenticationSuccessHandler())
-                .failureHandler(authenticationFailureHandler())
-                .and()
-                .rememberMe()
-                .and()*/
                 .csrf().requireCsrfProtectionMatcher(new RequestMatcher() {
             private Pattern allowedMethods =
                     Pattern.compile("^(GET|HEAD|TRACE|OPTIONS)$");
@@ -303,8 +297,6 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout()
                 .logoutSuccessHandler(logoutSuccessHandler())
                 .deleteCookies("JSESSIONID");
-        //.and()
-        //.httpBasic();
     }
 
     @Bean
