@@ -17,6 +17,8 @@
 package de.hska.ld.core.controller;
 
 import de.hska.ld.core.config.security.FormAuthenticationProvider;
+import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
 import org.mitre.openid.connect.client.OIDCAuthenticationFilter;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.slf4j.Logger;
@@ -33,9 +35,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.annotation.Resource;
+import javax.naming.OperationNotSupportedException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import java.nio.file.AccessDeniedException;
 import java.security.Principal;
+import java.util.Base64;
 import java.util.Locale;
 import java.util.Set;
 
@@ -56,6 +61,9 @@ public class HomeController {
 
     @Autowired
     private FormAuthenticationProvider formAuthenticationProvider;
+
+    @Autowired
+    private UserService userService;
 
     /**
      * Simply selects the home view to render by returning its name.
@@ -96,22 +104,35 @@ public class HomeController {
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public String login(HttpServletRequest request, Locale locale, Model model, Principal p) {
-        String username = request.getParameter("user");
-        String password = request.getParameter("password");
+    public String login(HttpServletRequest request, Locale locale, Model model, Principal p) throws OperationNotSupportedException, AccessDeniedException {
         String authorizationString = request.getHeader("Authorization");
+        String[] splittedAuthString = authorizationString.split("Basic ");
+        if (splittedAuthString[1] != null) {
+            String decodedAuthString = new String(Base64.getDecoder().decode(splittedAuthString[1]));
+            String username = null;
+            String password = null;
+            try {
+                String[] splittedDecodedAuthString = decodedAuthString.split(":");
+                username = splittedDecodedAuthString[0];
+                password = splittedDecodedAuthString[1];
+                User user = userService.findByUsername(username);
+                if (user != null) {
+                    UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user, password);
+                    token.setDetails(new WebAuthenticationDetails(request));
+                    Authentication authentication = formAuthenticationProvider.authenticate(token);
+                    logger.debug("Logging in with [{}]", authentication.getPrincipal());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    throw new AccessDeniedException("Username or password wrong! (1)");
+                }
+            } catch (Exception e) {
+                SecurityContextHolder.getContext().setAuthentication(null);
+                logger.error("Failure in autoLogin for user with username=[" + username + "]", e);
+                throw new AccessDeniedException("Username or password wrong! (2)");
+            }
 
-        try {
-            // Must be called from request filtered by Spring Security, otherwise SecurityContextHolder is not updated
-            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
-            token.setDetails(new WebAuthenticationDetails(request));
-
-            Authentication authentication = formAuthenticationProvider.authenticate(token);
-            logger.debug("Logging in with [{}]", authentication.getPrincipal());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        } catch (Exception e) {
-            SecurityContextHolder.getContext().setAuthentication(null);
-            logger.error("Failure in autoLogin", e);
+        } else {
+            throw new UnsupportedOperationException("No Authorization credentials provided!");
         }
 
         return "home";
