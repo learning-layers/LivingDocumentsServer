@@ -101,8 +101,8 @@ subprojects {
         compile "org.apache.httpcomponents:httpclient:4.3.5"
 
         // Webjar
-        compile("org.webjars:jquery:2.0.3-1")
-        compile("org.webjars:underscorejs:1.7.0")
+        compile("org.webjars:jquery:2.1.4")
+        compile("org.webjars:underscorejs:1.8.3")
         compile("org.webjars:bootstrap:2.3.2")
 
         // OPEN ID Connect
@@ -111,8 +111,8 @@ subprojects {
         compile "org.apache.httpcomponents:httpclient:4.3.5"
 
         // Webjar
-        compile("org.webjars:jquery:2.0.3-1")
-        compile("org.webjars:underscorejs:1.7.0")
+        compile("org.webjars:jquery:2.1.4")
+        compile("org.webjars:underscorejs:1.8.3")
         compile("org.webjars:bootstrap:2.3.2")
 
         // Add the core project as a dependency for each sub project
