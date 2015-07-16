@@ -98,13 +98,13 @@ public abstract class AbstractIntegrationTest {
         }
         testUser = userService.save(newUser());
         User admin = userService.findByUsername("admin");
-        if (admin == null) {
+        //if (admin == null) {
             createAdminAcc();
-        }
+        //}
         User user = userService.findByUsername("user");
-        if (user == null) {
+        //if (user == null) {
             createUserAcc();
-        }
+        //}
     }
 
     public User createAdminAcc() {
@@ -169,11 +169,11 @@ public abstract class AbstractIntegrationTest {
         if (obj != null) {
             try {
                 json = objectMapper.writeValueAsString(obj);
-                if (obj instanceof User) {
+                /*if (obj instanceof User) {
                     // Workaround to transfer password
                     json = json.substring(0, json.length() - 1);
                     json += ",\"password\":\"" + PASSWORD + "\"}";
-                }
+                }*/
             } catch (JsonProcessingException e) {
                 // do nothing
             }
@@ -182,7 +182,9 @@ public abstract class AbstractIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        headers.add("Cookie", "JSESSIONID=" + auth.getValue());
+        if (auth != null) {
+            headers.add("Cookie", "JSESSIONID=" + auth.getValue());
+        }
 
         if (json == null) {
             return new HttpEntity<>(headers);
@@ -268,8 +270,9 @@ public abstract class AbstractIntegrationTest {
         public <T> ResponseEntity<T> exec(Class<T> responseType) {
             if (secFix != null) {
                 template.setRequestFactory(secFix);
+                return template.exchange(BASE_URL + resource, httpMethod, createHeaderAndBody(body, secFix.getCookie()), responseType);
             }
-            return template.exchange(BASE_URL + resource, httpMethod, createHeaderAndBody(body, secFix.getCookie()), responseType);
+            return template.exchange(BASE_URL + resource, httpMethod, createHeaderAndBody(body, null), responseType);
         }
 
         public HttpRequestWrapper resource(String resource) {

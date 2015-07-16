@@ -22,18 +22,35 @@
 
 package de.hska.ld.core.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.dto.IdDto;
 import de.hska.ld.core.exception.ApplicationError;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
 import static de.hska.ld.core.fixture.CoreFixture.newUser;
@@ -45,10 +62,83 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private UserService userService;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Test
     public void testSaveUserUsesHttpCreatedOnPersist() {
-        ResponseEntity<User> response = post().resource(RESOURCE_USER).body(newUser()).asAdmin().exec(User.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        CookieStore cookieStore = null;
+
+        try {
+            String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+            String url = endpoint + "/login";
+
+            cookieStore = new BasicCookieStore();
+            CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+
+            HttpPost post = new HttpPost(url);
+
+            // add header
+            post.setHeader("User-Agent", "Mozilla/5.0");
+
+            List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+            urlParameters.add(new BasicNameValuePair("user", "admin"));
+            urlParameters.add(new BasicNameValuePair("password", "pass"));
+
+            post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+            HttpResponse response = client.execute(post);
+            List<Cookie> cookieList = cookieStore.getCookies();
+            System.out.println("Response Code : "
+                    + response.getStatusLine().getStatusCode());
+        } catch (Exception e) {
+            System.err.println(e);
+        }
+
+        try {
+            String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+            String url = endpoint + RESOURCE_USER;
+
+            CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+
+            HttpPost post = new HttpPost(url);
+
+            // add header
+            post.setHeader("User-Agent", "Mozilla/5.0");
+            post.setHeader("Content-type", "application/json");
+
+            List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+            urlParameters.add(new BasicNameValuePair("user", "admin"));
+            urlParameters.add(new BasicNameValuePair("password", "pass"));
+
+            post.setEntity(new UrlEncodedFormEntity(urlParameters));
+            String json = null;
+            User user = newUser();
+            if (user != null) {
+                try {
+                    json = objectMapper.writeValueAsString(user);
+                /*if (obj instanceof User) {
+                    // Workaround to transfer password
+                    json = json.substring(0, json.length() - 1);
+                    json += ",\"password\":\"" + PASSWORD + "\"}";
+                }*/
+                } catch (JsonProcessingException e) {
+                    // do nothing
+                }
+            }
+            HttpEntity entity = new ByteArrayEntity(json.getBytes("UTF-8"));
+            post.setEntity(entity);
+
+            HttpResponse response = client.execute(post);
+            System.out.println("Response Code : "
+                    + response.getStatusLine().getStatusCode());
+            Assert.assertEquals(HttpStatus.CREATED, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+        } catch (Exception e) {
+            System.err.println(e);
+        }
+
+        //HttpRequestWrapper requestWrapper = post().resource(RESOURCE_USER).body(newUser()).asAdmin();
+        //ResponseEntity<User> response = requestWrapper.exec(User.class);
+        //Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test

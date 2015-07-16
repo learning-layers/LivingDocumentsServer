@@ -49,6 +49,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -269,12 +270,16 @@ public class UserController {
      */
     @Secured(Core.ROLE_ADMIN)
     @RequestMapping(method = RequestMethod.POST)
-    public Callable saveUser(@RequestBody @Valid final User user) {
+    public Callable saveUser(@RequestBody final User user) {
+        // @Valid
         return () -> {
-            User savedUser = userService.save(user);
+            user.setLastupdatedAt(new Date());
+            user.setPassword("pass");
             if (user.getId() == null) {
+                User savedUser = userService.save(user);
                 return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
             } else {
+                User savedUser = userService.save(user);
                 return new ResponseEntity<>(savedUser, HttpStatus.OK);
             }
         };
