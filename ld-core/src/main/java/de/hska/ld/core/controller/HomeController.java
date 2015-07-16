@@ -104,7 +104,10 @@ public class HomeController {
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public String login(HttpServletRequest request, Locale locale, Model model, Principal p) throws OperationNotSupportedException, AccessDeniedException {
-        String username = request.getParameter("user");
+        String username = request.getParameter("username");
+        if (username == null) {
+            username = request.getParameter("user");
+        }
         String password = request.getParameter("password");
         if (username != null && password != null) {
             try {
