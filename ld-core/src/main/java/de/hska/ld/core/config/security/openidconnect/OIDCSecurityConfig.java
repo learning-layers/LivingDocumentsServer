@@ -1,5 +1,9 @@
 package de.hska.ld.core.config.security.openidconnect;
 
+import de.hska.ld.core.config.security.AjaxAuthenticationFailureHandler;
+import de.hska.ld.core.config.security.AjaxAuthenticationSuccessHandler;
+import de.hska.ld.core.config.security.AjaxLogoutSuccessHandler;
+import de.hska.ld.core.config.security.FormAuthenticationProvider;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.RoleService;
@@ -18,6 +22,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -29,8 +34,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -80,6 +87,13 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth
+                .userDetailsService(userService)
+                .passwordEncoder(passwordEncoder());
+    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -160,7 +174,11 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         }
                         user.setRoleList(roleList);
                         // A password is required so we set a uuid generated one
-                        user.setPassword(UUID.randomUUID().toString());
+                        if ("development".equals(System.getenv("LDS_APP_INSTANCE"))) {
+                            user.setPassword("pass");
+                        } else {
+                            user.setPassword(UUID.randomUUID().toString());
+                        }
                         user.setSubId(subId);
                         user.setIssuer(issuer);
                         String oidcUpdatedTime = token.getUserInfo().getUpdatedTime();
@@ -251,6 +269,12 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .addFilterBefore(oidcFilter, AbstractPreAuthenticatedProcessingFilter.class)
+                /*.formLogin()
+                .successHandler(authenticationSuccessHandler())
+                .failureHandler(authenticationFailureHandler())
+                .and()
+                .rememberMe()
+                .and()*/
                 .csrf().requireCsrfProtectionMatcher(new RequestMatcher() {
             private Pattern allowedMethods =
                     Pattern.compile("^(GET|HEAD|TRACE|OPTIONS)$");
@@ -277,7 +301,10 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
                 .and()
                 .logout()
+                .logoutSuccessHandler(logoutSuccessHandler())
                 .deleteCookies("JSESSIONID");
+        //.and()
+        //.httpBasic();
     }
 
     @Bean
@@ -290,6 +317,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
         List<AuthenticationProvider> authenticationProviderList = new ArrayList<>();
         OIDCAuthenticationProvider provider = authenticationProvider();
         authenticationProviderList.add(provider);
+        authenticationProviderList.add(formAuthenticationProvider());
         authenticationManager = new ProviderManager(authenticationProviderList);
         return authenticationManager;
     }
@@ -301,6 +329,11 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
         namedAdminAuthoritiesMapper.setAdmins(namedAdmins());
         authenticationProvider.setAuthoritiesMapper(namedAdminAuthoritiesMapper);
         return authenticationProvider;
+    }
+
+    @Bean
+    public FormAuthenticationProvider formAuthenticationProvider() {
+        return new FormAuthenticationProvider();
     }
 
     @Bean
@@ -332,5 +365,20 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler() {
+        return new AjaxAuthenticationSuccessHandler();
+    }
+
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler() {
+        return new AjaxAuthenticationFailureHandler();
+    }
+
+    @Bean
+    public LogoutSuccessHandler logoutSuccessHandler() {
+        return new AjaxLogoutSuccessHandler();
     }
 }

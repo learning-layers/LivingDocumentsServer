@@ -16,12 +16,17 @@
  *******************************************************************************/
 package de.hska.ld.core.controller;
 
+import de.hska.ld.core.config.security.FormAuthenticationProvider;
 import org.mitre.openid.connect.client.OIDCAuthenticationFilter;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,6 +53,9 @@ public class HomeController {
 
     @Resource(name = "namedAdmins")
     private Set<SubjectIssuerGrantedAuthority> admins;
+
+    @Autowired
+    private FormAuthenticationProvider formAuthenticationProvider;
 
     /**
      * Simply selects the home view to render by returning its name.
@@ -87,9 +95,31 @@ public class HomeController {
         return "admin";
     }
 
-    @RequestMapping("/login")
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    public String login(HttpServletRequest request, Locale locale, Model model, Principal p) {
+        String username = request.getParameter("user");
+        String password = request.getParameter("password");
+        String authorizationString = request.getHeader("Authorization");
+
+        try {
+            // Must be called from request filtered by Spring Security, otherwise SecurityContextHolder is not updated
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
+            token.setDetails(new WebAuthenticationDetails(request));
+
+            Authentication authentication = formAuthenticationProvider.authenticate(token);
+            logger.debug("Logging in with [{}]", authentication.getPrincipal());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (Exception e) {
+            SecurityContextHolder.getContext().setAuthentication(null);
+            logger.error("Failure in autoLogin", e);
+        }
+
+        return "home";
+    }
+
+    @RequestMapping("/login_old")
     public String login(Principal p) {
-        return "login";
+        return "login_old";
     }
 
     @RequestMapping("/logout")

@@ -25,6 +25,7 @@ package de.hska.ld.core.fixture;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
 
+import java.util.Date;
 import java.util.UUID;
 
 public class CoreFixture {
@@ -40,6 +41,7 @@ public class CoreFixture {
         user.setEmail(firstName + "." + lastName + "@learning-layers.de");
         user.setUsername(firstName + "." + lastName);
         user.setFullName(firstName + " " + lastName);
+        user.setLastupdatedAt(new Date());
 
         return user;
     }
