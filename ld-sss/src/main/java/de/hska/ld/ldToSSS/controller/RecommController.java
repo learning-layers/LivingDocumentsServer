@@ -359,8 +359,17 @@ public class RecommController {
             }
         };
     }
-    
-    
+
+    /**
+     * This function is used to retrieve the object that have been sent to the SSS previously, because
+     * we do keep track of what we are sending, this objects are retrieved from local DB without connecting the
+     * actual SSS server
+     * @param pageNumber (Optional) parameter to get different pages
+     * @param pageSize (Optional) parameter to retrieve an specific amount of registries
+     * @param sortDirection (Optional) parameter to specify sorting of registries
+     * @param sortProperty (optional) parameter to specify different column for sorting
+     * @return Page object with information about objects (FILES/USERS)
+     */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/recomm")
     @Transactional(readOnly = true)
@@ -643,6 +652,12 @@ public class RecommController {
         return recommInfo;
     }
 
+    /**
+     * This functions looks for object(File/User) information after receiving the response from the SSS server,
+     * therefore fills the information of each object, so the controller can return more about each object
+     * @param array
+     * @return
+     */
     public JSONArray retrieveLocalInfo(JSONArray array){
         Iterator<JSONObject> iterator = array.iterator();
         JSONArray responseArray = new JSONArray();
@@ -690,6 +705,12 @@ public class RecommController {
         return responseArray;
     }
 
+    /**
+     * This functions looks for object(File/User) information after getting a Page<RecommInfo>, it matches the content
+     * from the SSS objects (Files/Users) store locally to their respective information from local datatables
+     * @param pageRecommInfo
+     * @return
+     */
     public JSONObject retrieveLocalInfo(Page<RecommInfo> pageRecommInfo){
         Iterator<RecommInfo> iterator = pageRecommInfo.iterator();
         JSONObject finalResponse = new JSONObject();
