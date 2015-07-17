@@ -16,6 +16,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 @RestController
@@ -68,7 +69,14 @@ public class UserContentController {
             if (tagsPage != null && tagsPage.getNumberOfElements() > 0) {
                 return new ResponseEntity<>(tagsPage, HttpStatus.OK);
             } else {
-                throw new NotFoundException();
+
+                User userAux = userService.findById(userId);
+                if(userAux==null) {
+                    throw new NotFoundException();
+                }else{
+                    //User exists but doesn't have any tag
+                    return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+                }
             }
         };
     }

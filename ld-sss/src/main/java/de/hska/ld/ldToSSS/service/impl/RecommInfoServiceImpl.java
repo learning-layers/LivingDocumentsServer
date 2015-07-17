@@ -39,6 +39,11 @@ public class RecommInfoServiceImpl implements RecommInfoService {
 //
 //        return recommInfoRepository.findIDToInsert();
 //    }
+    @Override
+    @Transactional(readOnly = true)
+    public RecommInfo findByEntity(String entity) {
+        return recommInfoRepository.findByEntity(entity);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -110,7 +115,7 @@ public class RecommInfoServiceImpl implements RecommInfoService {
         return (List)recommInfoRepository.findAll();
     }*/
 
-    /*@Override
+    @Override
     @Transactional(readOnly = true)
     public Page<RecommInfo> findAll(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
         Sort.Direction direction;
@@ -121,7 +126,7 @@ public class RecommInfoServiceImpl implements RecommInfoService {
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
         return recommInfoRepository.findAll(pageable);
-    }*/
+    }
 
 
 

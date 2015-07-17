@@ -155,20 +155,6 @@ public class RecommInfo {
         this.deleted = deleted;
     }
 
-    /*public void updateTagList(){
-        if(tags==null)
-            tags= new ArrayList<Tag>();
-        if(getDocumentList() != null) {
-            for (Document document : documentList) {
-                for (Tag tag : document.getTagList()) {
-                    if (!tags.contains(tag)) {
-                        tags.add(tag);
-                    }
-                }
-            }
-        }
-    }*/
-
     public ArrayList<String> retrieveUniqueTagNames(ArrayList<Tag> tagList){
         ArrayList<String> tagNamesList = new ArrayList<String>();
         if(tagList!=null) {

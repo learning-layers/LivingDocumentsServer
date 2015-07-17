@@ -16,7 +16,9 @@ public interface RecommInfoService {
 
      //List<RecommInfo> findAll();
 
-     //Page<RecommInfo> findAll(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+     Page<RecommInfo> findAll(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
+
+     RecommInfo findByEntity(String entity);
 
      RecommInfo findOneUser(Long id);
 

@@ -45,7 +45,8 @@ public class UserContentInfoServiceImpl implements UserContentInfoService {
 
     @Override
     public void removeTag(Long userId, Long tagId) {
-        UserContentInfo userContentInfo = userContentInfoRepository.findById(userId);
+        User user = userService.findById(userId);
+        UserContentInfo userContentInfo = userContentInfoRepository.findByUser(user);
         if (userContentInfo != null) {
             Tag tag = tagService.findById(tagId);
             userContentInfo.getTagList().remove(tag);
