@@ -43,8 +43,8 @@ public class RecommConfig {
         Boolean requiresProxy = false;
 
         //PROXY personal credentials to access within the Hochschule
-        String proxy_username = "personal_username";
-        String proxy_password = "personal_password";
+        String proxy_username = "proxy_username";
+        String proxy_password = "proxy_password";
         try {
             if(requiresProxy) {
                 return new RecommClient(token_sss, proxy_username, proxy_password);
