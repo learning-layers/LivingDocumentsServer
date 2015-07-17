@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 
-package de.hska.ld.core.fixture;
+package de.hska.ld.core.util;
 
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
@@ -28,7 +28,7 @@ import de.hska.ld.core.persistence.domain.User;
 import java.util.Date;
 import java.util.UUID;
 
-public class CoreFixture {
+public class CoreUtil {
 
     public static final String PASSWORD = "pass";
 

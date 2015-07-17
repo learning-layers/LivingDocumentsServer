@@ -59,8 +59,8 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.*;
 
-import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
-import static de.hska.ld.core.fixture.CoreFixture.newUser;
+import static de.hska.ld.core.util.CoreUtil.PASSWORD;
+import static de.hska.ld.core.util.CoreUtil.newUser;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = TestApplication.class)
@@ -257,7 +257,7 @@ public abstract class AbstractIntegrationTest {
         private HttpMethod httpMethod;
         private Object body;
         private byte[] auth;
-        private SecurityFixture secFix;
+        private SecurityFix secFix;
 
         public HttpRequestWrapper(HttpMethod httpMethod) {
             this.httpMethod = httpMethod;
@@ -311,7 +311,7 @@ public abstract class AbstractIntegrationTest {
                 List<Cookie> cookieList = cookieStore.getCookies();
                 System.out.println("Response Code : "
                         + response.getStatusLine().getStatusCode());
-                secFix = new SecurityFixture(cookieList.get(0));
+                secFix = new SecurityFix(cookieList.get(0));
             } catch (Exception e) {
                 System.err.println(e);
             }
@@ -343,7 +343,7 @@ public abstract class AbstractIntegrationTest {
                 List<Cookie> cookieList = cookieStore.getCookies();
                 System.out.println("Response Code : "
                         + response.getStatusLine().getStatusCode());
-                secFix = new SecurityFixture(cookieList.get(0));
+                secFix = new SecurityFix(cookieList.get(0));
             } catch (Exception e) {
                 System.err.println(e);
             }
@@ -374,7 +374,7 @@ public abstract class AbstractIntegrationTest {
                 List<Cookie> cookieList = cookieStore.getCookies();
                 System.out.println("Response Code : "
                         + response.getStatusLine().getStatusCode());
-                secFix = new SecurityFixture(cookieList.get(0));
+                secFix = new SecurityFix(cookieList.get(0));
             } catch (Exception e) {
                 System.err.println(e);
             }
@@ -405,7 +405,7 @@ public abstract class AbstractIntegrationTest {
                 List<Cookie> cookieList = cookieStore.getCookies();
                 System.out.println("Response Code : "
                         + response.getStatusLine().getStatusCode());
-                secFix = new SecurityFixture(cookieList.get(0));
+                secFix = new SecurityFix(cookieList.get(0));
             } catch (Exception e) {
                 System.err.println(e);
             }

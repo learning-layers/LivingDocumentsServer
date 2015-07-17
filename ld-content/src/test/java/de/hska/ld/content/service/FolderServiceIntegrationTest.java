@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static de.hska.ld.content.ContentFixture.newDocument;
-import static de.hska.ld.core.fixture.CoreFixture.newUser;
+import static de.hska.ld.core.util.CoreUtil.newUser;
 
 public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
 

@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static de.hska.ld.content.ContentFixture.*;
-import static de.hska.ld.core.fixture.CoreFixture.newUser;
+import static de.hska.ld.core.util.CoreUtil.newUser;
 
 public class DocumentServiceIntegrationTest extends AbstractIntegrationTest {
 

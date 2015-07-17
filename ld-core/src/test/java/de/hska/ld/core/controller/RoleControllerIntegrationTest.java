@@ -42,7 +42,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.UUID;
 
-import static de.hska.ld.core.fixture.CoreFixture.newRole;
+import static de.hska.ld.core.util.CoreUtil.newRole;
 
 public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
 

@@ -43,7 +43,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 
-import static de.hska.ld.core.fixture.CoreFixture.newUser;
+import static de.hska.ld.core.util.CoreUtil.newUser;
 
 public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 

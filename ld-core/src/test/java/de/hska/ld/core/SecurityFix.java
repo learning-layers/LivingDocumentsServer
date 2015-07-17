@@ -5,10 +5,10 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import java.net.HttpURLConnection;
 
-public class SecurityFixture extends SimpleClientHttpRequestFactory {
+public class SecurityFix extends SimpleClientHttpRequestFactory {
     private Cookie cookie;
 
-    public SecurityFixture(Cookie cookie) {
+    public SecurityFix(Cookie cookie) {
         this.cookie = cookie;
     }
 

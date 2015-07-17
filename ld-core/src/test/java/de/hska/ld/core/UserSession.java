@@ -23,7 +23,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static de.hska.ld.core.fixture.CoreFixture.PASSWORD;
+import static de.hska.ld.core.util.CoreUtil.PASSWORD;
 
 public class UserSession {
 
