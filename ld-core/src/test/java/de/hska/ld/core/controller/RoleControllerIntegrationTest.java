@@ -23,17 +23,23 @@
 package de.hska.ld.core.controller;
 
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.UserSession;
 import de.hska.ld.core.dto.IdDto;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.util.Core;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpStatusCodeException;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.UUID;
 
 import static de.hska.ld.core.fixture.CoreFixture.newRole;
@@ -47,8 +53,24 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testSaveRoleUsesHttpCreatedOnPersist() {
-        ResponseEntity<IdDto> response = post().asAdmin().resource(RESOURCE_ROLE).body(newRole()).exec(IdDto.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        UserSession adminSession = new UserSession();
+        try {
+            adminSession.loginAsAdmin();
+        } catch (Exception e) {
+            Assert.fail();
+        }
+
+        try {
+            HttpResponse response = adminSession.postJson(RESOURCE_ROLE, newRole());
+            Assert.assertEquals(HttpStatus.CREATED, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+            HttpEntity entity = response.getEntity();
+            String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
+            ObjectMapper mapper = new ObjectMapper();
+            IdDto idDto = mapper.readValue(body, IdDto.class);
+            Assert.assertNotNull(idDto.getId());
+        } catch (IOException e) {
+            Assert.fail();
+        }
     }
 
     @Test
@@ -56,51 +78,93 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
         Role role = roleService.save(newRole());
         role.setName(UUID.randomUUID().toString());
 
-        ResponseEntity<IdDto> response = post().asAdmin().resource(RESOURCE_ROLE).body(role).exec(IdDto.class);
-        Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
+        UserSession adminSession = new UserSession();
+        try {
+            adminSession.loginAsAdmin();
+        } catch (Exception e) {
+            Assert.fail();
+        }
+
+        try {
+            HttpResponse response = adminSession.postJson(RESOURCE_ROLE, role);
+            Assert.assertEquals(HttpStatus.OK, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+            HttpEntity entity = response.getEntity();
+            String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
+            ObjectMapper mapper = new ObjectMapper();
+            IdDto idDto = mapper.readValue(body, IdDto.class);
+            Assert.assertNotNull(idDto.getId());
+        } catch (IOException e) {
+            Assert.fail();
+        }
     }
 
     @Test
     public void testSaveRoleUsesHttpForbiddenOnAuthorizationFailure() {
+        UserSession userSession = new UserSession();
         try {
-            post().asUser().resource(RESOURCE_ROLE).body(newRole()).exec(IdDto.class);
-        } catch (HttpStatusCodeException e) {
-            expectedClientException = e;
+            userSession.loginAsUser();
+        } catch (Exception e) {
+            Assert.fail();
         }
-        Assert.assertNotNull(expectedClientException);
-        Assert.assertEquals(HttpStatus.FORBIDDEN, expectedClientException.getStatusCode());
+
+        try {
+            HttpResponse response = userSession.postJson(RESOURCE_ROLE, newRole());
+            Assert.assertEquals(HttpStatus.FORBIDDEN, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+        } catch (IOException e) {
+            Assert.fail();
+        }
     }
 
     @Test
     public void testDeleteRoleUsesHttpOkOnSuccess() {
         Role role = roleService.save(newRole());
-        delete().asAdmin().resource(RESOURCE_ROLE + "/" + role.getId()).exec(IdDto.class);
+        UserSession adminSession = new UserSession();
+        try {
+            adminSession.loginAsAdmin();
+        } catch (Exception e) {
+            Assert.fail();
+        }
+
+        try {
+            HttpResponse response = adminSession.delete(RESOURCE_ROLE + "/" + role.getId(), null);
+            Assert.assertEquals(HttpStatus.OK, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+        } catch (IOException | URISyntaxException e) {
+            Assert.fail();
+        }
     }
 
     @Test
     public void testDeleteRoleUsesHttpForbiddenOnAuthorizationFailure() {
         Role role = roleService.save(newRole());
+        UserSession userSession = new UserSession();
         try {
-            delete().asUser().resource(RESOURCE_ROLE + "/" + role.getId()).exec(IdDto.class);
-        } catch (HttpStatusCodeException e) {
-            expectedClientException = e;
+            userSession.loginAsUser();
+        } catch (Exception e) {
+            Assert.fail();
         }
-        Assert.assertNotNull(expectedClientException);
-        Assert.assertEquals(HttpStatus.FORBIDDEN, expectedClientException.getStatusCode());
+
+        try {
+            HttpResponse response = userSession.delete(RESOURCE_ROLE + "/" + role.getId(), null);
+            Assert.assertEquals(HttpStatus.FORBIDDEN, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+        } catch (IOException | URISyntaxException e) {
+            Assert.fail();
+        }
     }
 
     @Test
     public void testDeleteRoleUsesHttpNotFoundOnEntityLookupFailure() {
+        UserSession adminSession = new UserSession();
         try {
-            delete().asAdmin().resource(RESOURCE_ROLE + "/" + -1).exec(IdDto.class);
-        } catch (HttpStatusCodeException e) {
-            expectedClientException = e;
-            parseApplicationError(e.getResponseBodyAsString());
+            adminSession.loginAsAdmin();
+        } catch (Exception e) {
+            Assert.fail();
         }
-        Assert.assertNotNull(applicationError);
-        Assert.assertTrue(applicationError.getField().equals("id"));
-        Assert.assertTrue(applicationError.getKey().equals("NOT_FOUND"));
-        Assert.assertNotNull(expectedClientException);
-        Assert.assertEquals(HttpStatus.NOT_FOUND, expectedClientException.getStatusCode());
+
+        try {
+            HttpResponse response = adminSession.delete(RESOURCE_ROLE + "/" + -1, null);
+            Assert.assertEquals(HttpStatus.NOT_FOUND, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+        } catch (IOException | URISyntaxException e) {
+            Assert.fail();
+        }
     }
 }

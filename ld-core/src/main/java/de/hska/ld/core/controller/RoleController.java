@@ -64,7 +64,10 @@ public class RoleController {
     @RequestMapping(method = RequestMethod.POST)
     public Callable saveRole(@RequestBody @Valid final Role role) {
         return () -> {
-            boolean isNew = role.getId() == null;
+            boolean isNew = false;
+            if (role.getId() == null) {
+                isNew = true;
+            }
             Role dbRole = roleService.findById(role.getId());
             if (dbRole != null) {
                 dbRole.setName(role.getName());
@@ -99,7 +102,7 @@ public class RoleController {
             Role role = roleService.findById(id);
             if (role != null) {
                 roleService.delete(role);
-                return new ResponseEntity(HttpStatus.OK);
+                return new ResponseEntity("", HttpStatus.OK);
             } else {
                 throw new NotFoundException("id");
             }
