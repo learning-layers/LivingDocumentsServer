@@ -41,4 +41,6 @@ RUN curl -SL \
     > application.properties
 
 EXPOSE 9000
-CMD ["java", "-jar", "ld-boot-1.0.0.jar", "--spring.config.location", "application.properties"]
+
+COPY run.sh run.sh
+CMD ["bash", "run.sh"]
