@@ -1,0 +1,9 @@
+openssl rsa -in ssl.key -out ssl.key
+
+keytool -importcert -trustcacerts -file summary.pem -alias api.learnenv.com -keystore keystore.jks
+
+openssl pkcs12 -export -in cert.crt -inkey private.key -certfile cert.crt -name "tomcat" -out keystore.p12
+
+keytool -importkeystore -srckeystore keystore.p12 -srcstoretype pkcs12 -destkeystore keystore.jks -deststoretype JKS
+
+keytool -keystore keystore -import -alias myalias -file example.com.crt -trustcacerts
