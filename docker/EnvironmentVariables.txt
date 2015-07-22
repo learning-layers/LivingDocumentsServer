@@ -1,0 +1,15 @@
+LDS_CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS = http://localhost:63342/NewLivingDocumentsClient/build/index.html#/home
+LDS_SERVER_ENDPOINT_EXTERNAL = http://localhost:9000
+LDS_OPENID_CONNECT_IDENTITY_PROVIDER = https://api.learning-layers.eu/o/oauth2/
+LDS_MYSQL_URL = jdbc:mysql://localhost:3306/livingdocumentsdb
+LDS_MYSQL_USER = root
+LDS_MYSQL_PASSWORD = default
+LDS_ETHERPAD_ENDPOINT =  http://localhost:9001
+LDS_API_KEY = <API-Key>
+LDS_EMAIL_ENABLED = false
+LDS_EMAIL_USERNAME = default
+LDS_EMAIL_PASSWORD = default
+LDS_EMAIL_FROM_NAME = LDocs
+LDS_EMAIL_HOST = default
+LDS_EMAIL_PORT = 465
+LDS_SEARCH_INDEX_LOCATION = <Folder>
