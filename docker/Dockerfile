@@ -42,5 +42,8 @@ RUN curl -SL \
 
 EXPOSE 9000
 
+WORKDIR ~/bin
+COPY inner-run1.sh /root/bin/inner-run1.sh
+COPY inner-run2.sh /root/bin/inner-run2.sh
 COPY run.sh run.sh
 CMD ["bash", "run.sh"]

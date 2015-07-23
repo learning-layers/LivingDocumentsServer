@@ -16,3 +16,6 @@ LDS_SEARCH_INDEX_LOCATION = <Folder>
 SSL_KEYSTORE_FILE = <File_Location>
 SSL_KEYSTORE_PASSWORD = <Keystore_Password>
 SSL_KEY_PASSWORD = <Key_Password>
+HTTP_USER = <Username for the server to load the keystore from>
+HTTP_PASSWORD = <Password for the server to load the keystore from>
+HTTP_BASE_URL = <URL to load the keystore from>
