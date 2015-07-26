@@ -1,0 +1,17 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server ipv6only=on;
+    
+    listen 443 ssl;
+
+    root /app;
+    index index.html index.htm;
+
+    server_name api.learnenv.com;
+    ssl_certificate /etc/nginx/ssl/summary.crt;
+    ssl_certificate_key /etc/nginx/ssl/ssl.key.insecure;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
