@@ -9,16 +9,25 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.ssl.SSLContexts;
+import org.apache.http.ssl.TrustStrategy;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +49,8 @@ public class EtherpadClient {
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/getSessionInfo";
 
-        HttpClient client = HttpClientBuilder.create().build();
+        //HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = createHttpsClient();
         HttpPost post = new HttpPost(url);
 
         // add header
@@ -77,12 +87,38 @@ public class EtherpadClient {
         }
     }
 
+    private CloseableHttpClient createHttpsClient() throws IOException {
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContexts.custom()
+                    .loadTrustMaterial(null, new TrustStrategy() {
+
+                        @Override
+                        public boolean isTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
+                            return true;
+                        }
+                    })
+                    .useProtocol("TLSv1.2")
+                    .build();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        }
+        return HttpClients.custom()
+                .setSSLContext(sslContext)
+                .build();
+    }
+
     public String createSession(String groupID, String authorID, Long validUntil) throws IOException {
         String sessionId = "";
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/createSession";
 
-        HttpClient client = HttpClientBuilder.create().build();
+        //HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = createHttpsClient();
         HttpPost post = new HttpPost(url);
 
         // add header
@@ -118,7 +154,8 @@ public class EtherpadClient {
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/getReadOnlyID";
 
-        HttpClient client = HttpClientBuilder.create().build();
+        //HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = createHttpsClient();
         HttpPost post = new HttpPost(url);
 
         // add header
@@ -159,7 +196,8 @@ public class EtherpadClient {
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/createAuthor";
 
-        HttpClient client = HttpClientBuilder.create().build();
+        //HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = createHttpsClient();
         HttpPost post = new HttpPost(url);
 
         // add header
@@ -193,7 +231,8 @@ public class EtherpadClient {
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/createGroupPad";
 
-        HttpClient client = HttpClientBuilder.create().build();
+        //HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = createHttpsClient();
         HttpPost post = new HttpPost(url);
 
         // add header
@@ -230,7 +269,8 @@ public class EtherpadClient {
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/createGroup";
 
-        HttpClient client = HttpClientBuilder.create().build();
+        //HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = createHttpsClient();
         HttpPost post = new HttpPost(url);
 
         // add header
@@ -263,7 +303,8 @@ public class EtherpadClient {
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/createPad";
 
-        HttpClient client = HttpClientBuilder.create().build();
+        //HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = createHttpsClient();
         HttpPost post = new HttpPost(url);
 
         // add header
