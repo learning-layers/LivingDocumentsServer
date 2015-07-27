@@ -296,7 +296,8 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .logout()
                 .logoutSuccessHandler(logoutSuccessHandler())
-                .deleteCookies("JSESSIONID");
+                .deleteCookies("JSESSIONID")
+                .deleteCookies("sessionID");
     }
 
     @Bean
