@@ -1,5 +1,6 @@
 package de.hska.ld.etherpad.controller;
 
+import de.hska.ld.content.dto.EtherpadDocumentUpdateDto;
 import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
@@ -18,10 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
@@ -170,6 +168,17 @@ public class DocumentEtherpadController {
             }
 
             return new LDResponseEntity<>(padURL, HttpStatus.CREATED);
+        };
+    }
+
+
+    @RequestMapping(method = RequestMethod.POST, value = "/etherpad/update")
+    public Callable updateDocumentThroughEtherpad(@RequestBody EtherpadDocumentUpdateDto etherpadDocumentUpdateDto) {
+        return () -> {
+            if (System.getenv("LDS_API_KEY").equals(etherpadDocumentUpdateDto.getApiKey())) {
+                System.out.println(etherpadDocumentUpdateDto);
+            }
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 }
