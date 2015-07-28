@@ -1,0 +1,12 @@
+{
+  "name": "ep_ldocs_updatetime",
+  "description": "Updates the document update time",
+  "version": "0.0.1",
+  "author": "Martin Bachl <martin@bachl.pro>",
+  "contributors": [],
+  "dependencies": {
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  }
+}

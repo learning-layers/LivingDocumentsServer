@@ -25,6 +25,7 @@ package de.hska.ld.content.controller;
 import com.rits.cloning.Cloner;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
+import de.hska.ld.content.dto.EtherpadDocumentUpdateDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
@@ -909,6 +910,16 @@ public class DocumentController {
         return () -> {
             Document document = documentService.addDiscussionToDocument(documentId, discussionSectionDto);
             return new LDResponseEntity<>(document, HttpStatus.CREATED);
+        };
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/etherpad/update")
+    public Callable updateDocumentThroughEtherpad(@RequestBody EtherpadDocumentUpdateDto etherpadDocumentUpdateDto) {
+        return () -> {
+            if (System.getenv("LDS_API_KEY").equals(etherpadDocumentUpdateDto.getApiKey())) {
+                System.out.println(etherpadDocumentUpdateDto);
+            }
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 

@@ -1,0 +1,10 @@
+{
+  "parts": [
+    {
+      "name": "ep_ldocs_updatetime",
+      "hooks": {
+        "padUpdate": "ep_ldocs_updatetime/ep_ldocs_updatetime:padUpdate"
+      }
+    }
+  ]
+}
