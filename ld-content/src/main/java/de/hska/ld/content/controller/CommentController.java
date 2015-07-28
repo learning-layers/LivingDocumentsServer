@@ -27,10 +27,10 @@ import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.util.Core;
+import de.hska.ld.core.util.LDResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
@@ -74,9 +74,9 @@ public class CommentController {
         return () -> {
             Page<Comment> commentsPage = commentService.getCommentCommentsPage(commentId, pageNumber, pageSize, sortDirection, sortProperty);
             if (commentsPage != null) {
-                return new ResponseEntity<>(commentsPage, HttpStatus.OK);
+                return new LDResponseEntity<>(commentsPage, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -98,9 +98,9 @@ public class CommentController {
         return () -> {
             List<Comment> commentsPage = commentService.getCommentCommentsList(commentId);
             if (commentsPage != null) {
-                return new ResponseEntity<>(commentsPage, HttpStatus.OK);
+                return new LDResponseEntity<>(commentsPage, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -122,9 +122,9 @@ public class CommentController {
         return () -> {
             Comment comment = commentService.agreeToComment(commentId);
             if (comment != null) {
-                return new ResponseEntity<>(comment, HttpStatus.OK);
+                return new LDResponseEntity<>(comment, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -147,7 +147,7 @@ public class CommentController {
     public Callable addComment(@PathVariable Long commentId, @RequestBody Comment comment) {
         return () -> {
             Comment dbComment = commentService.replyToComment(commentId, comment);
-            return new ResponseEntity<>(new CommentDto(dbComment), HttpStatus.CREATED);
+            return new LDResponseEntity<>(new CommentDto(dbComment), HttpStatus.CREATED);
         };
     }
 
@@ -169,7 +169,7 @@ public class CommentController {
     public Callable updateComment(@RequestBody Comment comment) {
         return () -> {
             Comment dbComment = commentService.update(comment);
-            return new ResponseEntity<>(new CommentDto(dbComment), HttpStatus.OK);
+            return new LDResponseEntity<>(new CommentDto(dbComment), HttpStatus.OK);
         };
     }
 
@@ -189,7 +189,7 @@ public class CommentController {
     public Callable removeComment(@PathVariable Long commentId) {
         return () -> {
             commentService.markAsDeleted(commentId);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 }

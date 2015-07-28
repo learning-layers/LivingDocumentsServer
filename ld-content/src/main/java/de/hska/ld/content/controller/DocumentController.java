@@ -34,11 +34,11 @@ import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
+import de.hska.ld.core.util.LDResponseEntity;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -102,9 +102,9 @@ public class DocumentController {
         return () -> {
             Page<Document> documentsPage = documentService.getDocumentsPage(pageNumber, pageSize, sortDirection, sortProperty, searchTerm);
             if (documentsPage != null) {
-                return new ResponseEntity<>(documentsPage, HttpStatus.OK);
+                return new LDResponseEntity<>(documentsPage, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -136,9 +136,9 @@ public class DocumentController {
         return () -> {
             Page<Document> documentsPage = documentService.getDiscussionDocumentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
             if (documentsPage != null) {
-                return new ResponseEntity<>(documentsPage, HttpStatus.OK);
+                return new LDResponseEntity<>(documentsPage, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -161,7 +161,7 @@ public class DocumentController {
     public Callable createDocument(@RequestBody Document document) {
         return () -> {
             Document newDocument = documentService.save(document);
-            return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
+            return new LDResponseEntity<>(newDocument, HttpStatus.CREATED);
         };
     }
 
@@ -184,7 +184,7 @@ public class DocumentController {
     public Callable createDiscussion(@PathVariable Long documentId, @RequestBody Document document) {
         return () -> {
             Document discussion = documentService.addDiscussionToDocument(documentId, document);
-            return new ResponseEntity<>(discussion, HttpStatus.CREATED);
+            return new LDResponseEntity<>(discussion, HttpStatus.CREATED);
         };
     }
 
@@ -231,7 +231,7 @@ public class DocumentController {
                     throw new ValidationException("command");
             }
             dbDocument = documentService.save(dbDocument);
-            return new ResponseEntity<>(dbDocument, HttpStatus.OK);
+            return new LDResponseEntity<>(dbDocument, HttpStatus.OK);
         };
     }
 
@@ -273,7 +273,7 @@ public class DocumentController {
             if (documentClone.isDeleted()) {
                 throw new NotFoundException("id");
             }
-            return new ResponseEntity<>(documentClone, HttpStatus.OK);
+            return new LDResponseEntity<>(documentClone, HttpStatus.OK);
         };
     }
 
@@ -294,7 +294,7 @@ public class DocumentController {
     public Callable removeDocument(@PathVariable Long documentId) {
         return () -> {
             documentService.markAsDeleted(documentId);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 
@@ -321,7 +321,7 @@ public class DocumentController {
         return () -> {
             Page<Comment> commentsPage = commentService.getDocumentCommentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
             if (commentsPage != null && commentsPage.getNumberOfElements() > 0) {
-                return new ResponseEntity<>(commentsPage, HttpStatus.OK);
+                return new LDResponseEntity<>(commentsPage, HttpStatus.OK);
             } else {
                 throw new NotFoundException();
             }
@@ -347,7 +347,7 @@ public class DocumentController {
     public Callable addComment(@PathVariable Long documentId, @RequestBody Comment comment) {
         return () -> {
             Comment newComment = documentService.addComment(documentId, comment);
-            return new ResponseEntity<>(newComment, HttpStatus.CREATED);
+            return new LDResponseEntity<>(newComment, HttpStatus.CREATED);
         };
     }
 
@@ -370,7 +370,7 @@ public class DocumentController {
     public Callable addTag(@PathVariable Long documentId, @PathVariable Long tagId) {
         return () -> {
             documentService.addTag(documentId, tagId);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 
@@ -391,7 +391,7 @@ public class DocumentController {
     public Callable removeTag(@PathVariable Long documentId, @PathVariable Long tagId) {
         return () -> {
             documentService.removeTag(documentId, tagId);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 
@@ -413,7 +413,7 @@ public class DocumentController {
     public Callable addHyperlink(@PathVariable Long documentId, @RequestBody Hyperlink hyperlink) {
         return () -> {
             documentService.addHyperlink(documentId, hyperlink);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 
@@ -440,7 +440,7 @@ public class DocumentController {
         return () -> {
             Page<Tag> tagsPage = documentService.getDocumentTagsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
             if (tagsPage != null && tagsPage.getNumberOfElements() > 0) {
-                return new ResponseEntity<>(tagsPage, HttpStatus.OK);
+                return new LDResponseEntity<>(tagsPage, HttpStatus.OK);
             } else {
                 throw new NotFoundException();
             }
@@ -465,7 +465,7 @@ public class DocumentController {
         return () -> {
             List<Tag> tagList = documentService.getDocumentTagsList(documentId);
             if (tagList != null) {
-                return new ResponseEntity<>(tagList, HttpStatus.OK);
+                return new LDResponseEntity<>(tagList, HttpStatus.OK);
             } else {
                 throw new NotFoundException();
             }
@@ -493,7 +493,7 @@ public class DocumentController {
             String name = file.getOriginalFilename();
             if (!file.isEmpty()) {
                 Long updatedAttachmentId = documentService.updateAttachment(documentId, attachmentId, file, name);
-                return new ResponseEntity<>(updatedAttachmentId, HttpStatus.OK);
+                return new LDResponseEntity<>(updatedAttachmentId, HttpStatus.OK);
             } else {
                 throw new ValidationException("file");
             }
@@ -513,7 +513,7 @@ public class DocumentController {
                 }
                 Attachment attachment = document.getAttachmentList().get(0);
                 Long attachmentId = documentService.updateAttachment(documentId, attachment.getId(), file, name);
-                return new ResponseEntity<>(attachmentId, HttpStatus.OK);
+                return new LDResponseEntity<>(attachmentId, HttpStatus.OK);
             } else {
                 throw new ValidationException("file");
             }
@@ -540,7 +540,7 @@ public class DocumentController {
             String name = file.getOriginalFilename();
             if (!file.isEmpty()) {
                 Long attachmentId = documentService.addAttachment(documentId, file, name);
-                return new ResponseEntity<>(attachmentId, HttpStatus.OK);
+                return new LDResponseEntity<>(attachmentId, HttpStatus.OK);
             } else {
                 throw new ValidationException("file");
             }
@@ -653,9 +653,9 @@ public class DocumentController {
         return () -> {
             Page<Attachment> attachmentPage = documentService.getDocumentAttachmentPage(documentId, attachmentTypes, excludedAttachmentTypes, pageNumber, pageSize, sortDirection, sortProperty);
             if (attachmentPage != null) {
-                return new ResponseEntity<>(attachmentPage, HttpStatus.OK);
+                return new LDResponseEntity<>(attachmentPage, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -680,9 +680,9 @@ public class DocumentController {
             List<Attachment> attachmentList = documentService.getDocumentAttachmentList(documentId);
             List<Attachment> responseAttachmentList = attachmentList.stream().filter(a -> !"maincontent.html".equals(a.getName())).collect(Collectors.toList());
             if (responseAttachmentList != null) {
-                return new ResponseEntity<>(responseAttachmentList, HttpStatus.OK);
+                return new LDResponseEntity<>(responseAttachmentList, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -693,7 +693,7 @@ public class DocumentController {
     public Callable removeAttachment(@PathVariable Long documentId, @PathVariable Long attachmentId) {
         return () -> {
             documentService.removeAttachment(documentId, attachmentId);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 
@@ -703,7 +703,7 @@ public class DocumentController {
     public Callable updateAttachmentInfo(@PathVariable Long documentId, @PathVariable Long attachmentId, @RequestBody Attachment attachment) {
         return () -> {
             documentService.updateAttachment(documentId, attachmentId, attachment);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 
@@ -742,7 +742,7 @@ public class DocumentController {
         return () -> {
             List<BreadcrumbDto> breadcrumbList = documentService.getBreadcrumbs(documentId);
             if (breadcrumbList != null) {
-                return new ResponseEntity<>(breadcrumbList, HttpStatus.OK);
+                return new LDResponseEntity<>(breadcrumbList, HttpStatus.OK);
             } else {
                 throw new NotFoundException();
             }
@@ -785,7 +785,7 @@ public class DocumentController {
             } else {
                 documentService.addSubscription(documentId, type);
             }
-            return new ResponseEntity(HttpStatus.OK);
+            return new LDResponseEntity(HttpStatus.OK);
         };
     }
 
@@ -805,7 +805,7 @@ public class DocumentController {
     public Callable getNotifications() {
         return () -> {
             List<Notification> notificationList = subscriptionService.getNotifications();
-            return new ResponseEntity<>(notificationList, HttpStatus.OK);
+            return new LDResponseEntity<>(notificationList, HttpStatus.OK);
         };
     }
 
@@ -815,7 +815,7 @@ public class DocumentController {
     public Callable markNotificationsAsRead(@RequestBody List<Notification> notificationList) {
         return () -> {
             subscriptionService.markNotificationsAsRead(notificationList);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 
@@ -825,7 +825,7 @@ public class DocumentController {
     public Callable shareDocumentWithUser(@PathVariable Long documentId, @RequestParam String userIds, @RequestParam String permissions) {
         return () -> {
             documentService.addAccess(documentId, userIds, permissions);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 
@@ -835,7 +835,7 @@ public class DocumentController {
     public Callable makeDocumentPublic(@PathVariable Long documentId) {
         return () -> {
             Document document = documentService.setAccessAll(documentId, true);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 
@@ -846,7 +846,7 @@ public class DocumentController {
     public Callable getUserListByDocumentPermission(@PathVariable Long documentId, @RequestParam String permissions) {
         return () -> {
             List<Access> userList = documentService.getUsersByPermissions(documentId, permissions);
-            return new ResponseEntity<>(userList, HttpStatus.OK);
+            return new LDResponseEntity<>(userList, HttpStatus.OK);
         };
     }
 
@@ -863,9 +863,9 @@ public class DocumentController {
         return () -> {
             Page<Access> accessPage = documentService.getUsersByDocumentPermission(documentId, permissions, pageNumber, pageSize, sortDirection, sortProperty);
             if (accessPage != null) {
-                return new ResponseEntity<>(accessPage, HttpStatus.OK);
+                return new LDResponseEntity<>(accessPage, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -877,7 +877,7 @@ public class DocumentController {
                                           @PathVariable Long userId) {
         return () -> {
             documentService.removeAccess(documentId, userId);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new LDResponseEntity<>(HttpStatus.OK);
         };
     }
 
@@ -888,7 +888,7 @@ public class DocumentController {
     public Callable getCurrentUsersPermissions(@PathVariable Long documentId, @RequestParam String permissions) {
         return () -> {
             Access access = documentService.getCurrentUserPermissions(documentId, permissions);
-            return new ResponseEntity<>(access, HttpStatus.OK);
+            return new LDResponseEntity<>(access, HttpStatus.OK);
         };
     }
 
@@ -898,7 +898,7 @@ public class DocumentController {
     public Callable addExpertToDocument(@PathVariable Long documentId, @RequestParam String username) {
         return () -> {
             Document document = documentService.addExpert(documentId, username);
-            return new ResponseEntity<>(document, HttpStatus.OK);
+            return new LDResponseEntity<>(document, HttpStatus.OK);
         };
     }
 
@@ -908,7 +908,7 @@ public class DocumentController {
     public Callable createDiscussion(@PathVariable Long documentId, @RequestBody DiscussionSectionDto discussionSectionDto) {
         return () -> {
             Document document = documentService.addDiscussionToDocument(documentId, discussionSectionDto);
-            return new ResponseEntity<>(document, HttpStatus.CREATED);
+            return new LDResponseEntity<>(document, HttpStatus.CREATED);
         };
     }
 

@@ -23,6 +23,7 @@
 package de.hska.ld.core.config.filter;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.NestedServletException;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -44,7 +45,13 @@ public class CrossOriginFilter implements Filter {
             response.setHeader("Access-Control-Max-Age", "3600");
             response.setHeader("Access-Control-Allow-Headers", "x-requested-with, Content-Type");
         }
-        chain.doFilter(req, res);
+        try {
+            chain.doFilter(req, res);
+        } catch (Exception e) {
+            if (!(e instanceof NestedServletException && e.getCause() instanceof NullPointerException && e.getCause().getMessage() == null)) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override

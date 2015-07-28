@@ -10,6 +10,7 @@ import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
+import de.hska.ld.core.util.LDResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -47,7 +48,7 @@ public class FolderController {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Folder> createFolder(@RequestBody Folder folder) {
         folder = folderService.createFolder(folder.getName());
-        return new ResponseEntity<>(folder, HttpStatus.CREATED);
+        return new LDResponseEntity<>(folder, HttpStatus.CREATED);
     }
 
     /**
@@ -70,9 +71,9 @@ public class FolderController {
         if (newSubFolder != null) {
             // Include jsonParentId
             FolderDto folderDto = new FolderDto(newSubFolder);
-            return new ResponseEntity<>(folderDto, HttpStatus.CREATED);
+            return new LDResponseEntity<>(folderDto, HttpStatus.CREATED);
         } else {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new LDResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -96,7 +97,7 @@ public class FolderController {
         Folder folderResponse = folderService.updateFolder(folderId, folder);
         // Include jsonParentId
         FolderDto folderDto = new FolderDto(folderResponse);
-        return new ResponseEntity<>(folderDto, HttpStatus.OK);
+        return new LDResponseEntity<>(folderDto, HttpStatus.OK);
     }
 
     /**
@@ -130,7 +131,7 @@ public class FolderController {
         }
         Folder folder = folderService.moveDocumentToFolder(parentFolderId, newParentFolderId, documentId);
         FolderDto folderDto = new FolderDto(folder);
-        return new ResponseEntity<>(folderDto, HttpStatus.OK);
+        return new LDResponseEntity<>(folderDto, HttpStatus.OK);
     }
 
     //TODO description
@@ -150,7 +151,7 @@ public class FolderController {
         }
         Folder folder = folderService.moveFolderToFolder(parentFolderId, newParentFolderId, folderId);
         FolderDto folderDto = new FolderDto(folder);
-        return new ResponseEntity<>(folderDto, HttpStatus.OK);
+        return new LDResponseEntity<>(folderDto, HttpStatus.OK);
     }
 
     /**
@@ -186,9 +187,9 @@ public class FolderController {
 
         Folder folder = folderService.shareFolder(folderId, userList, permissionArray);
         if (folder != null) {
-            return new ResponseEntity<>(folder, HttpStatus.OK);
+            return new LDResponseEntity<>(folder, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new LDResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -220,9 +221,9 @@ public class FolderController {
 
         Folder folder = folderService.revokeShareFolder(folderId, userList, permissionArray);
         if (folder != null) {
-            return new ResponseEntity<>(folder, HttpStatus.OK);
+            return new LDResponseEntity<>(folder, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new LDResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -232,9 +233,9 @@ public class FolderController {
     public ResponseEntity<List<Folder>> getFolderList() {
         List<Folder> rootFolderList = folderService.getFoldersByUser(Core.currentUser());
         if (rootFolderList != null) {
-            return new ResponseEntity<>(rootFolderList, HttpStatus.OK);
+            return new LDResponseEntity<>(rootFolderList, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new LDResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -244,9 +245,9 @@ public class FolderController {
     public ResponseEntity<List<Folder>> getSubFolderList(@PathVariable Long folderId) {
         Folder folder = folderService.loadSubFolderList(folderId);
         if (folder != null) {
-            return new ResponseEntity<>(folder.getFolderList(), HttpStatus.OK);
+            return new LDResponseEntity<>(folder.getFolderList(), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new LDResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -256,9 +257,9 @@ public class FolderController {
     public ResponseEntity<List<Document>> getSubDocumentList(@PathVariable Long folderId) {
         Folder folder = folderService.loadSubDocumentList(folderId);
         if (folder != null) {
-            return new ResponseEntity<>(folder.getDocumentList(), HttpStatus.OK);
+            return new LDResponseEntity<>(folder.getDocumentList(), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new LDResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -272,9 +273,9 @@ public class FolderController {
                                                               @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
         Page<Document> documentsPage = folderService.getSubDocumentsPage(folderId, pageNumber, pageSize, sortDirection, sortProperty);
         if (documentsPage != null) {
-            return new ResponseEntity<>(documentsPage, HttpStatus.OK);
+            return new LDResponseEntity<>(documentsPage, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
