@@ -12,7 +12,7 @@ exports.padUpdate = function (hook_name, context, cb) {
     var options = {
         host: 'localhost',
         port: '9000',
-        path: '/api/documents/etherpad/update',
+        path: '/api/documentEtherpadInfo/etherpad/update',
         method: 'POST',
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
