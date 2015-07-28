@@ -188,14 +188,12 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     @Transactional
     public Document addDiscussionToDocument(Long id, Document discussion) {
         Document document = findById(id);
-
-        document.getDiscussionList().add(discussion);
         discussion.setParent(document);
-        this.save(discussion);
+        document.getDiscussionList().add(discussion);
+        // TODO missing permission check
         document = super.save(document);
-        createNotifications(document, Subscription.Type.DISCUSSION);
         document.getDiscussionList().size();
-
+        createNotifications(document, Subscription.Type.DISCUSSION);
         return document;
     }
 

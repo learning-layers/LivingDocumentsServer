@@ -263,7 +263,6 @@ public class DocumentController {
             documentClone.setCommentList(document.getCommentList());
             documentClone.setTagList(document.getTagList());
             documentClone.setHyperlinkList(document.getHyperlinkList());
-            documentClone.getAttachmentList().remove(0);
             documentClone.setAttachmentList(documentClone.getAttachmentList().stream().filter(a -> !"maincontent.html".equals(a.getName())).collect(Collectors.toList()));
             Access access = documentService.getCurrentUserPermissions(documentId, "all");
             if (access != null) {
