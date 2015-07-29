@@ -89,7 +89,7 @@ public class UserController {
      * <b>404 Not Found</b> if no users are in the system
      */
     // TODO currently not working
-    @Secured(Core.ROLE_ADMIN)
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/userlist")
     public Callable getAllUsers() {
         return () -> {
