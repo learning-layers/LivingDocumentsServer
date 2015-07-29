@@ -71,4 +71,10 @@ public class DocumentEtherpadInfoServiceImpl implements DocumentEtherpadInfoServ
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentEtherpadInfo findByGroupPadId(String padId) {
+        return documentEtherpadInfoRepository.findByGroupPadId(padId);
+    }
+
 }

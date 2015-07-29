@@ -13,4 +13,6 @@ public interface UserEtherpadInfoService {
     public void storeAuthorIdForCurrentUser(String authorId);
 
     public UserEtherpadInfo getUserEtherpadInfoForCurrentUser();
+
+    public UserEtherpadInfo findByAuthorId(String authorId);
 }

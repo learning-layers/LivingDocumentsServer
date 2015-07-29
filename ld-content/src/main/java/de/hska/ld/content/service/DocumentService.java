@@ -25,6 +25,7 @@ package de.hska.ld.content.service;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
 import de.hska.ld.content.persistence.domain.*;
+import de.hska.ld.core.persistence.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -104,4 +105,6 @@ public interface DocumentService extends ContentService<Document> {
     Page<Access> getUsersByDocumentPermission(Long documentId, String permissions, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 
     void removeAccess(Long documentId, Long userId);
+
+    void updatedByUser(User user, Document document);
 }

@@ -641,6 +641,16 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         save(document);
     }
 
+    @Override
+    public void updatedByUser(User user, Document document) {
+        document.setModifiedAt(new Date());
+        document = findById(document.getId());
+        document.getAttachmentList().size();
+        Attachment mainContent = document.getAttachmentList().get(0);
+        mainContent.setModifiedAt(new Date());
+        attachmentService.save(mainContent);
+    }
+
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {
         Document document = findById(documentId);
         for (User user : userList) {

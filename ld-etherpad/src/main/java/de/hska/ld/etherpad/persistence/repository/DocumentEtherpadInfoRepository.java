@@ -8,5 +8,6 @@ public interface DocumentEtherpadInfoRepository extends CrudRepository<DocumentE
 
     DocumentEtherpadInfo findByDocument(Document document);
 
+    DocumentEtherpadInfo findByGroupPadId(String padId);
 }
 

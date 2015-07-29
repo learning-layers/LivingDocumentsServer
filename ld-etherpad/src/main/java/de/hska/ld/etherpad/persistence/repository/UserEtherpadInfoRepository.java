@@ -8,4 +8,6 @@ public interface UserEtherpadInfoRepository extends CrudRepository<UserEtherpadI
     UserEtherpadInfo findByUser(User user);
 
     UserEtherpadInfo findById(Long id);
+
+    UserEtherpadInfo findByAuthorId(String authorId);
 }

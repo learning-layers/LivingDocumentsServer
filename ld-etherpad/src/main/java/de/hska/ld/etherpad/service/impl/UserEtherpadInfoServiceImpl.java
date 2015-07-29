@@ -59,4 +59,10 @@ public class UserEtherpadInfoServiceImpl implements UserEtherpadInfoService {
         User user = userService.findById(currentUser.getId());
         return userEtherpadInfoRepository.findByUser(user);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserEtherpadInfo findByAuthorId(String authorId) {
+        return userEtherpadInfoRepository.findByAuthorId(authorId);
+    }
 }

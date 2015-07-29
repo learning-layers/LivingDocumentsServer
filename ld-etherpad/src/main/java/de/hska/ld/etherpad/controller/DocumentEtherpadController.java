@@ -11,6 +11,7 @@ import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.core.util.LDResponseEntity;
 import de.hska.ld.etherpad.client.EtherpadClient;
+import de.hska.ld.etherpad.persistence.domain.DocumentEtherpadInfo;
 import de.hska.ld.etherpad.persistence.domain.UserEtherpadInfo;
 import de.hska.ld.etherpad.service.DocumentEtherpadInfoService;
 import de.hska.ld.etherpad.service.UserEtherpadInfoService;
@@ -176,7 +177,12 @@ public class DocumentEtherpadController {
     public Callable updateDocumentThroughEtherpad(@RequestBody EtherpadDocumentUpdateDto etherpadDocumentUpdateDto) {
         return () -> {
             if (System.getenv("LDS_API_KEY").equals(etherpadDocumentUpdateDto.getApiKey())) {
-                System.out.println(etherpadDocumentUpdateDto);
+                String authorId = etherpadDocumentUpdateDto.getAuthorId();
+                UserEtherpadInfo userEtherpadInfo = userEtherpadInfoService.findByAuthorId(authorId);
+                DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoService.findByGroupPadId(etherpadDocumentUpdateDto.getPadId());
+                documentService.updatedByUser(userEtherpadInfo.getUser(), documentEtherpadInfo.getDocument());
+                System.out.println(userEtherpadInfo);
+                System.out.println(documentEtherpadInfo);
             }
             return new LDResponseEntity<>(HttpStatus.OK);
         };

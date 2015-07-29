@@ -17,6 +17,7 @@ public interface DocumentEtherpadInfoService {
 
     public String getGroupPadIdForDocument(Document document);
 
+    public DocumentEtherpadInfo findByGroupPadId(String padId);
 }
 
 

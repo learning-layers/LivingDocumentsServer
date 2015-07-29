@@ -4,8 +4,8 @@ var apiKey = fs.readFileSync('./APIKEY.txt', 'utf8');
 
 exports.padUpdate = function (hook_name, context, cb) {
     var data = JSON.stringify({
-        'authorId': '2',
-        'padId': '7',
+        'authorId': context.author,
+        'padId': context.pad.id,
         'apiKey': apiKey
     });
 
