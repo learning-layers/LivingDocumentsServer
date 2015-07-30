@@ -34,6 +34,7 @@ public class ODICCoreConfig {
     public static String ACCOUNT_CHOOSER = null;
     public static String CLIENT_ID = null;
     public static String CLIENT_SECRET = null;
+    public static String OIDC_APPLICATION_NAME = null;
 
     static {
         CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS = System.getenv("LDS_CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS");
@@ -43,8 +44,9 @@ public class ODICCoreConfig {
         SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN = SERVER_ENDPOINT_EXTERNAL + "/simple-web-app/openid_connect_login";
         SIMPLE_WEB_APP_JWK = SERVER_ENDPOINT_EXTERNAL + "/simple-web-app/jwk";
         ACCOUNT_CHOOSER = SERVER_ENDPOINT_EXTERNAL + "/account-chooser/";
-        CLIENT_ID = "fad42d7c-0ae5-41c7-98ef-10ab37f9d2e8";
-        CLIENT_SECRET = "secret";
+        CLIENT_ID = System.getenv("LDS_OIDC_CLIENT_ID");
+        CLIENT_SECRET = System.getenv("LDS_OIDC_CLIENT_SECRET");
+        OIDC_APPLICATION_NAME = System.getenv("LDS_APPLICATION_NAME");
     }
 
     @Bean
@@ -104,7 +106,7 @@ public class ODICCoreConfig {
         redirectUris.add(SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN);
 
         RegisteredClient client = new RegisteredClient();
-        client.setClientName("Simple Web App");
+        client.setClientName(OIDC_APPLICATION_NAME);
         client.setScope(scope);
         client.setTokenEndpointAuthMethod(ClientDetailsEntity.AuthMethod.SECRET_BASIC);
         client.setRedirectUris(redirectUris);
@@ -184,7 +186,7 @@ public class ODICCoreConfig {
         redirectUris2.add(SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN);
 
         RegisteredClient client2 = new RegisteredClient();
-        client2.setClientName("Simple Web App");
+        client2.setClientName(OIDC_APPLICATION_NAME);
         client2.setScope(scope2);
         client2.setTokenEndpointAuthMethod(ClientDetailsEntity.AuthMethod.SECRET_BASIC);
         client2.setRedirectUris(redirectUris2);
