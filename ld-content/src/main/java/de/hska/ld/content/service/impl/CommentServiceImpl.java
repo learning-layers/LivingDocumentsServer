@@ -42,9 +42,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -112,6 +110,9 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
         User user = Core.currentUser();
         user = userService.findById(user.getId());
         if (!comment.getLikeList().contains(user)) {
+            Set<User> uniqueUsers = new HashSet<User>(comment.getLikeList());
+            comment.getLikeList().clear();
+            comment.getLikeList().addAll(uniqueUsers);
             comment.getLikeList().add(user);
             comment = super.save(comment);
         } else {
