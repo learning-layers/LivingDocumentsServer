@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -275,6 +276,24 @@ public class FolderController {
             return new ResponseEntity<>(documentsPage, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    //TODO description
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.DELETE, value = "{folderId}")
+    public ResponseEntity<Long> deleteFolder(@PathVariable Long folderId) {
+        Folder folder = folderService.findById(folderId);
+        try {
+
+            if (Core.currentUser().equals(folder.getCreator())) {
+                folderService.delete(folder);
+                return new ResponseEntity<>(folderId, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(folderId, HttpStatus.FORBIDDEN);
+            }
+        } catch (ConstraintViolationException e) {
+            return new ResponseEntity<>(folderId, HttpStatus.CONFLICT);
         }
     }
 
