@@ -9,7 +9,6 @@ import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
-import de.hska.ld.core.util.LDResponseEntity;
 import de.hska.ld.etherpad.client.EtherpadClient;
 import de.hska.ld.etherpad.persistence.domain.DocumentEtherpadInfo;
 import de.hska.ld.etherpad.persistence.domain.UserEtherpadInfo;
@@ -19,6 +18,7 @@ import de.hska.ld.etherpad.util.Etherpad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
@@ -168,7 +168,7 @@ public class DocumentEtherpadController {
                 padURL = etherpadEndpoint + "/p/" + groupPadId;
             }
 
-            return new LDResponseEntity<>(padURL, HttpStatus.CREATED);
+            return new ResponseEntity<>(padURL, HttpStatus.CREATED);
         };
     }
 
@@ -184,7 +184,7 @@ public class DocumentEtherpadController {
                 System.out.println(userEtherpadInfo);
                 System.out.println(documentEtherpadInfo);
             }
-            return new LDResponseEntity<>(HttpStatus.OK);
+            return new ResponseEntity<>(HttpStatus.OK);
         };
     }
 }

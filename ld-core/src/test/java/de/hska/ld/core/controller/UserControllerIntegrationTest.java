@@ -25,7 +25,6 @@ package de.hska.ld.core.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.UserSession;
-import de.hska.ld.core.dto.IdDto;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
@@ -36,12 +35,14 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 
 import static de.hska.ld.core.util.CoreUtil.newUser;
 
@@ -55,7 +56,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    public void testSaveUserUsesHttpCreatedOnPersist() {
+    public void testSaveUserUsesHttpCreatedOnPersist() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         UserSession adminSession = new UserSession();
         try {
             adminSession.loginAsAdmin();
@@ -72,7 +73,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testSaveUserUsesHttpOkOnUpdate() {
+    public void testSaveUserUsesHttpOkOnUpdate() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         User user = userService.save(newUser());
         user.setFullName(user.getFullName() + " (updated)");
 
@@ -92,7 +93,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testDeleteUserUsesHttpOkOnSuccess() {
+    public void testDeleteUserUsesHttpOkOnSuccess() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         User user = userService.save(newUser());
 
         UserSession adminSession = new UserSession();
@@ -115,7 +116,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testDeleteUserUsesHttpForbiddenOnAuthorizationFailure() {
+    public void testDeleteUserUsesHttpForbiddenOnAuthorizationFailure() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         User user = userService.save(newUser());
 
         UserSession userSession = new UserSession();
@@ -135,7 +136,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testUpdateUsernameUsesHttpConflictIfAlreadyExists() {
+    public void testUpdateUsernameUsesHttpConflictIfAlreadyExists() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         User user1 = newUser();
 
         UserSession adminSession = new UserSession();
@@ -163,7 +164,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testDeleteUserUsesHttpNotFoundOnEntityLookupFailure() {
         try {
-            delete().resource(RESOURCE_USER + "/" + -1).asAdmin().exec(IdDto.class);
+            delete().resource(RESOURCE_USER + "/" + -1).asAdmin().exec(Void.class);
         } catch (HttpStatusCodeException e) {
             expectedClientException = e;
         }
@@ -172,9 +173,24 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testAuthenticateDoesNotContainPasswordHashInResponseBody() {
-        ResponseEntity<User> response = get().asUser().resource(RESOURCE_USER + "/authenticate").exec(User.class);
-        User user = response.getBody();
-        Assert.assertNull(user.getPassword());
+    public void testAuthenticateDoesNotContainPasswordHashInResponseBody() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException, URISyntaxException {
+        UserSession userSession = new UserSession();
+        try {
+            userSession.loginAsUser();
+        } catch (Exception e) {
+            Assert.fail();
+        }
+        try {
+            HttpResponse response = userSession.get(RESOURCE_USER + "/authenticate", null);
+            Assert.assertEquals(HttpStatus.OK, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+            HttpEntity entity = response.getEntity();
+            String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
+            ObjectMapper objectMapper = new ObjectMapper();
+            User user = objectMapper.readValue(body, User.class);
+            Assert.assertNull(user.getPassword());
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
     }
 }

@@ -35,11 +35,14 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -79,7 +82,7 @@ public abstract class AbstractIntegrationTest {
     private RoleService roleService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final RestTemplate template = new RestTemplate();
+    private final RestTemplate template = new LDRestTemplate();
 
     protected HttpStatusCodeException expectedClientException;
     protected ApplicationError applicationError;
@@ -213,7 +216,7 @@ public abstract class AbstractIntegrationTest {
         } else {
             String usernameAndPassword = user.getUsername() + ":" + PASSWORD;
             byte[] auth = usernameAndPassword.getBytes();
-            RestTemplate objectTemplate = new RestTemplate();
+            RestTemplate objectTemplate = new LDRestTemplate();
             ClientHttpRequestInterceptor interceptor = (request, body, execution) -> {
                 byte[] encodedAuthorisation = Base64.encode(auth);
                 request.getHeaders().add("Authorization", "Basic " + new String(encodedAuthorisation));
@@ -295,7 +298,6 @@ public abstract class AbstractIntegrationTest {
 
                 CookieStore cookieStore = new BasicCookieStore();
                 CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
-                ;
                 HttpPost post = new HttpPost(url);
 
                 // add header
@@ -326,7 +328,12 @@ public abstract class AbstractIntegrationTest {
                 String url = endpoint + "/login";
 
                 CookieStore cookieStore = new BasicCookieStore();
-                CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                        builder.build());
+                CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).setSSLSocketFactory(
+                        sslsf).build();
                 ;
                 HttpPost post = new HttpPost(url);
 
@@ -357,7 +364,12 @@ public abstract class AbstractIntegrationTest {
                 String url = endpoint + "/login";
 
                 CookieStore cookieStore = new BasicCookieStore();
-                CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                        builder.build());
+                CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).setSSLSocketFactory(
+                        sslsf).build();
                 ;
                 HttpPost post = new HttpPost(url);
 
@@ -388,7 +400,12 @@ public abstract class AbstractIntegrationTest {
                 String url = endpoint + "/login";
 
                 CookieStore cookieStore = new BasicCookieStore();
-                CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+                SSLContextBuilder builder = new SSLContextBuilder();
+                builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                        builder.build());
+                CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).setSSLSocketFactory(
+                        sslsf).build();
                 ;
                 HttpPost post = new HttpPost(url);
 

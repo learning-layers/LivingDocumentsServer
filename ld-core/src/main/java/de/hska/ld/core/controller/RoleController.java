@@ -27,9 +27,9 @@ import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.util.Core;
-import de.hska.ld.core.util.LDResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,9 +75,9 @@ public class RoleController {
             dbRole = roleService.save(role);
             IdDto idDto = new IdDto(dbRole.getId());
             if (isNew) {
-                return new LDResponseEntity<>(idDto, HttpStatus.CREATED);
+                return new ResponseEntity<>(idDto, HttpStatus.CREATED);
             } else {
-                return new LDResponseEntity<>(idDto, HttpStatus.OK);
+                return new ResponseEntity<>(idDto, HttpStatus.OK);
             }
         };
     }
@@ -102,7 +102,7 @@ public class RoleController {
             Role role = roleService.findById(id);
             if (role != null) {
                 roleService.delete(role);
-                return new LDResponseEntity("", HttpStatus.OK);
+                return new ResponseEntity("", HttpStatus.OK);
             } else {
                 throw new NotFoundException("id");
             }

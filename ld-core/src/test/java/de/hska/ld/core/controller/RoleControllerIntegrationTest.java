@@ -40,6 +40,9 @@ import org.springframework.http.HttpStatus;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 import static de.hska.ld.core.util.CoreUtil.newRole;
@@ -52,7 +55,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     RoleService roleService;
 
     @Test
-    public void testSaveRoleUsesHttpCreatedOnPersist() {
+    public void testSaveRoleUsesHttpCreatedOnPersist() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         UserSession adminSession = new UserSession();
         try {
             adminSession.loginAsAdmin();
@@ -74,7 +77,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testSaveRoleUsesHttpOkOnUpdate() {
+    public void testSaveRoleUsesHttpOkOnUpdate() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         Role role = roleService.save(newRole());
         role.setName(UUID.randomUUID().toString());
 
@@ -99,7 +102,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testSaveRoleUsesHttpForbiddenOnAuthorizationFailure() {
+    public void testSaveRoleUsesHttpForbiddenOnAuthorizationFailure() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         UserSession userSession = new UserSession();
         try {
             userSession.loginAsUser();
@@ -116,7 +119,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testDeleteRoleUsesHttpOkOnSuccess() {
+    public void testDeleteRoleUsesHttpOkOnSuccess() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         Role role = roleService.save(newRole());
         UserSession adminSession = new UserSession();
         try {
@@ -134,7 +137,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testDeleteRoleUsesHttpForbiddenOnAuthorizationFailure() {
+    public void testDeleteRoleUsesHttpForbiddenOnAuthorizationFailure() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         Role role = roleService.save(newRole());
         UserSession userSession = new UserSession();
         try {
@@ -152,7 +155,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testDeleteRoleUsesHttpNotFoundOnEntityLookupFailure() {
+    public void testDeleteRoleUsesHttpNotFoundOnEntityLookupFailure() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         UserSession adminSession = new UserSession();
         try {
             adminSession.loginAsAdmin();

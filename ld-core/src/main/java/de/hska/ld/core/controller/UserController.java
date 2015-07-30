@@ -29,7 +29,6 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.AsyncExecutor;
 import de.hska.ld.core.util.Core;
-import de.hska.ld.core.util.LDResponseEntity;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -72,7 +71,7 @@ public class UserController {
     public Callable helloWorld() {
         return () -> {
             String helloWorldString = "HelloWorld";
-            return new LDResponseEntity<>(helloWorldString, HttpStatus.OK);
+            return new ResponseEntity<>(helloWorldString, HttpStatus.OK);
         };
     }
 
@@ -95,9 +94,9 @@ public class UserController {
         return () -> {
             List<User> userList = userService.findAll();
             if (userList != null) {
-                return new LDResponseEntity<>(userList, HttpStatus.OK);
+                return new ResponseEntity<>(userList, HttpStatus.OK);
             } else {
-                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -125,9 +124,9 @@ public class UserController {
         return () -> {
             Page<User> usersPage = userService.getUsersPage(pageNumber, pageSize, sortDirection, sortProperty);
             if (usersPage != null) {
-                return new LDResponseEntity<>(usersPage, HttpStatus.OK);
+                return new ResponseEntity<>(usersPage, HttpStatus.OK);
             } else {
-                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -154,9 +153,9 @@ public class UserController {
         return () -> {
             Page<User> usersPage = userService.getUsersDisabledPage(pageNumber, pageSize, sortDirection, sortProperty);
             if (usersPage != null) {
-                return new LDResponseEntity<>(usersPage, HttpStatus.OK);
+                return new ResponseEntity<>(usersPage, HttpStatus.OK);
             } else {
-                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -168,9 +167,9 @@ public class UserController {
         return () -> {
             User user = userService.activateUser(userid);
             if (user != null) {
-                return new LDResponseEntity<>(HttpStatus.OK);
+                return new ResponseEntity<>(HttpStatus.OK);
             } else {
-                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -182,9 +181,9 @@ public class UserController {
         return () -> {
             User user = userService.deactivateUser(userid);
             if (user != null) {
-                return new LDResponseEntity<>(HttpStatus.OK);
+                return new ResponseEntity<>(HttpStatus.OK);
             } else {
-                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -204,7 +203,7 @@ public class UserController {
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
     public Callable authenticate(@AuthenticationPrincipal User user) {
         final User user2 = Core.currentUser();
-        return () -> new LDResponseEntity<>(user2, HttpStatus.OK);
+        return () -> new ResponseEntity<>(user2, HttpStatus.OK);
     }
 
     public boolean isAuthenticated() {
@@ -247,9 +246,9 @@ public class UserController {
         return () -> {
             User user = userService.findByUsername(username);
             if (user == null) {
-                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-            return new LDResponseEntity<>(user, HttpStatus.OK);
+            return new ResponseEntity<>(user, HttpStatus.OK);
         };
     }
 
@@ -279,7 +278,7 @@ public class UserController {
                 return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
             } else {
                 User savedUser = userService.save(user);
-                return new LDResponseEntity<>(savedUser, HttpStatus.OK);
+                return new ResponseEntity<>(savedUser, HttpStatus.OK);
             }
         };
     }
@@ -301,7 +300,7 @@ public class UserController {
     public Callable register(@RequestBody @Valid User user) {
         return () -> {
             userService.register(user);
-            return new LDResponseEntity<>(HttpStatus.CREATED);
+            return new ResponseEntity<>(HttpStatus.CREATED);
         };
     }
 
@@ -323,7 +322,7 @@ public class UserController {
     public Callable confirmRegistration(@PathVariable String confirmationKey) {
         return () -> {
             User user = userService.confirmRegistration(confirmationKey);
-            return new LDResponseEntity(user, HttpStatus.OK);
+            return new ResponseEntity(user, HttpStatus.OK);
         };
     }
 
@@ -347,7 +346,7 @@ public class UserController {
     public Callable addRolesToUser(@RequestBody @Valid UserRoleDto userRoleDto) {
         return () -> {
             userService.addRoles(userRoleDto.getUsername(), userRoleDto.getRoleNames());
-            return new LDResponseEntity(HttpStatus.OK);
+            return new ResponseEntity(HttpStatus.OK);
         };
     }
 
@@ -370,7 +369,7 @@ public class UserController {
         return () -> {
             User user = userService.findById(id);
             userService.delete(user);
-            return new LDResponseEntity<>(user.getId(), HttpStatus.OK);
+            return new ResponseEntity<>(user.getId(), HttpStatus.OK);
         };
     }
 
@@ -462,7 +461,7 @@ public class UserController {
             String name = file.getOriginalFilename();
             if (!file.isEmpty()) {
                 userService.uploadAvatar(file, name);
-                return new LDResponseEntity<>(HttpStatus.OK);
+                return new ResponseEntity<>(HttpStatus.OK);
             } else {
                 throw new ValidationException("file");
             }
@@ -477,10 +476,10 @@ public class UserController {
         return () -> {
             if (!"".equals(term) || term.contains("%")) {
                 List<User> userSuggestionList = userService.getMentionSuggestions(term);
-                return new LDResponseEntity<>(userSuggestionList, HttpStatus.OK);
+                return new ResponseEntity<>(userSuggestionList, HttpStatus.OK);
             } else {
                 List<User> userSuggestionList = userService.getMentionSuggestions(term);
-                return new LDResponseEntity<>(userSuggestionList, HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(userSuggestionList, HttpStatus.BAD_REQUEST);
             }
         };
     }
@@ -498,9 +497,9 @@ public class UserController {
         return () -> {
             Page<User> usersPage = userService.getUsersPage(pageNumber, pageSize, sortDirection, sortProperty, searchTerm);
             if (usersPage != null) {
-                return new LDResponseEntity<>(usersPage, HttpStatus.OK);
+                return new ResponseEntity<>(usersPage, HttpStatus.OK);
             } else {
-                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -516,7 +515,7 @@ public class UserController {
             if (user == null) {
                 throw new NotFoundException();
             }
-            return new LDResponseEntity<>(user, HttpStatus.OK);
+            return new ResponseEntity<>(user, HttpStatus.OK);
         };
     }
 
@@ -532,7 +531,7 @@ public class UserController {
             if (user == null) {
                 throw new NotFoundException();
             }
-            return new LDResponseEntity(user, HttpStatus.OK);
+            return new ResponseEntity(user, HttpStatus.OK);
         };
     }
 
@@ -542,7 +541,7 @@ public class UserController {
     public Callable updatePassword(@RequestBody User user) {
         return () -> {
             User dbUser = userService.updatePassword(user.getPassword());
-            return new LDResponseEntity<>(dbUser, HttpStatus.OK);
+            return new ResponseEntity<>(dbUser, HttpStatus.OK);
         };
     }
 
@@ -552,7 +551,7 @@ public class UserController {
     public Callable updateProfile(@RequestBody User user) {
         return () -> {
             User dbUser = userService.updateProfile(user);
-            return new LDResponseEntity<>(dbUser, HttpStatus.OK);
+            return new ResponseEntity<>(dbUser, HttpStatus.OK);
         };
     }
 
@@ -570,7 +569,7 @@ public class UserController {
     @RequestMapping(method = RequestMethod.POST, value = "/forgotPassword")
     public ResponseEntity forgotPassword(@RequestBody String userUsernameOrEmail) {
         asyncExecutor.run(() -> userService.forgotPassword(userUsernameOrEmail));
-        return new LDResponseEntity(HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     /**
@@ -589,7 +588,7 @@ public class UserController {
     @RequestMapping(method = RequestMethod.POST, value = "/forgotPasswordConfirm/{confirmationKey}")
     public ResponseEntity forgotPasswordConfirm(@PathVariable String confirmationKey, @RequestBody String newPassword) {
         userService.forgotPasswordConfirm(confirmationKey, newPassword);
-        return new LDResponseEntity(HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     /**
@@ -608,7 +607,7 @@ public class UserController {
     @RequestMapping(method = RequestMethod.POST, value = "/changeEmail")
     public ResponseEntity changeEmail(@AuthenticationPrincipal User user, @RequestBody String emailToBeConfirmed) {
         userService.changeEmail(user, emailToBeConfirmed);
-        return new LDResponseEntity(HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     /**
@@ -627,6 +626,6 @@ public class UserController {
     @RequestMapping(method = RequestMethod.GET, value = "/changeEmailConfirm/{confirmationKey}")
     public ResponseEntity changeEmailConfirm(@PathVariable String confirmationKey) {
         userService.changeEmailConfirm(confirmationKey);
-        return new LDResponseEntity(HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.OK);
     }
 }

@@ -9,17 +9,24 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.ssl.SSLContextBuilder;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,8 +57,18 @@ public class UserSession {
         return login(USER_USERNAME, USER_PASSWORD);
     }
 
+    private CloseableHttpClient getClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+        SSLContextBuilder builder = new SSLContextBuilder();
+        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                builder.build());
+        CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).setSSLSocketFactory(
+                sslsf).build();
+        return client;
+    }
+
     public UserSession login(String username, String password) throws Exception {
-        CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+        CloseableHttpClient client = getClient();
 
         HttpPost post = new HttpPost(loginURL);
         post.setHeader("User-Agent", "Mozilla/5.0");
@@ -67,8 +84,8 @@ public class UserSession {
         return this;
     }
 
-    public <T> HttpResponse postJson(String url, T body) throws IOException {
-        CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+    public <T> HttpResponse postJson(String url, T body) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        CloseableHttpClient client = getClient();
         HttpPost post = new HttpPost(endpoint + url);
 
         // add header
@@ -102,7 +119,7 @@ public class UserSession {
         return client.execute(post);
     }
 
-    public <T> HttpResponse delete(String url, List<NameValuePair> urlParameters) throws IOException, URISyntaxException {
+    public <T> HttpResponse delete(String url, List<NameValuePair> urlParameters) throws IOException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         URIBuilder builder = new URIBuilder(endpoint + url);
         if (urlParameters != null) {
             urlParameters.forEach(param -> {
@@ -111,10 +128,26 @@ public class UserSession {
         }
         URI uri = builder.build();
 
-        CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+        CloseableHttpClient client = getClient();
         HttpDelete delete = new HttpDelete(uri);
         delete.setHeader("User-Agent", "Mozilla/5.0");
         delete.setHeader("Content-type", "application/json");
         return client.execute(delete);
+    }
+
+    public HttpResponse get(String url, List<NameValuePair> urlParameters) throws IOException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        URIBuilder builder = new URIBuilder(endpoint + url);
+        if (urlParameters != null) {
+            urlParameters.forEach(param -> {
+                builder.setParameter(param.getName(), param.getValue());
+            });
+        }
+        URI uri = builder.build();
+
+        CloseableHttpClient client = getClient();
+        HttpGet get = new HttpGet(uri);
+        get.setHeader("User-Agent", "Mozilla/5.0");
+        get.setHeader("Content-type", "application/json");
+        return client.execute(get);
     }
 }

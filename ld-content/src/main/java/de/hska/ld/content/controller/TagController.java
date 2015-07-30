@@ -27,10 +27,10 @@ import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.util.Core;
-import de.hska.ld.core.util.LDResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,9 +71,9 @@ public class TagController {
         return () -> {
             Page<Tag> tagsPage = tagService.getTagsPage(pageNumber, pageSize, sortDirection, sortProperty);
             if (tagsPage != null) {
-                return new LDResponseEntity<>(tagsPage, HttpStatus.OK);
+                return new ResponseEntity<>(tagsPage, HttpStatus.OK);
             } else {
-                return new LDResponseEntity<>(HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         };
     }
@@ -101,7 +101,7 @@ public class TagController {
                     throw new ValidationException("name");
                 }
                 Tag dbTag = tagService.save(tag);
-                return new LDResponseEntity<>(dbTag, HttpStatus.CREATED);
+                return new ResponseEntity<>(dbTag, HttpStatus.CREATED);
             } else {
                 throw new ValidationException("No tag provided.");
             }
@@ -129,7 +129,7 @@ public class TagController {
         return () -> {
             if (tag != null) {
                 Tag dbTag = tagService.updateTag(tagId, tag);
-                return new LDResponseEntity<>(dbTag, HttpStatus.OK);
+                return new ResponseEntity<>(dbTag, HttpStatus.OK);
             } else {
                 throw new ValidationException("No tag provided.");
             }
@@ -154,7 +154,7 @@ public class TagController {
         return () -> {
             if (tagName != null) {
                 Tag tag = tagService.findByName(tagName);
-                return new LDResponseEntity<>(tag, HttpStatus.OK);
+                return new ResponseEntity<>(tag, HttpStatus.OK);
             } else {
                 throw new ValidationException("No tag provided.");
             }
