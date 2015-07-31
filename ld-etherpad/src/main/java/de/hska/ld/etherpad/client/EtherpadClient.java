@@ -227,6 +227,10 @@ public class EtherpadClient {
     }
 
     public String createGroupPad(String groupId, String padName) throws IOException {
+        return createGroupPad(groupId, padName, null);
+    }
+
+    public String createGroupPad(String groupId, String padName, String discussionContent) throws IOException {
         String sessionId = "";
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/createGroupPad";
@@ -242,6 +246,9 @@ public class EtherpadClient {
         urlParameters.add(new BasicNameValuePair("apikey", etherpadAPIKey));
         urlParameters.add(new BasicNameValuePair("groupID", groupId));
         urlParameters.add(new BasicNameValuePair("padName", padName));
+        if (discussionContent != null) {
+            urlParameters.add(new BasicNameValuePair("text", discussionContent));
+        }
 
         post.setEntity(new UrlEncodedFormEntity(urlParameters));
 

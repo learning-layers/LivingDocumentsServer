@@ -2,6 +2,7 @@ package de.hska.ld.etherpad.controller;
 
 import de.hska.ld.content.dto.EtherpadDocumentUpdateDto;
 import de.hska.ld.content.persistence.domain.Access;
+import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.exception.NotFoundException;
@@ -95,7 +96,17 @@ public class DocumentEtherpadController {
             if (groupPadId == null) {
                 //  otherwise create a GroupPad
                 String groupId = etherpadClient.createGroup();
-                groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle());
+                try {
+                    Attachment mainContent = document.getAttachmentList().get(0);
+                    byte[] mainSource = mainContent.getSource();
+                    String discussionText = new String(mainSource, "UTF-8");
+                    if (!"".equals(discussionText)) {
+                        groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle(), discussionText);
+                    } else {
+                        groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle());
+                    }
+                } catch (Exception e) {
+                }
                 //  groupPad is available associate GroupPadId for the Document
                 documentEtherpadInfoService.storeGroupPadIdForDocument(groupPadId, document);
             }
