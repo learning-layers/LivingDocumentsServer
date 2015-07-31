@@ -181,6 +181,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/discussion")
+    @Transactional(readOnly = true)
     public Callable createDiscussion(@PathVariable Long documentId, @RequestBody Document document) {
         return () -> {
             Document discussion = documentService.addDiscussionToDocument(documentId, document);
@@ -905,6 +906,7 @@ public class DocumentController {
     //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/discuss/section")
+    @Transactional(readOnly = true)
     public Callable createDiscussion(@PathVariable Long documentId, @RequestBody DiscussionSectionDto discussionSectionDto) {
         return () -> {
             Document document = documentService.addDiscussionToDocument(documentId, discussionSectionDto);

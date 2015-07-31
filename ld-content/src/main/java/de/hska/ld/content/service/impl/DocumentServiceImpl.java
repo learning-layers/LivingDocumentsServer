@@ -123,7 +123,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             attachment.setMimeType("text/html");
             attachment.setSource("".getBytes());
             document.getAttachmentList().add(0, attachment);
-
+            document.setCreator(Core.currentUser());
         } else {
             checkPermission(dbDocument, Access.Permission.WRITE);
             dbDocument.setModifiedAt(new Date());
@@ -146,6 +146,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         checkPermission(document, Access.Permission.COMMENT_DOCUMENT, Access.Permission.WRITE, Access.Permission.ATTACH_FILES);
         document.getCommentList().add(comment);
         comment.setParent(document);
+        comment.setCreator(Core.currentUser());
         document = super.save(document);
         createNotifications(document, Subscription.Type.COMMENT);
         // retrieves the latest comment
@@ -168,6 +169,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     public Document addTag(Long id, Long tagId) {
         Document document = findById(id);
         Tag tag = tagService.findById(tagId);
+        tag.setCreator(Core.currentUser());
         checkPermission(document, Access.Permission.WRITE, Access.Permission.ATTACH_FILES, Access.Permission.READ, Access.Permission.COMMENT_DOCUMENT);
         if (!document.getTagList().contains(tag)) {
             document.getTagList().add(tag);
@@ -185,10 +187,11 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = false)
     public Document addDiscussionToDocument(Long id, Document discussion) {
         Document document = findById(id);
         discussion.setParent(document);
+        discussion = super.save(discussion);
         document.getDiscussionList().add(discussion);
         // TODO missing permission check
         document = super.save(document);
@@ -214,8 +217,8 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             throw new ValidationException("id");
         }
         checkPermission(document, Access.Permission.WRITE);
-        Attachment attachment;
-        attachment = new Attachment(is, fileName);
+        Attachment attachment = new Attachment(is, fileName);
+        attachment.setCreator(Core.currentUser());
         document.getAttachmentList().add(attachment);
         document = super.save(document);
         createNotifications(document, Subscription.Type.ATTACHMENT);
@@ -420,6 +423,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         Document document = findById(documentId);
         checkPermission(document, Access.Permission.WRITE);
         document.getHyperlinkList().add(hyperlink);
+        hyperlink.setCreator(Core.currentUser());
         super.save(document);
         return hyperlink;
     }
@@ -577,15 +581,21 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = false)
     public Document addDiscussionToDocument(Long documentId, DiscussionSectionDto discussionSectionDto) {
         Document document = addDiscussionToDocument(documentId, discussionSectionDto.getDocument());
         Document discussion = document.getDiscussionList().get(document.getDiscussionList().size() - 1);
+        discussion.setCreator(Core.currentUser());
         if (discussionSectionDto.getSectionText() != null) {
-            Attachment mainAttachment = discussion.getAttachmentList().get(0);
+            List<Attachment> attachmentList = discussion.getAttachmentList();
+            Attachment mainAttachment = new Attachment();
+            mainAttachment.setName("maincontent.html");
+            mainAttachment.setMimeType("text/html");
+            attachmentList.add(mainAttachment);
+            mainAttachment.setCreator(Core.currentUser());
             mainAttachment.setSource(discussionSectionDto.getSectionText().getBytes());
         }
-        return discussion;
+        return super.save(discussion);
     }
 
     @Override

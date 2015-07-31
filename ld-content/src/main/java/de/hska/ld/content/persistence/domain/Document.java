@@ -112,6 +112,9 @@ public class Document extends Content {
 
     @JsonProperty("discussions")
     public List<Document> getDiscussionList() {
+        if (discussionList == null) {
+            discussionList = new ArrayList<>();
+        }
         return discussionList;
     }
 
