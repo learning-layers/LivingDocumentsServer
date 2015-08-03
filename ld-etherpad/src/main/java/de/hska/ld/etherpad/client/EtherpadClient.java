@@ -41,8 +41,8 @@ public class EtherpadClient {
 
     @PostConstruct
     public void postConstruct() {
-        etherpadEndpoint = System.getenv("LDS_ETHERPAD_ENDPOINT"); //env.getProperty("module.etherpad.endpoint");
-        etherpadAPIKey = System.getenv("LDS_API_KEY"); //env.getProperty("module.etherpad.apikey");
+        etherpadEndpoint = env.getProperty("module.etherpad.endpoint");
+        etherpadAPIKey = env.getProperty("module.etherpad.apikey");
     }
 
     public boolean checkIfSessionStillValid(Long currentTime, String sessionId, String groupID) throws IOException {

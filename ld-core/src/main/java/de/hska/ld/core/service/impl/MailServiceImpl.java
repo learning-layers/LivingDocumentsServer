@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.ui.velocity.VelocityEngineUtils;
 
@@ -55,13 +56,13 @@ public class MailServiceImpl implements MailService {
 
     @Autowired
     private void init() {
-        /*String emailCfgLocation = env.getProperty("email.config.file");
+        String emailCfgLocation = env.getProperty("email.config.file");
         Resource resource = context.getResource(emailCfgLocation);
         try {
             MAIL_PROPERTIES.load(resource.getInputStream());
         } catch (Exception e) {
             System.err.println("Java Mail Sender could not be initialized. Maybe the configuration file is not in place.");
-        }*/
+        }
     }
 
     @Override
@@ -77,7 +78,7 @@ public class MailServiceImpl implements MailService {
     @Override
     public void sendMail(String fullName, String email, String templateFileName, Map<String, Object> model) {
         ;
-        if (Boolean.parseBoolean(System.getenv("LDS_EMAIL_ENABLED"))) { // env.getProperty("email.enabled")
+        if (Boolean.parseBoolean(env.getProperty("email.enabled"))) {
             Locale locale = LocaleContextHolder.getLocale();
             ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
             model.put("dear", bundle.getString("email.dear"));
@@ -93,8 +94,8 @@ public class MailServiceImpl implements MailService {
                     new javax.mail.Authenticator() {
                         protected PasswordAuthentication getPasswordAuthentication() {
                             return new PasswordAuthentication(
-                                    System.getenv("LDS_EMAIL_USERNAME"), // MAIL_PROPERTIES.getProperty("email.username")
-                                    System.getenv("LDS_EMAIL_PASSWORD") // MAIL_PROPERTIES.getProperty("email.password")
+                                    MAIL_PROPERTIES.getProperty("email.username"),
+                                    MAIL_PROPERTIES.getProperty("email.password")
                             );
                         }
                     });
@@ -102,7 +103,7 @@ public class MailServiceImpl implements MailService {
             try {
                 MimeMessage message = new MimeMessage(session);
                 MimeMessageHelper helper = new MimeMessageHelper(message, true);
-                helper.setFrom(System.getenv("LDS_EMAIL_FROM_NAME")); // MAIL_PROPERTIES.getProperty("email.from.system")
+                helper.setFrom(MAIL_PROPERTIES.getProperty("email.from.system"));
                 helper.setTo(email);
                 helper.setSubject(model.containsKey("subject") ? (String) model.get("subject") : "");
                 helper.setText(text, true);
@@ -117,8 +118,8 @@ public class MailServiceImpl implements MailService {
         Properties properties = new Properties();
         properties.put("mail.smtp.auth", env.getProperty("email.smtp.auth"));
         properties.put("mail.smtp.starttls.enable", env.getProperty("email.smtp.starttls.enable"));
-        properties.put("mail.smtp.host", System.getenv("LDS_EMAIL_HOST")); // MAIL_PROPERTIES.getProperty("email.host")
-        properties.put("mail.smtp.port", System.getenv("LDS_EMAIL_PORT")); // MAIL_PROPERTIES.getProperty("email.port")
+        properties.put("mail.smtp.host", MAIL_PROPERTIES.getProperty("email.host"));
+        properties.put("mail.smtp.port", MAIL_PROPERTIES.getProperty("email.port"));
         return properties;
     }
 }

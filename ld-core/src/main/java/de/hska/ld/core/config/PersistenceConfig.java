@@ -61,7 +61,7 @@ public class PersistenceConfig {
         String ddl = env.getProperty("module.core.db.ddl");
         if (ddl != null && ddl.contains("update")) {
             try {
-                FileUtils.deleteDirectory(new File(System.getenv("LDS_SEARCH_INDEX_LOCATION"))); // env.getProperty("module.core.search.location")
+                FileUtils.deleteDirectory(new File(env.getProperty("module.core.search.location")));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -72,9 +72,9 @@ public class PersistenceConfig {
     public DataSource dataSource() throws SQLException {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(env.getProperty("module.core.db.driver"));
-        dataSource.setUrl(System.getenv("LDS_MYSQL_URL"));
-        dataSource.setUsername(System.getenv("LDS_MYSQL_USER"));
-        dataSource.setPassword(System.getenv("LDS_MYSQL_PASSWORD"));
+        dataSource.setUrl(env.getProperty("module.core.db.url"));
+        dataSource.setUsername(env.getProperty("module.core.db.username"));
+        dataSource.setPassword(env.getProperty("module.core.db.password"));
         return dataSource;
     }
 
@@ -88,8 +88,7 @@ public class PersistenceConfig {
 
         Properties jpaProperties = new Properties();
         jpaProperties.setProperty("hibernate.hbm2ddl.auto", env.getProperty("module.core.db.ddl"));
-        String hibernateSearchIndexFileLocation = System.getenv("LDS_SEARCH_INDEX_LOCATION");
-        jpaProperties.setProperty("hibernate.search.default.indexBase", hibernateSearchIndexFileLocation); // env.getProperty("module.core.search.location")
+        jpaProperties.setProperty("hibernate.search.default.indexBase", env.getProperty("module.core.search.location"));
 
         factory.setJpaProperties(jpaProperties);
         factory.afterPropertiesSet();

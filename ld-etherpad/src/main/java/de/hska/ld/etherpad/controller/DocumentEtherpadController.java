@@ -53,7 +53,7 @@ public class DocumentEtherpadController {
 
     @PostConstruct
     public void postConstruct() {
-        etherpadEndpoint = System.getenv("LDS_ETHERPAD_ENDPOINT"); //env.getProperty("module.etherpad.endpoint");
+        etherpadEndpoint = env.getProperty("module.etherpad.endpoint");
     }
 
     @Secured(Core.ROLE_USER)
