@@ -28,8 +28,10 @@ import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.UserSession;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
+import org.apache.http.HttpResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -123,27 +125,30 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testAddCommentHttpOk() {
+    public void testAddCommentHttpOk() throws Exception {
         // Add document
-        ResponseEntity<Document> responseCreateDocument = post().resource(RESOURCE_DOCUMENT).as(testUser).body(document).exec(Document.class);
-        Assert.assertEquals(HttpStatus.CREATED, responseCreateDocument.getStatusCode());
-        Assert.assertNotNull(responseCreateDocument.getBody().getId());
+        HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+        Document responseCreateDocument = UserSession.getBody(response, Document.class);
+        Assert.assertNotNull(responseCreateDocument.getId());
 
         // Add comment to the document
-        String URI = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getBody().getId() + "/comment";
+        String uriCommentDocument = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getId() + "/comment";
         Comment comment = new Comment();
         comment.setText("Text");
-        HttpRequestWrapper requestAddComment = post().resource(URI).as(testUser).body(comment);
-        ResponseEntity<Comment> responseAddComment = requestAddComment.exec(Comment.class);
-        Assert.assertEquals(HttpStatus.CREATED, responseAddComment.getStatusCode());
+        HttpResponse response2 = UserSession.user().post(uriCommentDocument, comment);
+        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response2));
+        Comment responseCreateComment = UserSession.getBody(response2, Comment.class);
+        Assert.assertNotNull(responseCreateComment.getId());
 
-        // read document comments
         Map varMap = new HashMap<>();
         varMap.put("page-number", 0);
         varMap.put("page-size", 10);
         varMap.put("sort-direction", "DESC");
         varMap.put("sort-property", "createdAt");
-        Map page = getPage(URI, testUser, varMap);
+        HttpResponse responseGetCommentList = UserSession.user().get(RESOURCE_DOCUMENT, varMap);
+        Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(responseGetCommentList));
+        Map page = UserSession.getBody(responseGetCommentList, Map.class);
         Assert.assertNotNull(page);
         Assert.assertNotNull(page.containsKey("content"));
         Assert.assertTrue(((List) page.get("content")).size() > 0);

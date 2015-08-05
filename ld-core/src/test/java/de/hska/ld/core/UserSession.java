@@ -34,6 +34,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static de.hska.ld.core.util.CoreUtil.PASSWORD;
 
@@ -207,6 +209,19 @@ public class UserSession {
         return client.execute(delete);
     }
 
+    public HttpResponse get(String url, Map<String, Object> urlParameters) throws IOException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        URIBuilder builder = new URIBuilder(endpoint + url);
+        if (urlParameters != null) {
+            Set<Map.Entry<String, Object>> entrySet = urlParameters.entrySet();
+            entrySet.forEach(param -> {
+                String value = param.getValue() != null ? String.valueOf(param.getValue()) : null;
+                builder.setParameter(param.getKey(), value);
+            });
+        }
+        URI uri = builder.build();
+        return get(uri);
+    }
+
     public HttpResponse get(String url, List<NameValuePair> urlParameters) throws IOException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         URIBuilder builder = new URIBuilder(endpoint + url);
         if (urlParameters != null) {
@@ -215,11 +230,20 @@ public class UserSession {
             });
         }
         URI uri = builder.build();
+        return get(uri);
+    }
 
+    public HttpResponse get(URI uri) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         CloseableHttpClient client = getClient();
         HttpGet get = new HttpGet(uri);
         get.setHeader("User-Agent", "Mozilla/5.0");
         get.setHeader("Content-type", "application/json");
         return client.execute(get);
+    }
+
+    public HttpResponse get(String url) throws URISyntaxException, IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        URIBuilder builder = new URIBuilder(endpoint + url);
+        URI uri = builder.build();
+        return get(uri);
     }
 }

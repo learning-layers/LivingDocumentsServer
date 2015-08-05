@@ -168,7 +168,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     public void testAuthenticateDoesNotContainPasswordHashInResponseBody() throws Exception {
         UserSession userSession = UserSession.user();
         try {
-            HttpResponse response = userSession.get(RESOURCE_USER + "/authenticate", null);
+            HttpResponse response = userSession.get(RESOURCE_USER + "/authenticate");
             Assert.assertEquals(HttpStatus.OK, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
             User user = userSession.getBody(response, User.class);
             Assert.assertNull(user.getPassword());
