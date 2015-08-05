@@ -39,6 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
+
 public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String RESOURCE_FOLDER = Content.RESOURCE_FOLDER;
@@ -70,17 +72,18 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testCreateSubFolderUsesHttpCreatedOnPersist() {
+    public void testCreateSubFolderUsesHttpCreatedOnPersist() throws Exception {
         Folder folder = new Folder("Test");
-        ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Long folderId = response.getBody().getId();
+        HttpResponse response = UserSession.user().post(RESOURCE_FOLDER, folder);
+        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+        folder = UserSession.getBody(response, Folder.class);
+        Long folderId = folder.getId();
         Assert.assertNotNull(folderId);
 
         Folder subFolder = new Folder("Sub Test");
-        ResponseEntity<FolderDto> response2 = post().resource(RESOURCE_FOLDER + "/" + folderId + "/folders").asUser().body(subFolder).exec(FolderDto.class);
-        Assert.assertEquals(HttpStatus.CREATED, response2.getStatusCode());
-        Assert.assertEquals(response2.getBody().getJsonParentId(), folderId);
+        HttpResponse response2 = UserSession.user().post(RESOURCE_FOLDER + "/" + folderId + "/folders", subFolder);
+        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response2));
+        Assert.assertEquals(UserSession.getBody(response2, FolderDto.class).getJsonParentId(), folderId);
     }
 
     @Test
