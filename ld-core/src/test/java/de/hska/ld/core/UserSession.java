@@ -50,7 +50,6 @@ public class UserSession {
     private String loginURL = endpoint + "/login";
 
     private CookieStore cookieStore = new BasicCookieStore();
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public UserSession() {
 
@@ -245,5 +244,24 @@ public class UserSession {
         URIBuilder builder = new URIBuilder(endpoint + url);
         URI uri = builder.build();
         return get(uri);
+    }
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    public static <T> List<T> convertToListOf(Class<T> classToConvertListObjectTo, Object contentToBeConverted) {
+        if (contentToBeConverted != null) {
+            try {
+                String contentStringRepresentation = objectMapper.writeValueAsString(contentToBeConverted);
+                return objectMapper.readValue(contentStringRepresentation, objectMapper.getTypeFactory().constructCollectionType(List.class, classToConvertListObjectTo));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return null;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
 }

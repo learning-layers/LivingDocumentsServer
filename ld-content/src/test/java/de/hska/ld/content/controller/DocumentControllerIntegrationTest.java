@@ -146,12 +146,14 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         varMap.put("page-size", 10);
         varMap.put("sort-direction", "DESC");
         varMap.put("sort-property", "createdAt");
-        HttpResponse responseGetCommentList = UserSession.user().get(RESOURCE_DOCUMENT, varMap);
+        HttpResponse responseGetCommentList = UserSession.user().get(uriCommentDocument, varMap);
         Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(responseGetCommentList));
         Map page = UserSession.getBody(responseGetCommentList, Map.class);
         Assert.assertNotNull(page);
         Assert.assertNotNull(page.containsKey("content"));
-        Assert.assertTrue(((List) page.get("content")).size() > 0);
+        List<Comment> commentList = UserSession.convertToListOf(Comment.class, page.get("content"));
+        Assert.assertTrue(commentList.size() > 0);
+        Assert.assertTrue(commentList.contains(responseCreateComment));
     }
 
     @Test
