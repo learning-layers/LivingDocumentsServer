@@ -129,6 +129,18 @@ public class UserSession {
         return obj;
     }
 
+    public static <T> List<T> getPageList(HttpResponse response, Class<T> clazz) throws IOException {
+        Object pageContent = UserSession.getPageContent(response);
+        return UserSession.convertToListOf(clazz, pageContent);
+    }
+
+    public static Object getPageContent(HttpResponse response) throws IOException {
+        Map page = UserSession.getBody(response, Map.class);
+        Assert.assertNotNull(page);
+        Assert.assertNotNull(page.containsKey("content"));
+        return page.get("content");
+    }
+
     public <T> HttpResponse post(String url, T body) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         CloseableHttpClient client = getClient();
         HttpPost post = new HttpPost(endpoint + url);

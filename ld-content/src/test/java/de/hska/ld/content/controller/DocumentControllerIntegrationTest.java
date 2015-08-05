@@ -156,10 +156,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         // get comments page
         HttpResponse responseGetCommentList = UserSession.user().get(uriCommentDocument);
         Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(responseGetCommentList));
-        Map page = UserSession.getBody(responseGetCommentList, Map.class);
-        Assert.assertNotNull(page);
-        Assert.assertNotNull(page.containsKey("content"));
-        List<Comment> commentList = UserSession.convertToListOf(Comment.class, page.get("content"));
+        List<Comment> commentList = UserSession.getPageList(responseGetCommentList, Comment.class);
         Assert.assertTrue(commentList.size() > 0);
         Assert.assertTrue(commentList.contains(responseCreateComment));
     }
