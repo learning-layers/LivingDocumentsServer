@@ -140,7 +140,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(responseCreateDocument.getId());
 
         // Add comment to the document
-        String uriCommentDocument = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getId() + "/comment";
+        String uriCommentDocument = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getId() + RESOURCE_COMMENT;
         Comment comment = new Comment();
         comment.setText("Text");
         HttpResponse response2 = UserSession.user().post(uriCommentDocument, comment);
