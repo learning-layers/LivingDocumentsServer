@@ -25,10 +25,13 @@ package de.hska.ld.content.controller;
 import de.hska.ld.content.dto.FolderDto;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Folder;
+import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.UserSession;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
+import org.apache.http.HttpResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,11 +61,16 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testCreateFolderUsesHttpCreatedOnPersist() {
+    public void testCreateFolderUsesHttpCreatedOnPersist() throws Exception {
         Folder folder = new Folder("Test");
-        ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Assert.assertNotNull(response.getBody().getId());
+        HttpResponse response = UserSession.user().post(RESOURCE_FOLDER, folder);
+        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+        folder = UserSession.getBody(response, Folder.class);
+        Assert.assertNotNull(folder.getId());
+
+        //ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
+        //Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        //Assert.assertNotNull(response.getBody().getId());
     }
 
     @Test
