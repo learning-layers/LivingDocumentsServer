@@ -219,7 +219,16 @@ public class UserSession {
             });
         }
         URI uri = builder.build();
+        return delete(uri);
+    }
 
+    public HttpResponse delete(String url) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException, URISyntaxException {
+        URIBuilder builder = new URIBuilder(endpoint + url);
+        URI uri = builder.build();
+        return delete(uri);
+    }
+
+    public HttpResponse delete(URI uri) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         CloseableHttpClient client = getClient();
         HttpDelete delete = new HttpDelete(uri);
         delete.setHeader("User-Agent", "Mozilla/5.0");
