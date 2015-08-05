@@ -67,10 +67,6 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
         folder = UserSession.getBody(response, Folder.class);
         Assert.assertNotNull(folder.getId());
-
-        //ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
-        //Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        //Assert.assertNotNull(response.getBody().getId());
     }
 
     @Test
