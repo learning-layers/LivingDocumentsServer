@@ -3,6 +3,7 @@ package de.hska.ld.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.persistence.domain.User;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -11,6 +12,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -20,10 +22,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.junit.Assert;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -51,6 +56,26 @@ public class UserSession {
 
     public UserSession loginAsAdmin() throws Exception {
         return login(ADMIN_USERNAME, ADMIN_PASSWORD);
+    }
+
+    public static UserSession admin() throws Exception {
+        UserSession userSession = new UserSession();
+        try {
+            userSession.loginAsAdmin();
+        } catch(Exception e) {
+            Assert.fail();
+        }
+        return userSession;
+    }
+
+    public static UserSession user() throws Exception {
+        UserSession userSession = new UserSession();
+        try {
+            userSession.loginAsUser();
+        } catch(Exception e) {
+            Assert.fail();
+        }
+        return userSession;
     }
 
     public UserSession loginAsUser() throws Exception {
@@ -84,7 +109,19 @@ public class UserSession {
         return this;
     }
 
-    public <T> HttpResponse postJson(String url, T body) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    public static HttpStatus getStatusCode(HttpResponse response){
+        return HttpStatus.valueOf(response.getStatusLine().getStatusCode());
+    }
+
+    public static <T> T getBody(HttpResponse response, Class<T> clazz) throws IOException {
+        HttpEntity entity = response.getEntity();
+        String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
+        ObjectMapper objectMapper = new ObjectMapper();
+        T obj = objectMapper.readValue(body, clazz);
+        return obj;
+    }
+
+    public <T> HttpResponse post(String url, T body) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         CloseableHttpClient client = getClient();
         HttpPost post = new HttpPost(endpoint + url);
 
@@ -117,6 +154,41 @@ public class UserSession {
         post.setEntity(entity);
 
         return client.execute(post);
+    }
+
+    public <T> HttpResponse put(String url, T body) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        CloseableHttpClient client = getClient();
+        HttpPut put = new HttpPut(endpoint + url);
+
+        // add header
+        put.setHeader("User-Agent", "Mozilla/5.0");
+        put.setHeader("Content-type", "application/json");
+
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("user", "admin"));
+        urlParameters.add(new BasicNameValuePair("password", "pass"));
+
+        put.setEntity(new UrlEncodedFormEntity(urlParameters));
+        String json = null;
+        if (body != null) {
+            try {
+                json = objectMapper.writeValueAsString(body);
+                if (body instanceof User) {
+                    // Workaround to transfer password
+                    json = json.substring(0, json.length() - 1);
+                    json += ",\"password\":\"" + PASSWORD + "\"}";
+                }
+            } catch (JsonProcessingException e) {
+                // do nothing
+            }
+        }
+        HttpEntity entity = null;
+        if (json != null) {
+            entity = new ByteArrayEntity(json.getBytes("UTF-8"));
+        }
+        put.setEntity(entity);
+
+        return client.execute(put);
     }
 
     public <T> HttpResponse delete(String url, List<NameValuePair> urlParameters) throws IOException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {

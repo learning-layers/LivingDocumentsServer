@@ -28,13 +28,14 @@ import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.UserSession;
 import de.hska.ld.core.service.UserService;
+import org.apache.http.HttpResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 public class TagControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -71,25 +72,29 @@ public class TagControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testCreateTagUsesHttpCreatedOnPersist() {
-        ResponseEntity<Tag> response = post().resource(RESOURCE_TAG).asUser().body(tag).exec(Tag.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Assert.assertNotNull(response.getBody().getId());
+    public void testCreateTagUsesHttpCreatedOnPersist() throws Exception {
+        HttpResponse response = UserSession.user().post(RESOURCE_TAG, tag);
+
+        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+
+        Tag tag = UserSession.getBody(response, Tag.class);
+        Assert.assertNotNull(tag.getId());
     }
 
     @Test
-    public void testEditTagUsesHttpOkOnPersist() {
-        ResponseEntity<Tag> responseCreate = post().resource(RESOURCE_TAG).asUser().body(tag).exec(Tag.class);
-        Assert.assertEquals(HttpStatus.CREATED, responseCreate.getStatusCode());
-        Tag createdTag = responseCreate.getBody();
-        Assert.assertNotNull(createdTag);
+    public void testEditTagUsesHttpOkOnPersist() throws Exception {
+        HttpResponse response = UserSession.user().post(RESOURCE_TAG, tag);
+        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+        Tag tag = UserSession.getBody(response, Tag.class);
+        Assert.assertNotNull(tag.getId());
 
         String updatedName = "updatedName";
-        createdTag.setName(updatedName);
-        ResponseEntity<Tag> responseUpdate = put().resource(RESOURCE_TAG + "/" + createdTag.getId()).asUser().body(createdTag).exec(Tag.class);
-        Assert.assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
-        Assert.assertNotNull(responseUpdate.getBody().getId());
-        Assert.assertEquals(updatedName, responseUpdate.getBody().getName());
+        tag.setName(updatedName);
+        HttpResponse response2 = UserSession.user().put(RESOURCE_TAG + "/" + tag.getId(), tag);
+        Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(response2));
+        Tag tag2 = UserSession.getBody(response2, Tag.class);
+        Assert.assertNotNull(tag2.getId());
+        Assert.assertEquals(updatedName, tag2.getName());
     }
 
 }

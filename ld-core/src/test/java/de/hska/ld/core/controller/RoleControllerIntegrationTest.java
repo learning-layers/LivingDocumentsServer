@@ -64,7 +64,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
         }
 
         try {
-            HttpResponse response = adminSession.postJson(RESOURCE_ROLE, newRole());
+            HttpResponse response = adminSession.post(RESOURCE_ROLE, newRole());
             Assert.assertEquals(HttpStatus.CREATED, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
             HttpEntity entity = response.getEntity();
             String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
@@ -89,7 +89,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
         }
 
         try {
-            HttpResponse response = adminSession.postJson(RESOURCE_ROLE, role);
+            HttpResponse response = adminSession.post(RESOURCE_ROLE, role);
             Assert.assertEquals(HttpStatus.OK, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
             HttpEntity entity = response.getEntity();
             String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
@@ -111,7 +111,7 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
         }
 
         try {
-            HttpResponse response = userSession.postJson(RESOURCE_ROLE, newRole());
+            HttpResponse response = userSession.post(RESOURCE_ROLE, newRole());
             Assert.assertEquals(HttpStatus.FORBIDDEN, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
         } catch (IOException e) {
             Assert.fail();

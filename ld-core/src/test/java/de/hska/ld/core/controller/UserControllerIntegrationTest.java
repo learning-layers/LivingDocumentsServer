@@ -65,7 +65,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         }
 
         try {
-            HttpResponse response = adminSession.postJson(RESOURCE_USER, newUser());
+            HttpResponse response = adminSession.post(RESOURCE_USER, newUser());
             Assert.assertEquals(HttpStatus.CREATED, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
         } catch (IOException e) {
             Assert.fail();
@@ -85,7 +85,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         }
 
         try {
-            HttpResponse response = adminSession.postJson(RESOURCE_USER, user);
+            HttpResponse response = adminSession.post(RESOURCE_USER, user);
             Assert.assertEquals(HttpStatus.OK, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
         } catch (IOException e) {
             Assert.fail();
@@ -136,25 +136,17 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testUpdateUsernameUsesHttpConflictIfAlreadyExists() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        User user1 = newUser();
-
-        UserSession adminSession = new UserSession();
+    public void testUpdateUsernameUsesHttpConflictIfAlreadyExists() throws Exception {
+        User user = newUser();
         try {
-            adminSession.loginAsAdmin();
-        } catch (Exception e) {
-            Assert.fail();
-        }
-
-        try {
-            HttpResponse response = adminSession.postJson(RESOURCE_USER, user1);
+            HttpResponse response = UserSession.admin().post(RESOURCE_USER, user);
             Assert.assertEquals(HttpStatus.CREATED, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
         } catch (IOException e) {
             Assert.fail();
         }
 
         try {
-            HttpResponse response = adminSession.postJson(RESOURCE_USER, user1);
+            HttpResponse response = UserSession.admin().post(RESOURCE_USER, user);
             Assert.assertEquals(HttpStatus.CONFLICT, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
         } catch (IOException e) {
             Assert.fail();
@@ -173,20 +165,12 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testAuthenticateDoesNotContainPasswordHashInResponseBody() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException, URISyntaxException {
-        UserSession userSession = new UserSession();
-        try {
-            userSession.loginAsUser();
-        } catch (Exception e) {
-            Assert.fail();
-        }
+    public void testAuthenticateDoesNotContainPasswordHashInResponseBody() throws Exception {
+        UserSession userSession = UserSession.user();
         try {
             HttpResponse response = userSession.get(RESOURCE_USER + "/authenticate", null);
             Assert.assertEquals(HttpStatus.OK, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
-            HttpEntity entity = response.getEntity();
-            String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
-            ObjectMapper objectMapper = new ObjectMapper();
-            User user = objectMapper.readValue(body, User.class);
+            User user = userSession.getBody(response, User.class);
             Assert.assertNull(user.getPassword());
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
