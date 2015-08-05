@@ -1,9 +1,11 @@
 package de.hska.ld.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.persistence.domain.User;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -118,7 +120,12 @@ public class UserSession {
         HttpEntity entity = response.getEntity();
         String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
         ObjectMapper objectMapper = new ObjectMapper();
-        T obj = objectMapper.readValue(body, clazz);
+        T obj = null;
+        try {
+            obj = objectMapper.readValue(body, clazz);
+        } catch (JsonMappingException e) {
+            return null;
+        }
         return obj;
     }
 
@@ -263,5 +270,26 @@ public class UserSession {
         } else {
             return null;
         }
+    }
+
+    public static UserSession notAuthenticated() {
+        return new UserSession();
+    }
+
+    public static boolean isRedirectToLoginPresent(HttpResponse response) {
+        Header[] headers = response.getAllHeaders();
+        for (Header header : headers) {
+            if ("Location".equals(header.getName()) && (System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL") + "/openid_connect_login").equals(header.getValue())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isNotAuthenticatedResponse(HttpResponse response) {
+        // the endpoint has been found but the user is not logged in so the user is redirected to the "login" page
+        Assert.assertEquals(HttpStatus.FOUND, UserSession.getStatusCode(response));
+        Assert.assertTrue(UserSession.isRedirectToLoginPresent(response));
+        return true;
     }
 }

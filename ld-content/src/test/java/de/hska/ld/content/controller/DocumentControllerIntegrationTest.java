@@ -40,6 +40,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +82,14 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assert.assertNotNull(response.getBody().getId());
+    }
+
+    @Test
+    public void testShouldFailCreateDocumentNotAuthenticated() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        HttpResponse response = UserSession.notAuthenticated().post(RESOURCE_DOCUMENT, document);
+        Assert.assertTrue(UserSession.isNotAuthenticatedResponse(response));
+        Document reponseDocument = UserSession.getBody(response, Document.class);
+        Assert.assertNull(reponseDocument);
     }
 
     @Test
