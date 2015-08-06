@@ -10,8 +10,20 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.*;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.SystemDefaultHttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.*;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.mitre.jwt.signer.service.JwtSigningAndValidationService;
 import org.mitre.jwt.signer.service.impl.JWKSetCacheService;
 import org.mitre.jwt.signer.service.impl.SymmetricCacheService;
@@ -38,12 +50,115 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.Date;
 
 import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.*;
 
 public class LDOIDCAuthenticationFilter extends OIDCAuthenticationFilter {
+
+    private static String proxyUser;
+    private static String proxyPass;
+    private Boolean usingProxy = false;
+
+    LDOIDCAuthenticationFilter() {
+        super();
+        /*proxyUser = System.getenv("LDS_PROXY_USER");
+        proxyPass = System.getenv("LDS_PROXY_PASS");*/
+        //usingProxy = Boolean.valueOf(System.getenv("LDS_PROXY_ENABLED"));
+        usingProxy = false;
+    }
+
+    private static HttpResponse createProxyEnabledHttpClient(HttpRequestBase request) {
+        String USERNAME = proxyUser; // username for proxy authentication
+        String PASSWORD = proxyPass; // password for proxy authentication
+
+        HttpResponse resp = null;
+        String PROXY_ADDRESS = "proxy.hs-karlsruhe.de"; // proxy (IP) address
+        String PROXY_DOMAIN = "http"; // proxy domain
+
+        HttpHost proxy = new HttpHost(PROXY_ADDRESS, 8888);
+        DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+
+        AuthCache authCache = new BasicAuthCache();
+        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(new AuthScope(PROXY_ADDRESS, 8888), new NTCredentials(USERNAME, PASSWORD, "", PROXY_DOMAIN));
+        HttpClientContext context = HttpClientContext.create();
+        context.setCredentialsProvider(credsProvider);
+        context.setAuthCache(authCache);
+
+        String token = USERNAME + ":" + PASSWORD;
+        String auth = "Basic " + String.valueOf(Base64.encode(token.getBytes()));
+        // TODO add headers to the request
+        request.addHeader("Proxy-Authorization", auth);
+        request.addHeader("Https-Proxy-Authorization", auth);
+
+        RequestConfig defaultRequestConfig = RequestConfig.custom()
+                .setSocketTimeout(5000)
+                .setConnectTimeout(5000)
+                .setConnectionRequestTimeout(5000)
+                .setStaleConnectionCheckEnabled(true)
+                .build();
+
+        //Main client about to connect
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setDefaultCredentialsProvider(credsProvider)
+                .setRoutePlanner(routePlanner)
+                .setDefaultRequestConfig(defaultRequestConfig)
+                .build();
+
+        try {
+            resp = httpclient.execute(request, context);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return resp;
+    }
+
+    ;
+
+    private static HttpClient createProxyEnabledHttpClient() {
+        String USERNAME = proxyUser; // username for proxy authentication
+        String PASSWORD = proxyPass; // password for proxy authentication
+
+        HttpResponse resp = null;
+        String PROXY_ADDRESS = "proxy.hs-karlsruhe.de"; // proxy (IP) address
+        String PROXY_DOMAIN = "http"; // proxy domain
+
+        HttpHost proxy = new HttpHost(PROXY_ADDRESS, 8888);
+        DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+
+        AuthCache authCache = new BasicAuthCache();
+        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(new AuthScope(PROXY_ADDRESS, 8888), new NTCredentials(USERNAME, PASSWORD, "", PROXY_DOMAIN));
+        HttpClientContext context = HttpClientContext.create();
+        context.setCredentialsProvider(credsProvider);
+        context.setAuthCache(authCache);
+
+        String token = USERNAME + ":" + PASSWORD;
+        String auth = "Basic " + String.valueOf(Base64.encode(token.getBytes()));
+        // TODO add headers to the request
+        //request.addHeader("Proxy-Authorization", auth);
+        //request.addHeader("Https-Proxy-Authorization", auth);
+
+        RequestConfig defaultRequestConfig = RequestConfig.custom()
+                .setSocketTimeout(5000)
+                .setConnectTimeout(5000)
+                .setConnectionRequestTimeout(5000)
+                .setStaleConnectionCheckEnabled(true)
+                .build();
+
+        //Main client about to connect
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setDefaultCredentialsProvider(credsProvider)
+                .setRoutePlanner(routePlanner)
+                .setDefaultRequestConfig(defaultRequestConfig)
+                .build();
+
+        return httpclient;
+    }
+
     /**
      * @param request The request from which to extract parameters and perform the
      *                authentication
@@ -109,7 +224,12 @@ public class LDOIDCAuthenticationFilter extends OIDCAuthenticationFilter {
         }
 
         // Handle Token Endpoint interaction
-        HttpClient httpClient = new SystemDefaultHttpClient();
+        HttpClient httpClient = null;
+        if (!usingProxy) {
+            httpClient = new SystemDefaultHttpClient();
+        } else {
+            httpClient = createProxyEnabledHttpClient();
+        }
 
         httpClient.getParams().setParameter("http.socket.timeout", new Integer(httpSocketTimeout));
 
@@ -206,7 +326,20 @@ public class LDOIDCAuthenticationFilter extends OIDCAuthenticationFilter {
         String jsonString = null;
 
         try {
-            jsonString = restTemplate.postForObject(serverConfig.getTokenEndpointUri(), form, String.class);
+            if (!usingProxy) {
+                jsonString = restTemplate.postForObject(serverConfig.getTokenEndpointUri(), form, String.class);
+            } else {
+                HttpPost post = new HttpPost();
+                post.addHeader("Authorization",
+                        String.format("Basic %s", Base64.encode(String.format("%s:%s", clientConfig.getClientId(), clientConfig.getClientSecret()))));
+                HttpResponse responseProxy = createProxyEnabledHttpClient(post);
+                try {
+                    jsonString = IOUtils.toString(responseProxy.getEntity().getContent(), Charset.forName("UTF-8"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
         } catch (HttpClientErrorException httpClientErrorException) {
 
             // Handle error
