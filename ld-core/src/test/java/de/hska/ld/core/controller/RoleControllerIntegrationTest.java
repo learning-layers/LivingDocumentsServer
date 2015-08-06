@@ -23,6 +23,7 @@
 package de.hska.ld.core.controller;
 
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.ResponseHelper;
 import de.hska.ld.core.UserSession;
 import de.hska.ld.core.dto.IdDto;
 import de.hska.ld.core.persistence.domain.Role;
@@ -55,25 +56,13 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     RoleService roleService;
 
     @Test
-    public void testSaveRoleUsesHttpCreatedOnPersist() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        UserSession adminSession = new UserSession();
-        try {
-            adminSession.loginAsAdmin();
-        } catch (Exception e) {
-            Assert.fail();
-        }
+    public void testSaveRoleUsesHttpCreatedOnPersist() throws Exception {
 
-        try {
-            HttpResponse response = adminSession.post(RESOURCE_ROLE, newRole());
-            Assert.assertEquals(HttpStatus.CREATED, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
-            HttpEntity entity = response.getEntity();
-            String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
-            ObjectMapper mapper = new ObjectMapper();
-            IdDto idDto = mapper.readValue(body, IdDto.class);
-            Assert.assertNotNull(idDto.getId());
-        } catch (IOException e) {
-            Assert.fail();
-        }
+        HttpResponse response = UserSession.admin().post(RESOURCE_ROLE, newRole());
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
+        Role createdRole = ResponseHelper.getBody(response, Role.class);
+        Assert.assertNotNull(createdRole);
+        Assert.assertNotNull(createdRole.getId());
     }
 
     @Test

@@ -109,10 +109,6 @@ public class UserSession {
         return this;
     }
 
-    public static HttpStatus getStatusCode(HttpResponse response){
-        return HttpStatus.valueOf(response.getStatusLine().getStatusCode());
-    }
-
     public <T> HttpResponse post(String url, T body) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         CloseableHttpClient client = getClient();
         HttpPost post = new HttpPost(endpoint + url);
@@ -265,7 +261,7 @@ public class UserSession {
 
     public static boolean isNotAuthenticatedResponse(HttpResponse response) {
         // the endpoint has been found but the user is not logged in so the user is redirected to the "login" page
-        Assert.assertEquals(HttpStatus.FOUND, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.FOUND, ResponseHelper.getStatusCode(response));
         Assert.assertTrue(UserSession.isRedirectToLoginPresent(response));
         return true;
     }

@@ -76,7 +76,7 @@ public class TagControllerIntegrationTest extends AbstractIntegrationTest {
     public void testCreateTagUsesHttpCreatedOnPersist() throws Exception {
         HttpResponse response = UserSession.user().post(RESOURCE_TAG, tag);
 
-        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
 
         Tag tag = ResponseHelper.getBody(response, Tag.class);
         Assert.assertNotNull(tag.getId());
@@ -85,14 +85,14 @@ public class TagControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testEditTagUsesHttpOkOnPersist() throws Exception {
         HttpResponse response = UserSession.user().post(RESOURCE_TAG, tag);
-        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
         Tag tag = ResponseHelper.getBody(response, Tag.class);
         Assert.assertNotNull(tag.getId());
 
         String updatedName = "updatedName";
         tag.setName(updatedName);
         HttpResponse response2 = UserSession.user().put(RESOURCE_TAG + "/" + tag.getId(), tag);
-        Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(response2));
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response2));
         Tag tag2 = ResponseHelper.getBody(response2, Tag.class);
         Assert.assertNotNull(tag2.getId());
         Assert.assertEquals(updatedName, tag2.getName());

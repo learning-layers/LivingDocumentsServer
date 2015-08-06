@@ -46,7 +46,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testSaveUserUsesHttpCreatedOnPersist() throws Exception {
         HttpResponse response = UserSession.admin().post(RESOURCE_USER, newUser());
-        Assert.assertEquals(HttpStatus.CREATED, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
     }
 
     @Test
@@ -55,7 +55,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
         user.setFullName(user.getFullName() + " (updated)");
         HttpResponse response = UserSession.admin().put(RESOURCE_USER + "/" + user.getId(), user);
-        Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
         User updatedUser = ResponseHelper.getBody(response, User.class);
         Assert.assertNotNull(updatedUser);
         Assert.assertNotNull(updatedUser.getFullName());
@@ -67,7 +67,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         User user = userService.save(newUser());
 
         HttpResponse response = UserSession.admin().delete(RESOURCE_USER + "/" + user.getId());
-        Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
         Long deletedUserId = ResponseHelper.getBody(response, Long.class);
         Assert.assertEquals(user.getId(), deletedUserId);
     }
@@ -77,7 +77,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         User user = userService.save(newUser());
 
         HttpResponse response = UserSession.user().delete(RESOURCE_USER + "/" + user.getId());
-        Assert.assertEquals(HttpStatus.FORBIDDEN, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.FORBIDDEN, ResponseHelper.getStatusCode(response));
     }
 
     @Test
@@ -85,23 +85,23 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         User user = newUser();
 
         HttpResponse response = UserSession.admin().post(RESOURCE_USER, user);
-        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
 
         HttpResponse response2 = UserSession.admin().post(RESOURCE_USER, user);
-        Assert.assertEquals(HttpStatus.CONFLICT, UserSession.getStatusCode(response2));
+        Assert.assertEquals(HttpStatus.CONFLICT, ResponseHelper.getStatusCode(response2));
     }
 
     @Test
     public void testDeleteUserUsesHttpNotFoundOnEntityLookupFailure() throws Exception {
         String invalidUserURL = RESOURCE_USER + "/" + -1;
         HttpResponse response = UserSession.admin().delete(invalidUserURL);
-        Assert.assertEquals(HttpStatus.NOT_FOUND, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.NOT_FOUND, ResponseHelper.getStatusCode(response));
     }
 
     @Test
     public void testAuthenticateDoesNotContainPasswordHashInResponseBody() throws Exception {
         HttpResponse response = UserSession.user().get(RESOURCE_USER + "/authenticate");
-        Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
         User user = ResponseHelper.getBody(response, User.class);
         Assert.assertNotNull(user);
         Assert.assertNull(user.getPassword());

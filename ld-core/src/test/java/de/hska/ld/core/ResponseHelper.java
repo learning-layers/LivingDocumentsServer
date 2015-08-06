@@ -7,6 +7,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.junit.Assert;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -57,5 +58,9 @@ public class ResponseHelper {
         } else {
             return null;
         }
+    }
+
+    public static HttpStatus getStatusCode(HttpResponse response){
+        return HttpStatus.valueOf(response.getStatusLine().getStatusCode());
     }
 }

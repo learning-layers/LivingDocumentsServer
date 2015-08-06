@@ -116,7 +116,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     public void testRemoveDocumentHttpOk() throws Exception {
         // Add document
         HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
-        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
         Document responseCreateDocument = ResponseHelper.getBody(response, Document.class);
         Assert.assertNotNull(responseCreateDocument);
         Assert.assertNotNull(responseCreateDocument.getId());
@@ -124,18 +124,18 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         // Remove document
         String uriRemoveDocument = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getId();
         HttpResponse responseDeleteDocument = UserSession.user().delete(uriRemoveDocument);
-        Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(responseDeleteDocument));
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseDeleteDocument));
 
         // Try to access the document after it has been deleted
         HttpResponse responseDocumentNotPresent = UserSession.user().get(uriRemoveDocument);
-        Assert.assertEquals(HttpStatus.NOT_FOUND, UserSession.getStatusCode(responseDocumentNotPresent));
+        Assert.assertEquals(HttpStatus.NOT_FOUND, ResponseHelper.getStatusCode(responseDocumentNotPresent));
     }
 
     @Test
     public void testAddCommentHttpOk() throws Exception {
         // Add document
         HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
-        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
         Document responseCreateDocument = ResponseHelper.getBody(response, Document.class);
         Assert.assertNotNull(responseCreateDocument);
         Assert.assertNotNull(responseCreateDocument.getId());
@@ -145,14 +145,14 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Comment comment = new Comment();
         comment.setText("Text");
         HttpResponse response2 = UserSession.user().post(uriCommentDocument, comment);
-        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response2));
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response2));
         Comment responseCreateComment = ResponseHelper.getBody(response2, Comment.class);
         Assert.assertNotNull(responseCreateComment);
         Assert.assertNotNull(responseCreateComment.getId());
 
         // get comments page
         HttpResponse responseGetCommentList = UserSession.user().get(uriCommentDocument);
-        Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(responseGetCommentList));
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseGetCommentList));
         List<Comment> commentList = ResponseHelper.getPageList(responseGetCommentList, Comment.class);
         Assert.assertTrue(commentList.size() > 0);
         Assert.assertTrue(commentList.contains(responseCreateComment));

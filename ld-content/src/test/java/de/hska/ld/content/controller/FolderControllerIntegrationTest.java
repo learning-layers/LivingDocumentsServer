@@ -64,7 +64,7 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
     public void testCreateFolderUsesHttpCreatedOnPersist() throws Exception {
         Folder folder = new Folder("Test");
         HttpResponse response = UserSession.user().post(RESOURCE_FOLDER, folder);
-        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
         folder = ResponseHelper.getBody(response, Folder.class);
         Assert.assertNotNull(folder.getId());
     }
@@ -73,14 +73,14 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
     public void testCreateSubFolderUsesHttpCreatedOnPersist() throws Exception {
         Folder folder = new Folder("Test");
         HttpResponse response = UserSession.user().post(RESOURCE_FOLDER, folder);
-        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
         folder = ResponseHelper.getBody(response, Folder.class);
         Long folderId = folder.getId();
         Assert.assertNotNull(folderId);
 
         Folder subFolder = new Folder("Sub Test");
         HttpResponse response2 = UserSession.user().post(RESOURCE_FOLDER + "/" + folderId + "/folders", subFolder);
-        Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response2));
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response2));
         Assert.assertEquals(ResponseHelper.getBody(response2, FolderDto.class).getJsonParentId(), folderId);
     }
 
