@@ -25,7 +25,6 @@ package de.hska.ld.content.controller;
 import de.hska.ld.content.dto.FolderDto;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Folder;
-import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.UserSession;
@@ -38,8 +37,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.io.IOException;
 
 public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -86,6 +83,7 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(UserSession.getBody(response2, FolderDto.class).getJsonParentId(), folderId);
     }
 
+    // TODO johannes
     @Test
     public void testAddDocumentToFolderUsesHttpOkOnPersist() {
         Folder folder = new Folder("Test");
