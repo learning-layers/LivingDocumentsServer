@@ -285,6 +285,37 @@ public class UserController {
 
     /**
      * <pre>
+     * Saves a user. This means a new user will be created if no ID is specified or an old user will be
+     * updated if ID is specified.
+     *
+     * <b>Required roles:</b> ROLE_ADMIN
+     * <b>Path:</b> PUT {@value Core#RESOURCE_USER}
+     * </pre>
+     *
+     * @param user includes the user to be saved or updated. Example:<br>
+     *             {username: 'jdoe', email: 'jdoe@jdoe.org', fullName: 'John Doe'}
+     * @return <b>201 Created</b> and the user or <br>
+     * <b>200 OK</b> and the user or <br>
+     * <b>400 Bad Request</b> if at least one property was invalid or <br>
+     * <b>403 Forbidden</b> if authorization failed
+     */
+    @Secured(Core.ROLE_ADMIN)
+    @RequestMapping(method = RequestMethod.PUT, value = "/{userId}")
+    public Callable updateUser(@PathVariable Long userId, @RequestBody @Valid final User user) {
+        return () -> {
+            User dbUser = userService.findById(userId);
+            if (dbUser != null) {
+                user.setLastupdatedAt(new Date());
+                User savedUser = userService.save(user);
+                return new ResponseEntity<>(savedUser, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
+    }
+
+    /**
+     * <pre>
      * Register a new user.
      *
      * <b>Required roles:</b> ROLE_ADMIN
@@ -368,8 +399,12 @@ public class UserController {
     public Callable deleteUser(@PathVariable Long id) {
         return () -> {
             User user = userService.findById(id);
-            userService.delete(user);
-            return new ResponseEntity<>(user.getId(), HttpStatus.OK);
+            if (user != null) {
+                userService.delete(user);
+                return new ResponseEntity<>(user.getId(), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
         };
     }
 

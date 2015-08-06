@@ -28,8 +28,11 @@ import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.ResponseHelper;
+import de.hska.ld.core.UserSession;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
+import org.apache.http.HttpResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +41,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +86,14 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void testShouldFailCreateDocumentNotAuthenticated() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        HttpResponse response = UserSession.notAuthenticated().post(RESOURCE_DOCUMENT, document);
+        Assert.assertTrue(UserSession.isNotAuthenticatedResponse(response));
+        Document reponseDocument = ResponseHelper.getBody(response, Document.class);
+        Assert.assertNull(reponseDocument);
+    }
+
+    @Test
     public void testGETDocumentPageHttpOk() {
         ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
         Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -98,55 +113,49 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testRemoveDocumentHttpOk() {
+    public void testRemoveDocumentHttpOk() throws Exception {
         // Add document
-        ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Assert.assertNotNull(response.getBody().getId());
+        HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
+        Document responseCreateDocument = ResponseHelper.getBody(response, Document.class);
+        Assert.assertNotNull(responseCreateDocument);
+        Assert.assertNotNull(responseCreateDocument.getId());
 
         // Remove document
-        String URI = RESOURCE_DOCUMENT + "/" + response.getBody().getId();
-        ResponseEntity response2 = delete().resource(URI).asUser().exec();
-        Assert.assertEquals(HttpStatus.OK, response2.getStatusCode());
+        String uriRemoveDocument = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getId();
+        HttpResponse responseDeleteDocument = UserSession.user().delete(uriRemoveDocument);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseDeleteDocument));
 
-
-        boolean exceptionOccured = false;
-        try {
-            get().resource(URI).asUser().exec(Document.class);
-        } catch (HttpClientErrorException e) {
-            Assert.assertTrue(e.toString().contains("404 Not Found"));
-            exceptionOccured = true;
-        }
-        if (!exceptionOccured) {
-            Assert.fail();
-        }
+        // Try to access the document after it has been deleted
+        HttpResponse responseDocumentNotPresent = UserSession.user().get(uriRemoveDocument);
+        Assert.assertEquals(HttpStatus.NOT_FOUND, ResponseHelper.getStatusCode(responseDocumentNotPresent));
     }
 
     @Test
-    public void testAddCommentHttpOk() {
+    public void testAddCommentHttpOk() throws Exception {
         // Add document
-        ResponseEntity<Document> responseCreateDocument = post().resource(RESOURCE_DOCUMENT).as(testUser).body(document).exec(Document.class);
-        Assert.assertEquals(HttpStatus.CREATED, responseCreateDocument.getStatusCode());
-        Assert.assertNotNull(responseCreateDocument.getBody().getId());
+        HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
+        Document responseCreateDocument = ResponseHelper.getBody(response, Document.class);
+        Assert.assertNotNull(responseCreateDocument);
+        Assert.assertNotNull(responseCreateDocument.getId());
 
         // Add comment to the document
-        String URI = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getBody().getId() + "/comment";
+        String uriCommentDocument = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getId() + RESOURCE_COMMENT;
         Comment comment = new Comment();
         comment.setText("Text");
-        HttpRequestWrapper requestAddComment = post().resource(URI).as(testUser).body(comment);
-        ResponseEntity<Comment> responseAddComment = requestAddComment.exec(Comment.class);
-        Assert.assertEquals(HttpStatus.CREATED, responseAddComment.getStatusCode());
+        HttpResponse response2 = UserSession.user().post(uriCommentDocument, comment);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response2));
+        Comment responseCreateComment = ResponseHelper.getBody(response2, Comment.class);
+        Assert.assertNotNull(responseCreateComment);
+        Assert.assertNotNull(responseCreateComment.getId());
 
-        // read document comments
-        Map varMap = new HashMap<>();
-        varMap.put("page-number", 0);
-        varMap.put("page-size", 10);
-        varMap.put("sort-direction", "DESC");
-        varMap.put("sort-property", "createdAt");
-        Map page = getPage(URI, testUser, varMap);
-        Assert.assertNotNull(page);
-        Assert.assertNotNull(page.containsKey("content"));
-        Assert.assertTrue(((List) page.get("content")).size() > 0);
+        // get comments page
+        HttpResponse responseGetCommentList = UserSession.user().get(uriCommentDocument);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseGetCommentList));
+        List<Comment> commentList = ResponseHelper.getPageList(responseGetCommentList, Comment.class);
+        Assert.assertTrue(commentList.size() > 0);
+        Assert.assertTrue(commentList.contains(responseCreateComment));
     }
 
     @Test

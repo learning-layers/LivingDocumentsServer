@@ -49,7 +49,9 @@ public class CrossOriginFilter implements Filter {
             chain.doFilter(req, res);
         } catch (Exception e) {
             if (!(e instanceof NestedServletException && e.getCause() instanceof NullPointerException && e.getCause().getMessage() == null)) {
-                e.printStackTrace();
+                if (!(e.getCause() instanceof IllegalArgumentException)) {
+                    e.printStackTrace();
+                }
             }
         }
     }

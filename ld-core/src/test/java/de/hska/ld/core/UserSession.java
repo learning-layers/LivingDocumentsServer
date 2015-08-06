@@ -3,7 +3,7 @@ package de.hska.ld.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.persistence.domain.User;
-import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -28,12 +28,13 @@ import org.springframework.http.HttpStatus;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static de.hska.ld.core.util.CoreUtil.PASSWORD;
 
@@ -48,7 +49,6 @@ public class UserSession {
     private String loginURL = endpoint + "/login";
 
     private CookieStore cookieStore = new BasicCookieStore();
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public UserSession() {
 
@@ -107,18 +107,6 @@ public class UserSession {
             throw new Exception("Could not establish logged in connection!");
         }
         return this;
-    }
-
-    public static HttpStatus getStatusCode(HttpResponse response){
-        return HttpStatus.valueOf(response.getStatusLine().getStatusCode());
-    }
-
-    public static <T> T getBody(HttpResponse response, Class<T> clazz) throws IOException {
-        HttpEntity entity = response.getEntity();
-        String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
-        ObjectMapper objectMapper = new ObjectMapper();
-        T obj = objectMapper.readValue(body, clazz);
-        return obj;
     }
 
     public <T> HttpResponse post(String url, T body) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
@@ -199,12 +187,34 @@ public class UserSession {
             });
         }
         URI uri = builder.build();
+        return delete(uri);
+    }
 
+    public HttpResponse delete(String url) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException, URISyntaxException {
+        URIBuilder builder = new URIBuilder(endpoint + url);
+        URI uri = builder.build();
+        return delete(uri);
+    }
+
+    public HttpResponse delete(URI uri) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         CloseableHttpClient client = getClient();
         HttpDelete delete = new HttpDelete(uri);
         delete.setHeader("User-Agent", "Mozilla/5.0");
         delete.setHeader("Content-type", "application/json");
         return client.execute(delete);
+    }
+
+    public HttpResponse get(String url, Map<String, Object> urlParameters) throws IOException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        URIBuilder builder = new URIBuilder(endpoint + url);
+        if (urlParameters != null) {
+            Set<Map.Entry<String, Object>> entrySet = urlParameters.entrySet();
+            entrySet.forEach(param -> {
+                String value = param.getValue() != null ? String.valueOf(param.getValue()) : null;
+                builder.setParameter(param.getKey(), value);
+            });
+        }
+        URI uri = builder.build();
+        return get(uri);
     }
 
     public HttpResponse get(String url, List<NameValuePair> urlParameters) throws IOException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
@@ -215,11 +225,44 @@ public class UserSession {
             });
         }
         URI uri = builder.build();
+        return get(uri);
+    }
 
+    public HttpResponse get(URI uri) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         CloseableHttpClient client = getClient();
         HttpGet get = new HttpGet(uri);
         get.setHeader("User-Agent", "Mozilla/5.0");
         get.setHeader("Content-type", "application/json");
         return client.execute(get);
+    }
+
+    public HttpResponse get(String url) throws URISyntaxException, IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        URIBuilder builder = new URIBuilder(endpoint + url);
+        URI uri = builder.build();
+        return get(uri);
+    }
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+
+    public static UserSession notAuthenticated() {
+        return new UserSession();
+    }
+
+    public static boolean isRedirectToLoginPresent(HttpResponse response) {
+        Header[] headers = response.getAllHeaders();
+        for (Header header : headers) {
+            if ("Location".equals(header.getName()) && (System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL") + "/openid_connect_login").equals(header.getValue())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isNotAuthenticatedResponse(HttpResponse response) {
+        // the endpoint has been found but the user is not logged in so the user is redirected to the "login" page
+        Assert.assertEquals(HttpStatus.FOUND, ResponseHelper.getStatusCode(response));
+        Assert.assertTrue(UserSession.isRedirectToLoginPresent(response));
+        return true;
     }
 }

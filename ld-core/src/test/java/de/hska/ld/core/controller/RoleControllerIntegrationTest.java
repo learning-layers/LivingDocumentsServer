@@ -23,26 +23,18 @@
 package de.hska.ld.core.controller;
 
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.ResponseHelper;
 import de.hska.ld.core.UserSession;
 import de.hska.ld.core.dto.IdDto;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.util.Core;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 import static de.hska.ld.core.util.CoreUtil.newRole;
@@ -55,119 +47,53 @@ public class RoleControllerIntegrationTest extends AbstractIntegrationTest {
     RoleService roleService;
 
     @Test
-    public void testSaveRoleUsesHttpCreatedOnPersist() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        UserSession adminSession = new UserSession();
-        try {
-            adminSession.loginAsAdmin();
-        } catch (Exception e) {
-            Assert.fail();
-        }
+    public void testSaveRoleUsesHttpCreatedOnPersist() throws Exception {
 
-        try {
-            HttpResponse response = adminSession.post(RESOURCE_ROLE, newRole());
-            Assert.assertEquals(HttpStatus.CREATED, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
-            HttpEntity entity = response.getEntity();
-            String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
-            ObjectMapper mapper = new ObjectMapper();
-            IdDto idDto = mapper.readValue(body, IdDto.class);
-            Assert.assertNotNull(idDto.getId());
-        } catch (IOException e) {
-            Assert.fail();
-        }
+        HttpResponse response = UserSession.admin().post(RESOURCE_ROLE, newRole());
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
+        Role createdRole = ResponseHelper.getBody(response, Role.class);
+        Assert.assertNotNull(createdRole);
+        Assert.assertNotNull(createdRole.getId());
     }
 
     @Test
-    public void testSaveRoleUsesHttpOkOnUpdate() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    public void testSaveRoleUsesHttpOkOnUpdate() throws Exception {
         Role role = roleService.save(newRole());
         role.setName(UUID.randomUUID().toString());
 
-        UserSession adminSession = new UserSession();
-        try {
-            adminSession.loginAsAdmin();
-        } catch (Exception e) {
-            Assert.fail();
-        }
-
-        try {
-            HttpResponse response = adminSession.post(RESOURCE_ROLE, role);
-            Assert.assertEquals(HttpStatus.OK, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
-            HttpEntity entity = response.getEntity();
-            String body = IOUtils.toString(entity.getContent(), Charset.forName("UTF-8"));
-            ObjectMapper mapper = new ObjectMapper();
-            IdDto idDto = mapper.readValue(body, IdDto.class);
-            Assert.assertNotNull(idDto.getId());
-        } catch (IOException e) {
-            Assert.fail();
-        }
+        HttpResponse response = UserSession.admin().post(RESOURCE_ROLE, role);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
+        IdDto idDto = ResponseHelper.getBody(response, IdDto.class);
+        Assert.assertNotNull(idDto.getId());
     }
 
     @Test
-    public void testSaveRoleUsesHttpForbiddenOnAuthorizationFailure() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        UserSession userSession = new UserSession();
-        try {
-            userSession.loginAsUser();
-        } catch (Exception e) {
-            Assert.fail();
-        }
+    public void testSaveRoleUsesHttpForbiddenOnAuthorizationFailure() throws Exception {
 
-        try {
-            HttpResponse response = userSession.post(RESOURCE_ROLE, newRole());
-            Assert.assertEquals(HttpStatus.FORBIDDEN, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
-        } catch (IOException e) {
-            Assert.fail();
-        }
+        HttpResponse response = UserSession.user().post(RESOURCE_ROLE, newRole());
+        Assert.assertEquals(HttpStatus.FORBIDDEN, ResponseHelper.getStatusCode(response));
     }
 
     @Test
-    public void testDeleteRoleUsesHttpOkOnSuccess() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    public void testDeleteRoleUsesHttpOkOnSuccess() throws Exception {
         Role role = roleService.save(newRole());
-        UserSession adminSession = new UserSession();
-        try {
-            adminSession.loginAsAdmin();
-        } catch (Exception e) {
-            Assert.fail();
-        }
 
-        try {
-            HttpResponse response = adminSession.delete(RESOURCE_ROLE + "/" + role.getId(), null);
-            Assert.assertEquals(HttpStatus.OK, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
-        } catch (IOException | URISyntaxException e) {
-            Assert.fail();
-        }
+        HttpResponse response = UserSession.admin().delete(RESOURCE_ROLE + "/" + role.getId(), null);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
     }
 
     @Test
-    public void testDeleteRoleUsesHttpForbiddenOnAuthorizationFailure() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    public void testDeleteRoleUsesHttpForbiddenOnAuthorizationFailure() throws Exception {
         Role role = roleService.save(newRole());
-        UserSession userSession = new UserSession();
-        try {
-            userSession.loginAsUser();
-        } catch (Exception e) {
-            Assert.fail();
-        }
 
-        try {
-            HttpResponse response = userSession.delete(RESOURCE_ROLE + "/" + role.getId(), null);
-            Assert.assertEquals(HttpStatus.FORBIDDEN, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
-        } catch (IOException | URISyntaxException e) {
-            Assert.fail();
-        }
+        HttpResponse response = UserSession.user().delete(RESOURCE_ROLE + "/" + role.getId(), null);
+        Assert.assertEquals(HttpStatus.FORBIDDEN, ResponseHelper.getStatusCode(response));
     }
 
     @Test
-    public void testDeleteRoleUsesHttpNotFoundOnEntityLookupFailure() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        UserSession adminSession = new UserSession();
-        try {
-            adminSession.loginAsAdmin();
-        } catch (Exception e) {
-            Assert.fail();
-        }
+    public void testDeleteRoleUsesHttpNotFoundOnEntityLookupFailure() throws Exception {
 
-        try {
-            HttpResponse response = adminSession.delete(RESOURCE_ROLE + "/" + -1, null);
-            Assert.assertEquals(HttpStatus.NOT_FOUND, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
-        } catch (IOException | URISyntaxException e) {
-            Assert.fail();
-        }
+        HttpResponse response = UserSession.admin().delete(RESOURCE_ROLE + "/" + -1, null);
+        Assert.assertEquals(HttpStatus.NOT_FOUND, ResponseHelper.getStatusCode(response));
     }
 }
