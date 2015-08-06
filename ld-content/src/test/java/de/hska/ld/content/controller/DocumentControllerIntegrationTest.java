@@ -30,7 +30,6 @@ import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.ResponseHelper;
 import de.hska.ld.core.UserSession;
-import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.apache.http.HttpResponse;
 import org.junit.Assert;
@@ -38,16 +37,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -79,37 +74,32 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testCreateDocumentUsesHttpOkOnPersist() {
-        ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Assert.assertNotNull(response.getBody().getId());
+    public void testCreateDocumentUsesHttpOkOnPersist() throws Exception {
+        HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
+        Document responseDocument = ResponseHelper.getBody(response, Document.class);
+        Assert.assertNotNull(responseDocument);
+        Assert.assertNotNull(responseDocument.getId());
     }
 
     @Test
     public void testShouldFailCreateDocumentNotAuthenticated() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
         HttpResponse response = UserSession.notAuthenticated().post(RESOURCE_DOCUMENT, document);
         Assert.assertTrue(UserSession.isNotAuthenticatedResponse(response));
-        Document reponseDocument = ResponseHelper.getBody(response, Document.class);
-        Assert.assertNull(reponseDocument);
+        Document responseDocument = ResponseHelper.getBody(response, Document.class);
+        Assert.assertNull(responseDocument);
     }
 
     @Test
-    public void testGETDocumentPageHttpOk() {
-        ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Assert.assertNotNull(response.getBody().getId());
+    public void testGETDocumentPageHttpOk() throws Exception {
+        HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
+        Document responseDocument = ResponseHelper.getBody(response, Document.class);
+        Assert.assertNotNull(responseDocument);
+        Assert.assertNotNull(responseDocument.getId());
 
-        Map varMap = new HashMap<>();
-        varMap.put("page-number", 0);
-        varMap.put("page-size", 10);
-        varMap.put("sort-direction", "DESC");
-        varMap.put("sort-property", "createdAt");
-        User user = new User();
-        user.setUsername("user");
-        Map page = getPage(RESOURCE_DOCUMENT, user, varMap);
-        Assert.assertNotNull(page);
-        Assert.assertNotNull(page.containsKey("content"));
-        Assert.assertTrue(((List) page.get("content")).size() > 0);
+        HttpResponse responseGetPage = UserSession.user().get(RESOURCE_DOCUMENT + "/" + responseDocument.getId());
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseGetPage));
     }
 
     @Test
@@ -159,54 +149,41 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testAddAndRemoveTagHttpOk() {
+    public void testAddAndRemoveTagHttpOk() throws Exception {
         // Add document
-        ResponseEntity<Document> responseCreateDocument = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
-        Assert.assertEquals(HttpStatus.CREATED, responseCreateDocument.getStatusCode());
-        Assert.assertNotNull(responseCreateDocument.getBody().getId());
+        HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
+        Document respondedDocument = ResponseHelper.getBody(response, Document.class);
+        Assert.assertNotNull(respondedDocument);
+        Assert.assertNotNull(respondedDocument.getId());
 
         // Create Tag
-        ResponseEntity<Tag> responseCreateTag = post().resource(RESOURCE_TAG).asUser().body(tag).exec(Tag.class);
-        Assert.assertEquals(HttpStatus.CREATED, responseCreateTag.getStatusCode());
-        Assert.assertNotNull(responseCreateTag.getBody().getId());
+        HttpResponse responseCreateTag = UserSession.user().post(RESOURCE_TAG, tag);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseCreateTag));
+        Tag respondedTag = ResponseHelper.getBody(responseCreateTag, Tag.class);
+        Assert.assertNotNull(respondedTag);
+        Assert.assertNotNull(respondedTag.getId());
 
         // Add Tag
-        String URI = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getBody().getId() + "/tag/" + responseCreateTag.getBody().getId();
-        HttpRequestWrapper requestAddTag = post().resource(URI).asUser();
-        ResponseEntity responseAddTag = requestAddTag.exec();
-        Assert.assertEquals(HttpStatus.OK, responseAddTag.getStatusCode());
+        String URI = RESOURCE_DOCUMENT + "/" + respondedDocument.getId() + "/tag/" + respondedTag.getId();
+        HttpResponse responseAddTag = UserSession.user().post(URI, respondedTag);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseAddTag));
 
         // Check if Tag is present in the taglist of the document
-        String URIGetDocumentTags = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getBody().getId() + "/tags";
-        Map varMap = new HashMap<>();
-        varMap.put("page-number", 0);
-        varMap.put("page-size", 10);
-        varMap.put("sort-direction", "DESC");
-        varMap.put("sort-property", "createdAt");
-        Map page = getPage(URIGetDocumentTags, testUser, varMap);
-        Assert.assertNotNull(page);
-        Assert.assertNotNull(page.containsKey("content"));
-        Assert.assertTrue(((List) page.get("content")).size() > 0);
+        String URIGetDocumentTags = RESOURCE_DOCUMENT + "/" + respondedDocument.getId() + "/tags";
+        HttpResponse responseGetTags = UserSession.user().get(URIGetDocumentTags);
+        List<Tag> respondedTagList = ResponseHelper.getPageList(responseGetTags, Tag.class);
+        Assert.assertTrue(respondedTagList.size() > 0);
+        Assert.assertTrue(respondedTagList.contains(respondedTag));
 
         // Remove tag
-        HttpRequestWrapper requestRemoveTag = delete().resource(URI).asUser();
-        ResponseEntity responseRemoveTag = requestRemoveTag.exec();
-        Assert.assertEquals(HttpStatus.OK, responseRemoveTag.getStatusCode());
+        HttpResponse responseRemoveTag = UserSession.user().delete(URI);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseRemoveTag));
 
-        // Check if Tag is present in the taglist of the document
-        boolean foundResult = true;
-        try {
-            Map page2 = getPage(URIGetDocumentTags, testUser, varMap);
-            Assert.assertNotNull(page2);
-            Assert.assertNotNull(page2.containsKey("content"));
-            Assert.assertTrue(((List) page2.get("content")).size() == 0);
-        } catch (HttpClientErrorException e) {
-            Assert.assertEquals(e.getStatusCode().toString(), "404");
-            foundResult = false;
-        }
-        if (foundResult) {
-            Assert.fail();
-        }
+        //Check if tag is present in the taglist of the document
+        responseGetTags = UserSession.user().get(URIGetDocumentTags);
+        respondedTagList = ResponseHelper.getPageList(responseGetTags, Tag.class);
+        Assert.assertNull(respondedTagList);
     }
 
 }
