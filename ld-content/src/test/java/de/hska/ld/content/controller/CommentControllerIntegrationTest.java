@@ -28,18 +28,17 @@ import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
-import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.ResponseHelper;
+import de.hska.ld.core.UserSession;
 import de.hska.ld.core.service.UserService;
+import org.apache.http.HttpResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -66,41 +65,40 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testAddCommentToCommentHttpOk() {
-        // Add document
-        ResponseEntity<Document> response = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Assert.assertNotNull(response.getBody().getId());
+    public void testAddCommentToCommentHttpOk() throws Exception {
+        //Add document
+        HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
+        Document responseCreateDocument = ResponseHelper.getBody(response, Document.class);
+        Assert.assertNotNull(responseCreateDocument);
+        Assert.assertNotNull(responseCreateDocument.getId());
 
-        // Add comment to the document
-        String URI = RESOURCE_DOCUMENT + "/" + response.getBody().getId() + "/comment";
+        //Add comment to the document
+        String uriCommentDocument = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getId() + "/comment";
         Comment comment = new Comment();
         comment.setText("Text");
-        HttpRequestWrapper request = post().resource(URI).asUser().body(comment);
-        ResponseEntity<Comment> response2 = request.exec(Comment.class);
-        Assert.assertEquals(HttpStatus.CREATED, response2.getStatusCode());
+        HttpResponse response2 = UserSession.user().post(uriCommentDocument, comment);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response2));
+        Comment responseCreateComment = ResponseHelper.getBody(response2, Comment.class);
+        Assert.assertNotNull(responseCreateComment);
+        Assert.assertNotNull(responseCreateComment.getId());
 
-        // read document comments
-        Map varMap = new HashMap<>();
-        varMap.put("page-number", 0);
-        varMap.put("page-size", 10);
-        varMap.put("sort-direction", "DESC");
-        varMap.put("sort-property", "createdAt");
-        User user = userService.findByUsername("user");
-        Map page = getPage(URI, user, varMap);
-        Assert.assertNotNull(page);
-        Assert.assertNotNull(page.containsKey("content"));
-        Assert.assertTrue(((List) page.get("content")).size() > 0);
+        // get comments page
+        HttpResponse responseGetCommentList = UserSession.user().get(uriCommentDocument);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseGetCommentList));
+        List<Comment> commentList = ResponseHelper.getPageList(responseGetCommentList, Comment.class);
+        Assert.assertTrue(commentList.size() > 0);
+        Assert.assertTrue(commentList.contains(responseCreateComment));
 
-        // create sub comment
-        // Add comment to the existing comment
-        String URIAddCommentToComment = RESOURCE_COMMENT + "/" + response2.getBody().getId() + "/comment";
+        //create sub comment
+        //Add comment to the existing comment
+        String  uriAddSubComment = RESOURCE_COMMENT +"/" + responseCreateComment.getId() + "/comment";
         Comment subComment = new Comment();
         subComment.setText("Text");
-        HttpRequestWrapper requestAddCommentToComment = post().resource(URIAddCommentToComment).asUser().body(subComment);
-        ResponseEntity<CommentDto> responseAddCommentToComment = requestAddCommentToComment.exec(CommentDto.class);
-        Assert.assertEquals(HttpStatus.CREATED, responseAddCommentToComment.getStatusCode());
-        Assert.assertNotNull(responseAddCommentToComment.getBody().getJsonParentId());
+        HttpResponse responseSubComment = UserSession.user().post(uriAddSubComment, subComment);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseSubComment));
+        CommentDto commentDto = ResponseHelper.getBody(responseSubComment, CommentDto.class);
+        Assert.assertNotNull(commentDto.getJsonParentId());
     }
 
 }
