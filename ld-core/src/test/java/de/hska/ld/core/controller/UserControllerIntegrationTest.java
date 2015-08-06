@@ -23,6 +23,7 @@
 package de.hska.ld.core.controller;
 
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.ResponseHelper;
 import de.hska.ld.core.UserSession;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
@@ -55,7 +56,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         user.setFullName(user.getFullName() + " (updated)");
         HttpResponse response = UserSession.admin().put(RESOURCE_USER + "/" + user.getId(), user);
         Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(response));
-        User updatedUser = UserSession.getBody(response, User.class);
+        User updatedUser = ResponseHelper.getBody(response, User.class);
         Assert.assertNotNull(updatedUser);
         Assert.assertNotNull(updatedUser.getFullName());
         Assert.assertEquals(user.getFullName(), updatedUser.getFullName());
@@ -67,7 +68,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
         HttpResponse response = UserSession.admin().delete(RESOURCE_USER + "/" + user.getId());
         Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(response));
-        Long deletedUserId = UserSession.getBody(response, Long.class);
+        Long deletedUserId = ResponseHelper.getBody(response, Long.class);
         Assert.assertEquals(user.getId(), deletedUserId);
     }
 
@@ -101,7 +102,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     public void testAuthenticateDoesNotContainPasswordHashInResponseBody() throws Exception {
         HttpResponse response = UserSession.user().get(RESOURCE_USER + "/authenticate");
         Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(response));
-        User user = UserSession.getBody(response, User.class);
+        User user = ResponseHelper.getBody(response, User.class);
         Assert.assertNotNull(user);
         Assert.assertNull(user.getPassword());
     }

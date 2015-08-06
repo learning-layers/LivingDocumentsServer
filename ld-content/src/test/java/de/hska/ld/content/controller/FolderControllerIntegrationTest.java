@@ -25,9 +25,9 @@ package de.hska.ld.content.controller;
 import de.hska.ld.content.dto.FolderDto;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Folder;
-import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.ResponseHelper;
 import de.hska.ld.core.UserSession;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
@@ -38,8 +38,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.io.IOException;
 
 public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -67,7 +65,7 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
         Folder folder = new Folder("Test");
         HttpResponse response = UserSession.user().post(RESOURCE_FOLDER, folder);
         Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
-        folder = UserSession.getBody(response, Folder.class);
+        folder = ResponseHelper.getBody(response, Folder.class);
         Assert.assertNotNull(folder.getId());
     }
 
@@ -76,14 +74,14 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
         Folder folder = new Folder("Test");
         HttpResponse response = UserSession.user().post(RESOURCE_FOLDER, folder);
         Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
-        folder = UserSession.getBody(response, Folder.class);
+        folder = ResponseHelper.getBody(response, Folder.class);
         Long folderId = folder.getId();
         Assert.assertNotNull(folderId);
 
         Folder subFolder = new Folder("Sub Test");
         HttpResponse response2 = UserSession.user().post(RESOURCE_FOLDER + "/" + folderId + "/folders", subFolder);
         Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response2));
-        Assert.assertEquals(UserSession.getBody(response2, FolderDto.class).getJsonParentId(), folderId);
+        Assert.assertEquals(ResponseHelper.getBody(response2, FolderDto.class).getJsonParentId(), folderId);
     }
 
     @Test

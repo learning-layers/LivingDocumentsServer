@@ -28,6 +28,7 @@ import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
+import de.hska.ld.core.ResponseHelper;
 import de.hska.ld.core.UserSession;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
@@ -88,7 +89,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     public void testShouldFailCreateDocumentNotAuthenticated() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
         HttpResponse response = UserSession.notAuthenticated().post(RESOURCE_DOCUMENT, document);
         Assert.assertTrue(UserSession.isNotAuthenticatedResponse(response));
-        Document reponseDocument = UserSession.getBody(response, Document.class);
+        Document reponseDocument = ResponseHelper.getBody(response, Document.class);
         Assert.assertNull(reponseDocument);
     }
 
@@ -116,7 +117,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         // Add document
         HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
         Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
-        Document responseCreateDocument = UserSession.getBody(response, Document.class);
+        Document responseCreateDocument = ResponseHelper.getBody(response, Document.class);
         Assert.assertNotNull(responseCreateDocument);
         Assert.assertNotNull(responseCreateDocument.getId());
 
@@ -135,7 +136,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         // Add document
         HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
         Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response));
-        Document responseCreateDocument = UserSession.getBody(response, Document.class);
+        Document responseCreateDocument = ResponseHelper.getBody(response, Document.class);
         Assert.assertNotNull(responseCreateDocument);
         Assert.assertNotNull(responseCreateDocument.getId());
 
@@ -145,14 +146,14 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         comment.setText("Text");
         HttpResponse response2 = UserSession.user().post(uriCommentDocument, comment);
         Assert.assertEquals(HttpStatus.CREATED, UserSession.getStatusCode(response2));
-        Comment responseCreateComment = UserSession.getBody(response2, Comment.class);
+        Comment responseCreateComment = ResponseHelper.getBody(response2, Comment.class);
         Assert.assertNotNull(responseCreateComment);
         Assert.assertNotNull(responseCreateComment.getId());
 
         // get comments page
         HttpResponse responseGetCommentList = UserSession.user().get(uriCommentDocument);
         Assert.assertEquals(HttpStatus.OK, UserSession.getStatusCode(responseGetCommentList));
-        List<Comment> commentList = UserSession.getPageList(responseGetCommentList, Comment.class);
+        List<Comment> commentList = ResponseHelper.getPageList(responseGetCommentList, Comment.class);
         Assert.assertTrue(commentList.size() > 0);
         Assert.assertTrue(commentList.contains(responseCreateComment));
     }
