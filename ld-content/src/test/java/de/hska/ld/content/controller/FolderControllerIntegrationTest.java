@@ -84,6 +84,7 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(ResponseHelper.getBody(response2, FolderDto.class).getJsonParentId(), folderId);
     }
 
+    // TODO johannes
     @Test
     public void testAddDocumentToFolderUsesHttpOkOnPersist() {
         Folder folder = new Folder("Test");
