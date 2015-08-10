@@ -37,7 +37,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
 
@@ -84,61 +83,73 @@ public class FolderControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(ResponseHelper.getBody(response2, FolderDto.class).getJsonParentId(), folderId);
     }
 
-    // TODO johannes
     @Test
-    public void testAddDocumentToFolderUsesHttpOkOnPersist() {
+    public void testAddDocumentToFolderUsesHttpOkOnPersist() throws Exception {
         Folder folder = new Folder("Test");
-        ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Long folderId = response.getBody().getId();
+        HttpResponse responseFolder = UserSession.user().post(RESOURCE_FOLDER, folder);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseFolder));
+        folder = ResponseHelper.getBody(responseFolder, Folder.class);
+        Assert.assertNotNull(folder);
+        Long folderId = folder.getId();
         Assert.assertNotNull(folderId);
 
-        ResponseEntity<Document> responseDocument = post().resource(RESOURCE_DOCUMENT).asUser().body(document).exec(Document.class);
-        Assert.assertEquals(HttpStatus.CREATED, responseDocument.getStatusCode());
-        Long documentId = responseDocument.getBody().getId();
+        HttpResponse responseDocument = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseDocument));
+        document = ResponseHelper.getBody(responseDocument, Document.class);
+        Assert.assertNotNull(document);
+        Long documentId = document.getId();
         Assert.assertNotNull(documentId);
 
-        ResponseEntity<FolderDto> responseAddDocument = post().resource(RESOURCE_FOLDER + "/" + folderId + "/documents/" + documentId + "?old-parent=-1").asUser().exec(FolderDto.class);
-        Assert.assertEquals(HttpStatus.OK, responseAddDocument.getStatusCode());
+        HttpResponse responseDocInFolder = UserSession.user().post(RESOURCE_FOLDER + "/" + folderId + "/documents/" + documentId + "?old-parent=-1", document);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseDocInFolder));
 
         // TODO add check if the document is in the parent folder
     }
 
     @Test
-    public void testShareFolderWithOtherUsersUsesHttpOkOnPersist() {
+    public void testShareFolderWithOtherUsersUsesHttpOkOnPersist() throws Exception {
         Folder folder = new Folder("Test");
-        ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Long folderId = response.getBody().getId();
+        HttpResponse responseFolder = UserSession.user().post(RESOURCE_FOLDER, folder);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseFolder));
+        folder = ResponseHelper.getBody(responseFolder, Folder.class);
+        Assert.assertNotNull(folder);
+        Long folderId = folder.getId();
         Assert.assertNotNull(folderId);
 
         User adminUser = userService.findByUsername("admin");
 
-        ResponseEntity<FolderDto> responseShareFolder = post()
-                .resource(RESOURCE_FOLDER + "/" + folderId + "/share" + "?users=" + adminUser.getId() + "&permissions=" + "WRITE;READ")
-                .asUser().exec(FolderDto.class);
-        Assert.assertEquals(HttpStatus.OK, responseShareFolder.getStatusCode());
+        HttpResponse responseShareFolder = UserSession.user().post(RESOURCE_FOLDER + "/" + folderId + "/share" + "?users=" + adminUser.getId() + "&permissions=" + "WRITE;READ", folder);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseShareFolder));
+
+        folder = ResponseHelper.getBody(responseShareFolder, FolderDto.class);
+        Assert.assertNotNull(folder);
+        Assert.assertNotNull(folderId);
+
     }
 
     @Test
-    public void testRevokeShareFolderHttpOKOnPersist() {
+    public void testRevokeShareFolderHttpOKOnPersist() throws Exception {
+
         Folder folder = new Folder("Test");
-        ResponseEntity<Folder> response = post().resource(RESOURCE_FOLDER).asUser().body(folder).exec(Folder.class);
-        Assert.assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Long folderId = response.getBody().getId();
+        HttpResponse responseFolder = UserSession.user().post(RESOURCE_FOLDER, folder);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseFolder));
+        folder = ResponseHelper.getBody(responseFolder, Folder.class);
+        Assert.assertNotNull(folder);
+        Long folderId = folder.getId();
         Assert.assertNotNull(folderId);
 
         User adminUser = userService.findByUsername("admin");
 
-        ResponseEntity<FolderDto> responseShareFolder = post()
-                .resource(RESOURCE_FOLDER + "/" + folderId + "/share" + "?users=" + adminUser.getId() + "&permissions=" + "WRITE;READ")
-                .asUser().exec(FolderDto.class);
-        Assert.assertEquals(HttpStatus.OK, responseShareFolder.getStatusCode());
+        HttpResponse responseShareFolder = UserSession.user().post(RESOURCE_FOLDER + "/" + folderId + "/share" + "?users=" + adminUser.getId() + "&permissions=" + "WRITE;READ", folder);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseShareFolder));
+        folder = ResponseHelper.getBody(responseShareFolder, Folder.class);
+        Assert.assertNotNull(folder);
+        Assert.assertNotNull(folderId);
 
-        ResponseEntity<FolderDto> responseRevokeShareFolder = post()
-                .resource(RESOURCE_FOLDER + "/" + folderId + "/share/revoke" + "?users=" + adminUser.getId() + "&permissions=" + "WRITE;READ")
-                .asUser().exec(FolderDto.class);
-        Assert.assertEquals(HttpStatus.OK, responseRevokeShareFolder.getStatusCode());
+        HttpResponse responseRevokeShareFolder = UserSession.user().post(RESOURCE_FOLDER + "/" + folderId + "/share/revoke" + "?users=" + adminUser.getId() + "&permissions=" + "WRITE;READ", folder);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseRevokeShareFolder));
+        folder = ResponseHelper.getBody(responseRevokeShareFolder, Folder.class);
+        Assert.assertNotNull(folder);
+        Assert.assertNotNull(folderId);
     }
-
 }
