@@ -95,7 +95,7 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
     }
 
-    //TODO: Test fails and 200 is returned. Method in CommentServiceImpl doesn't throw exception yet
+    //TODO: Test fails and 200 is returned. Method in CommentServiceImpl doesn't throw exception yet?!
     @Test
     public void testGetCommentsListHttpNotFound() throws Exception {
         String invalidCommentPageUri = RESOURCE_COMMENT + "/-1" + "/comment/list";
@@ -110,6 +110,14 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
     }
 
+    //TODO: Test fails and 200 is returned. Check Exceptions in CommentServiceImpl
+    @Test
+    public void testAgreeToCommentHttpNotFound() throws Exception {
+        String invalidCommentUri = RESOURCE_COMMENT +"/-1" + "/agree";
+        HttpResponse response = UserSession.user().put(invalidCommentUri, null);
+        Assert.assertEquals(HttpStatus.NOT_FOUND, ResponseHelper.getStatusCode(response));
+    }
+
     @Test
     public void testAddCommentToCommentHttpOk() throws Exception {
         String  uri = RESOURCE_COMMENT +"/" + testComment.getId() + "/comment";
@@ -121,6 +129,16 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(commentDto.getJsonParentId());
     }
 
+    //TODO: implement test for updating comments after method in CommentController is adjusted
+    /*@Test
+    public void testUpdateCommentHttpOk(){
 
+    }*/
 
+    @Test
+    public void testRemoveCommentHttpOk() throws Exception {
+        String uri = RESOURCE_COMMENT +"/" + testComment.getId();
+        HttpResponse response = UserSession.user().delete(uri);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
+    }
 }
