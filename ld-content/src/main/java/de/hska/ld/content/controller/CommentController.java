@@ -87,7 +87,7 @@ public class CommentController {
      *
      * <b>Required roles:</b> ROLE_USER
      * <b>Path:</b> GET /api/comments/{commentId}/comment/list
-     * </pre>
+     * </pre>Te
      *
      * @param commentId the comment id for which one wants the subcomment list
      * @return subcomments list
