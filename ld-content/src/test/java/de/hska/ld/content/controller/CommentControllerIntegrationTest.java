@@ -38,8 +38,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
-import java.util.List;
-
 public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String RESOURCE_DOCUMENT = Content.RESOURCE_DOCUMENT;
@@ -48,6 +46,8 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String DESCRIPTION = "Description";
 
     Document document;
+    Document testDocument;
+    Comment testComment;
 
     @Autowired
     UserService userService;
@@ -62,43 +62,83 @@ public class CommentControllerIntegrationTest extends AbstractIntegrationTest {
         document = new Document();
         document.setTitle(TITLE);
         document.setDescription(DESCRIPTION);
+
+        //Add a document which is used for testing the CommentController
+        HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        testDocument = ResponseHelper.getBody(response, Document.class);
+        //Add a comment to the document
+        String uriCommentDocument = RESOURCE_DOCUMENT + "/" + testDocument.getId() + "/comment";
+        Comment comment = new Comment();
+        comment.setText("Text");
+        response = UserSession.user().post(uriCommentDocument, comment);
+        testComment = ResponseHelper.getBody(response, Comment.class);
+    }
+
+    @Test
+    public void testGetCommentsPageHttpOk() throws Exception {
+        String uri = RESOURCE_COMMENT +"/" + testComment.getId() + "/comment";
+        HttpResponse response = UserSession.user().get(uri);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
+    }
+
+    @Test
+    public void testGetCommentsPageHttpNotFound() throws Exception {
+        String invalidCommentPageUri = RESOURCE_COMMENT + "/-1" + "/comment";
+        HttpResponse response = UserSession.user().get(invalidCommentPageUri);
+        Assert.assertEquals(HttpStatus.NOT_FOUND, ResponseHelper.getStatusCode(response));
+    }
+
+    @Test
+    public void testGetCommentsListHttpOk() throws Exception {
+        String uri = RESOURCE_COMMENT +"/" + testComment.getId() + "/comment/list";
+        HttpResponse response = UserSession.user().get(uri);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
+    }
+
+    //TODO: Test fails and 200 is returned. Method in CommentServiceImpl doesn't throw exception yet?!
+    @Test
+    public void testGetCommentsListHttpNotFound() throws Exception {
+        String invalidCommentPageUri = RESOURCE_COMMENT + "/-1" + "/comment/list";
+        HttpResponse response = UserSession.user().get(invalidCommentPageUri);
+        Assert.assertEquals(HttpStatus.NOT_FOUND, ResponseHelper.getStatusCode(response));
+    }
+
+    @Test
+    public void testAgreeToCommentHttpOk() throws Exception {
+        String uri = RESOURCE_COMMENT +"/" + testComment.getId() + "/agree";
+        HttpResponse response = UserSession.user().put(uri, null);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
+    }
+
+    //TODO: Test fails and 200 is returned. Check Exceptions in CommentServiceImpl
+    @Test
+    public void testAgreeToCommentHttpNotFound() throws Exception {
+        String invalidCommentUri = RESOURCE_COMMENT +"/-1" + "/agree";
+        HttpResponse response = UserSession.user().put(invalidCommentUri, null);
+        Assert.assertEquals(HttpStatus.NOT_FOUND, ResponseHelper.getStatusCode(response));
     }
 
     @Test
     public void testAddCommentToCommentHttpOk() throws Exception {
-        //Add document
-        HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
-        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
-        Document responseCreateDocument = ResponseHelper.getBody(response, Document.class);
-        Assert.assertNotNull(responseCreateDocument);
-        Assert.assertNotNull(responseCreateDocument.getId());
-
-        //Add comment to the document
-        String uriCommentDocument = RESOURCE_DOCUMENT + "/" + responseCreateDocument.getId() + "/comment";
-        Comment comment = new Comment();
-        comment.setText("Text");
-        HttpResponse response2 = UserSession.user().post(uriCommentDocument, comment);
-        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response2));
-        Comment responseCreateComment = ResponseHelper.getBody(response2, Comment.class);
-        Assert.assertNotNull(responseCreateComment);
-        Assert.assertNotNull(responseCreateComment.getId());
-
-        // get comments page
-        HttpResponse responseGetCommentList = UserSession.user().get(uriCommentDocument);
-        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseGetCommentList));
-        List<Comment> commentList = ResponseHelper.getPageList(responseGetCommentList, Comment.class);
-        Assert.assertTrue(commentList.size() > 0);
-        Assert.assertTrue(commentList.contains(responseCreateComment));
-
-        //create sub comment
-        //Add comment to the existing comment
-        String  uriAddSubComment = RESOURCE_COMMENT +"/" + responseCreateComment.getId() + "/comment";
+        String  uri = RESOURCE_COMMENT +"/" + testComment.getId() + "/comment";
         Comment subComment = new Comment();
         subComment.setText("Text");
-        HttpResponse responseSubComment = UserSession.user().post(uriAddSubComment, subComment);
+        HttpResponse responseSubComment = UserSession.user().post(uri, subComment);
         Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseSubComment));
         CommentDto commentDto = ResponseHelper.getBody(responseSubComment, CommentDto.class);
         Assert.assertNotNull(commentDto.getJsonParentId());
     }
 
+    //TODO: implement test for updating comments after method in CommentController is adjusted
+    /*@Test
+    public void testUpdateCommentHttpOk(){
+
+    }*/
+
+    @Test
+    public void testRemoveCommentHttpOk() throws Exception {
+        String uri = RESOURCE_COMMENT +"/" + testComment.getId();
+        HttpResponse response = UserSession.user().delete(uri);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
+    }
 }

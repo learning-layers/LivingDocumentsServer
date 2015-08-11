@@ -83,7 +83,7 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
     public Page<Comment> getCommentCommentsPage(Long commentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
         Comment comment = findById(commentId);
         if (comment == null) {
-            throw new ValidationException("id");
+            throw new NotFoundException("id");
         }
         Sort.Direction direction;
         if (Sort.Direction.ASC.toString().equals(sortDirection)) {
