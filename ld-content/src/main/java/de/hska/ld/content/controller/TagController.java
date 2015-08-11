@@ -25,6 +25,7 @@ package de.hska.ld.content.controller;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.util.Content;
+import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -154,7 +155,11 @@ public class TagController {
         return () -> {
             if (tagName != null) {
                 Tag tag = tagService.findByName(tagName);
-                return new ResponseEntity<>(tag, HttpStatus.OK);
+                if(tag != null) {
+                    return new ResponseEntity<>(tag, HttpStatus.OK);
+                } else {
+                    throw new NotFoundException("Tag not found.");
+                }
             } else {
                 throw new ValidationException("No tag provided.");
             }
