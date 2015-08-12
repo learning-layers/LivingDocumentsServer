@@ -63,4 +63,8 @@ public class ResponseHelper {
     public static HttpStatus getStatusCode(HttpResponse response){
         return HttpStatus.valueOf(response.getStatusLine().getStatusCode());
     }
+
+    public static HttpStatus getNotAuthenticatedStatus() {
+        return HttpStatus.METHOD_NOT_ALLOWED;
+    }
 }

@@ -82,14 +82,13 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseGet));
     }
 
-    //TODO: 405 is returned. Shouldn't it be 403?
     @Test
     public void testGetDocumentsPageHttpForbidden() throws Exception {
         //Add document
         HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
         //Get-request and assertion
         HttpResponse responseGet = UserSession.notAuthenticated().get(RESOURCE_DOCUMENT);
-        Assert.assertEquals(HttpStatus.FORBIDDEN, ResponseHelper.getStatusCode(responseGet));
+        Assert.assertEquals(ResponseHelper.getNotAuthenticatedStatus(), ResponseHelper.getStatusCode(responseGet));
     }
 
     @Test
