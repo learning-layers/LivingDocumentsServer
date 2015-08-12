@@ -45,8 +45,15 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testSaveUserUsesHttpCreatedOnPersist() throws Exception {
-        HttpResponse response = UserSession.admin().post(RESOURCE_USER, newUser());
+        User newUser = newUser();
+        HttpResponse response = UserSession.admin().post(RESOURCE_USER, newUser);
         Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
+
+        /*
+        UserSession userBSession = new UserSession();
+        userBSession = userBSession.login(newUser.getUsername(), "pass");
+        HttpResponse authenticationResponse = userBSession.get(RESOURCE_USER + "/authenticate");
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(authenticationResponse));*/
     }
 
     @Test
