@@ -79,6 +79,8 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         tag.setName("tagName");
         tag.setDescription("tagDescription");
         hyperlink = new Hyperlink();
+        hyperlink.setUrl("http://www.google.com"); // TODO add validity check for url
+        hyperlink.setDescription("Link for GOOGLE");
     }
 
     @Test
@@ -324,4 +326,6 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(responseLinkBody.getId());
 
     }
+
+    // TODO write negative test for testAddHyperlink()
 }
