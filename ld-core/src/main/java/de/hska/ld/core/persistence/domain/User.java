@@ -318,9 +318,15 @@ public class User implements UserDetails {
         return username.equals(user.username);
     }
 
+//    @Override
+//    public int hashCode() {
+//        return username.hashCode();
+//    }
+
+
     @Override
     public int hashCode() {
-        return username.hashCode();
+        return username != null ? username.hashCode() : 0;
     }
 
     @Override
