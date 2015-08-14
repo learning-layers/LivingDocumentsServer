@@ -24,14 +24,18 @@ package de.hska.ld.content.controller;
 
 import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.domain.Hyperlink;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.ResponseHelper;
 import de.hska.ld.core.UserSession;
+import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.apache.commons.io.IOUtils;
+import de.hska.ld.core.util.Core;
+import de.hska.ld.core.util.CoreUtil;
 import org.apache.http.HttpResponse;
 import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.junit.Assert;
@@ -54,6 +58,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String TITLE = "Title";
     private static final String DESCRIPTION = "Description";
     private static final String RESOURCE_TAG = Content.RESOURCE_TAG;
+    private static final String RESOURCE_USER = Core.RESOURCE_USER;
 
     @Autowired
     UserService userService;
@@ -65,6 +70,8 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
 
     Tag tag;
 
+    Hyperlink hyperlink;
+
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -74,6 +81,9 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         tag = new Tag();
         tag.setName("tagName");
         tag.setDescription("tagDescription");
+        hyperlink = new Hyperlink();
+        hyperlink.setUrl("http://www.google.com"); // TODO add validity check for url
+        hyperlink.setDescription("Link for GOOGLE");
     }
 
     @Test
@@ -248,4 +258,104 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNull(respondedTagList);
     }
 
+    @Test
+    public void testShareDocumentWithUser() throws Exception {
+        // create userA
+        User userA = CoreUtil.newUser();
+        HttpResponse responseA = UserSession.admin().post(RESOURCE_USER, userA);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseA));
+        UserSession userASession = new UserSession();
+        userASession = userASession.login(userA.getUsername(), "pass");
+
+        // create userB
+        User userB = CoreUtil.newUser();
+        HttpResponse responseB = UserSession.admin().post(RESOURCE_USER, userB);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseB));
+        userB = ResponseHelper.getBody(responseB, User.class);
+        UserSession userBSession = new UserSession();
+        userBSession = userBSession.login(userB.getUsername(), "pass");
+
+        // userA adds document
+        HttpResponse addDocument = userASession.post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(addDocument));
+        Document respondedDocument = ResponseHelper.getBody(addDocument, Document.class);
+        Assert.assertNotNull(respondedDocument);
+        Assert.assertNotNull(respondedDocument.getId());
+
+        // userA shares document
+        HttpResponse shareDocument = userASession.post(RESOURCE_DOCUMENT + "/" + respondedDocument.getId() + "/share?userIds=" + userB.getId() + "&permissions=READ;WRITE", null);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(shareDocument));
+
+        // userB able to read document?
+        HttpResponse readDocument = userBSession.get(RESOURCE_DOCUMENT + "/" + respondedDocument.getId());
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(readDocument));
+
+        // userB able to write document?
+        HttpResponse updateDocument = userBSession.put(RESOURCE_DOCUMENT + "/" + respondedDocument.getId(), document);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(updateDocument));
+    }
+
+    @Test
+    public void testAddEmptyUserShouldFail() throws Exception {
+        User userA = new User();
+        HttpResponse responseA = UserSession.admin().post(RESOURCE_USER, userA);
+        Assert.assertEquals(HttpStatus.BAD_REQUEST, ResponseHelper.getStatusCode(responseA));
+    }
+
+    @Test
+    public void testShareDocumentWithUserWithUnsufficientRights() throws Exception {
+        // create userA
+        User userA = CoreUtil.newUser();
+        HttpResponse responseA = UserSession.admin().post(RESOURCE_USER, userA);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseA));
+        UserSession userASession = new UserSession();
+        userASession = userASession.login(userA.getUsername(), "pass");
+
+        // create userB
+        User userB = CoreUtil.newUser();
+        HttpResponse responseB = UserSession.admin().post(RESOURCE_USER, userB);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseB));
+        userB = ResponseHelper.getBody(responseB, User.class);
+        UserSession userBSession = new UserSession();
+        userBSession = userBSession.login(userB.getUsername(), "pass");
+
+        // userA adds document
+        HttpResponse addDocument = userASession.post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(addDocument));
+        Document respondedDocument = ResponseHelper.getBody(addDocument, Document.class);
+        Assert.assertNotNull(respondedDocument);
+        Assert.assertNotNull(respondedDocument.getId());
+
+        // userA shares document to read
+        HttpResponse shareDocument = userASession.post(RESOURCE_DOCUMENT + "/" + respondedDocument.getId() + "/share?userIds=" + userB.getId() + "&permissions=READ", null);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(shareDocument));
+
+        // userB should be able to READ
+        HttpResponse readDocument = userBSession.get(RESOURCE_DOCUMENT + "/" + respondedDocument.getId());
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(readDocument));
+
+        // userB should not be able to WRITE
+        HttpResponse updateDocument = userBSession.put(RESOURCE_DOCUMENT + "/" + respondedDocument.getId(), document);
+        Assert.assertEquals(HttpStatus.FORBIDDEN, ResponseHelper.getStatusCode(updateDocument));
+    }
+
+    @Test
+    public void testAddHyperlink() throws Exception {
+        // add document
+        HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(response));
+        Document respondedDocument = ResponseHelper.getBody(response, Document.class);
+        Assert.assertNotNull(respondedDocument);
+        Assert.assertNotNull(respondedDocument.getId());
+
+        // add hyperlink to document
+        HttpResponse responseLink = UserSession.user().post(RESOURCE_DOCUMENT + "/" + respondedDocument.getId() + "/hyperlinks/", hyperlink);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseLink));
+        Hyperlink responseLinkBody = ResponseHelper.getBody(responseLink, Hyperlink.class);
+        Assert.assertNotNull(responseLinkBody);
+        Assert.assertNotNull(responseLinkBody.getId());
+
+    }
+
+    // TODO write negative test for testAddHyperlink()
 }

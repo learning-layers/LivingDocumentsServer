@@ -424,8 +424,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         checkPermission(document, Access.Permission.WRITE);
         document.getHyperlinkList().add(hyperlink);
         hyperlink.setCreator(Core.currentUser());
-        super.save(document);
-        return hyperlink;
+        document = super.save(document);
+        int index = document.getHyperlinkList().indexOf(hyperlink);
+        return document.getHyperlinkList().get(index);
     }
 
     @Override
