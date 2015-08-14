@@ -33,9 +33,10 @@ import de.hska.ld.core.ResponseHelper;
 import de.hska.ld.core.UserSession;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
-import org.apache.commons.io.IOUtils;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.core.util.CoreUtil;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.junit.Assert;
@@ -44,6 +45,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyManagementException;
@@ -111,6 +113,49 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseUploadAttachment));
         Long attachmentId = ResponseHelper.getBody(responseUploadAttachment, Long.class);
         Assert.assertNotNull(attachmentId);
+    }
+
+    @Test
+    public void testFileDownload() throws Exception {
+
+        //Add document
+        HttpResponse responseCreateDocument = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        Document respondedDocument = ResponseHelper.getBody(responseCreateDocument, Document.class);
+        Assert.assertNotNull(respondedDocument);
+
+        //load file
+        String fileName = "sandbox.pdf";
+        InputStream in = null;
+        byte[] source = null;
+        try {
+            in = UserSession.class.getResourceAsStream("/" + fileName);
+            source = IOUtils.toByteArray(in);
+        } finally {
+            IOUtils.closeQuietly(in);
+        }
+        ByteArrayBody fileBody = new ByteArrayBody(source, fileName);
+
+        //Add document
+        System.out.println(RESOURCE_DOCUMENT + "/upload?documentId=" + respondedDocument.getId());
+        HttpResponse responseUploadAttachment = UserSession.user().postFile(RESOURCE_DOCUMENT + "/upload?documentId=" + respondedDocument.getId(), fileBody);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseUploadAttachment));
+        Long attachmentId = ResponseHelper.getBody(responseUploadAttachment, Long.class);
+        Assert.assertNotNull(attachmentId);
+
+        String uri = RESOURCE_DOCUMENT+"/"+ respondedDocument.getId()+"/download/" + attachmentId;
+        HttpResponse response = UserSession.user().get(uri);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
+
+        HttpEntity entity = response.getEntity();
+        System.out.println(entity.getContentType());
+        InputStream inStream=null;
+        if (entity != null) {
+            inStream = entity.getContent();
+        }
+        InputStream inStreamExistingFile = new FileInputStream("./src/test/resources/sandbox.pdf");
+        Assert.assertNotNull(inStream);
+        Assert.assertNotNull(inStreamExistingFile);
+        Assert.assertTrue(IOUtils.contentEquals(inStream, inStreamExistingFile));
     }
 
     @Test
