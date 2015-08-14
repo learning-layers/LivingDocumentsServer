@@ -324,8 +324,53 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Hyperlink responseLinkBody = ResponseHelper.getBody(responseLink, Hyperlink.class);
         Assert.assertNotNull(responseLinkBody);
         Assert.assertNotNull(responseLinkBody.getId());
-
     }
 
     // TODO write negative test for testAddHyperlink()
+
+    @Test
+    public void testMakeDocumentPublic() throws Exception {
+        // create userA
+        User userA = CoreUtil.newUser();
+        HttpResponse responseA = UserSession.admin().post(RESOURCE_USER, userA);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseA));
+        UserSession userASession = new UserSession();
+        userASession = userASession.login(userA.getUsername(), "pass");
+
+        // create userB
+        User userB = CoreUtil.newUser();
+        HttpResponse responseB = UserSession.admin().post(RESOURCE_USER, userB);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseB));
+        userB = ResponseHelper.getBody(responseB, User.class);
+        UserSession userBSession = new UserSession();
+        userBSession = userBSession.login(userB.getUsername(), "pass");
+
+        // userA adds document
+        HttpResponse addDocument = userASession.post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(addDocument));
+        Document respondedDocument = ResponseHelper.getBody(addDocument, Document.class);
+        Assert.assertNotNull(respondedDocument);
+        Assert.assertNotNull(respondedDocument.getId());
+
+        // userA makes document public
+        HttpResponse publicDocument = userASession.post(RESOURCE_DOCUMENT + "/" + respondedDocument.getId() + "/public", null);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(publicDocument));
+
+        // userB should be able to READ
+        HttpResponse readDocument = userBSession.get(RESOURCE_DOCUMENT + "/" + respondedDocument.getId());
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(readDocument));
+
+        // userB should be able to WRITE
+        HttpResponse updateDocument = userBSession.put(RESOURCE_DOCUMENT + "/" + respondedDocument.getId(), respondedDocument);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(updateDocument));
+    }
+
+    // TODO removeUserPermissions()
+    @Test
+    public void removeUserPermissions() throws Exception {
+        // /{documentId}/access/users/{userId}
+        // method delete
+        // HTTP OK
+    }
+
 }

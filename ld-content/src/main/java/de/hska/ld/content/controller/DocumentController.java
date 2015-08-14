@@ -823,7 +823,6 @@ public class DocumentController {
     //TODO description
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/share")
-    // ?userIds=123;124&permissions=READ;WRITE
     public Callable shareDocumentWithUser(@PathVariable Long documentId, @RequestParam String userIds, @RequestParam String permissions) {
         return () -> {
             documentService.addAccess(documentId, userIds, permissions);
