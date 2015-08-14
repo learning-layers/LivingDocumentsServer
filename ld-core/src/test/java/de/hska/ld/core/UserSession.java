@@ -17,6 +17,8 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -109,6 +111,36 @@ public class UserSession {
         return this;
     }
 
+    public HttpResponse postFile(String url, ByteArrayBody body) throws Exception {
+
+        CloseableHttpClient httpclient = getClient();
+        HttpPost httppost = new HttpPost(endpoint + url);
+
+        //FileBody bin = new FileBody(new File(args[0]));
+        //StringBody comment = new StringBody("A binary file of some kind", ContentType.TEXT_PLAIN);
+
+        HttpEntity reqEntity = MultipartEntityBuilder.create()
+                .addPart("file", body)
+                        //.addPart("comment", comment)
+                .build();
+
+        httppost.setEntity(reqEntity);
+
+        System.out.println("executing request " + httppost.getRequestLine());
+        /*try {
+            System.out.println("----------------------------------------");
+            System.out.println(response.getStatusLine());
+            HttpEntity resEntity = response.getEntity();
+            if (resEntity != null) {
+                System.out.println("Response content length: " + resEntity.getContentLength());
+            }
+            EntityUtils.consume(resEntity);
+        } finally {
+            response.close();
+        }*/
+        return httpclient.execute(httppost);
+    }
+
     public <T> HttpResponse post(String url, T body) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         CloseableHttpClient client = getClient();
         HttpPost post = new HttpPost(endpoint + url);
@@ -143,6 +175,7 @@ public class UserSession {
 
         return client.execute(post);
     }
+
 
     public <T> HttpResponse put(String url, T body) throws IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         CloseableHttpClient client = getClient();

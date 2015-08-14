@@ -31,7 +31,9 @@ import de.hska.ld.core.AbstractIntegrationTest;
 import de.hska.ld.core.ResponseHelper;
 import de.hska.ld.core.UserSession;
 import de.hska.ld.core.service.UserService;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -71,6 +74,33 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         tag = new Tag();
         tag.setName("tagName");
         tag.setDescription("tagDescription");
+    }
+
+    @Test
+    public void testFileUpload() throws Exception {
+        //Add document
+        HttpResponse responseCreateDocument = UserSession.user().post(RESOURCE_DOCUMENT, document);
+        Document respondedDocument = ResponseHelper.getBody(responseCreateDocument, Document.class);
+        Assert.assertNotNull(respondedDocument);
+
+        //load file
+        String fileName = "sandbox.pdf";
+        InputStream in = null;
+        byte[] source = null;
+        try {
+            in = UserSession.class.getResourceAsStream("/" + fileName);
+            source = IOUtils.toByteArray(in);
+        } finally {
+            IOUtils.closeQuietly(in);
+        }
+        ByteArrayBody fileBody = new ByteArrayBody(source, fileName);
+
+        //Add document
+        System.out.println(RESOURCE_DOCUMENT + "/upload?documentId=" + respondedDocument.getId());
+        HttpResponse responseUploadAttachment = UserSession.user().postFile(RESOURCE_DOCUMENT + "/upload?documentId=" + respondedDocument.getId(), fileBody);
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(responseUploadAttachment));
+        Long attachmentId = ResponseHelper.getBody(responseUploadAttachment, Long.class);
+        Assert.assertNotNull(attachmentId);
     }
 
     @Test
