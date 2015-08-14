@@ -10,6 +10,7 @@ import org.junit.Assert;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -66,5 +67,12 @@ public class ResponseHelper {
 
     public static HttpStatus getNotAuthenticatedStatus() {
         return HttpStatus.METHOD_NOT_ALLOWED;
+    }
+
+    public static InputStream getInputStream(HttpResponse response) throws IOException {
+        HttpEntity entity = response.getEntity();
+        Assert.assertNotNull(entity);
+        InputStream inputStream = entity.getContent();
+        return inputStream;
     }
 }
