@@ -113,4 +113,11 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(user);
         Assert.assertNull(user.getPassword());
     }
+
+    @Test
+    public void testAddEmptyUserShouldFail() throws Exception {
+        User userA = new User();
+        HttpResponse responseA = UserSession.admin().post(RESOURCE_USER, userA);
+        Assert.assertEquals(HttpStatus.BAD_REQUEST, ResponseHelper.getStatusCode(responseA));
+    }
 }

@@ -33,9 +33,9 @@ import de.hska.ld.core.ResponseHelper;
 import de.hska.ld.core.UserSession;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
-import org.apache.commons.io.IOUtils;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.core.util.CoreUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.junit.Assert;
@@ -291,15 +291,8 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(readDocument));
 
         // userB able to write document?
-        HttpResponse updateDocument = userBSession.put(RESOURCE_DOCUMENT + "/" + respondedDocument.getId(), document);
+        HttpResponse updateDocument = userBSession.put(RESOURCE_DOCUMENT + "/" + respondedDocument.getId(), respondedDocument);
         Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(updateDocument));
-    }
-
-    @Test
-    public void testAddEmptyUserShouldFail() throws Exception {
-        User userA = new User();
-        HttpResponse responseA = UserSession.admin().post(RESOURCE_USER, userA);
-        Assert.assertEquals(HttpStatus.BAD_REQUEST, ResponseHelper.getStatusCode(responseA));
     }
 
     @Test
@@ -335,7 +328,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(readDocument));
 
         // userB should not be able to WRITE
-        HttpResponse updateDocument = userBSession.put(RESOURCE_DOCUMENT + "/" + respondedDocument.getId(), document);
+        HttpResponse updateDocument = userBSession.put(RESOURCE_DOCUMENT + "/" + respondedDocument.getId(), respondedDocument);
         Assert.assertEquals(HttpStatus.FORBIDDEN, ResponseHelper.getStatusCode(updateDocument));
     }
 
@@ -398,9 +391,39 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
     // TODO removeUserPermissions()
     @Test
     public void removeUserPermissions() throws Exception {
-        // /{documentId}/access/users/{userId}
-        // method delete
-        // HTTP OK
+        // create userA
+        User userA = CoreUtil.newUser();
+        HttpResponse responseA = UserSession.admin().post(RESOURCE_USER, userA);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseA));
+        UserSession userASession = new UserSession();
+        userASession = userASession.login(userA.getUsername(), "pass");
+
+        // create userB
+        User userB = CoreUtil.newUser();
+        HttpResponse responseB = UserSession.admin().post(RESOURCE_USER, userB);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseB));
+        userB = ResponseHelper.getBody(responseB, User.class);
+        UserSession userBSession = new UserSession();
+        userBSession = userBSession.login(userB.getUsername(), "pass");
+
+        // userA adds document
+        HttpResponse addDocument = userASession.post(RESOURCE_DOCUMENT, document);
+        Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(addDocument));
+        Document respondedDocument = ResponseHelper.getBody(addDocument, Document.class);
+        Assert.assertNotNull(respondedDocument);
+        Assert.assertNotNull(respondedDocument.getId());
+
+        // userA removes permission for userB
+        HttpResponse removePermission = userASession.delete(RESOURCE_DOCUMENT + "/" + respondedDocument.getId() + "/access/users/" + userB.getId());
+        Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(removePermission));
+
+        // userB should not be able to READ
+        HttpResponse readDocument = userBSession.get(RESOURCE_DOCUMENT + "/" + respondedDocument.getId());
+        Assert.assertEquals(HttpStatus.FORBIDDEN, ResponseHelper.getStatusCode(readDocument));
+
+        // userB should not be able to WRITE
+        HttpResponse updateDocument = userBSession.put(RESOURCE_DOCUMENT + "/" + respondedDocument.getId(), respondedDocument);
+        Assert.assertEquals(HttpStatus.FORBIDDEN, ResponseHelper.getStatusCode(updateDocument));
     }
 
 }

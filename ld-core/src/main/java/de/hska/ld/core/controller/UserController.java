@@ -273,12 +273,16 @@ public class UserController {
     public Callable saveUser(@RequestBody @Valid final User user) {
         return () -> {
             user.setLastupdatedAt(new Date());
-            if (user.getId() == null) {
-                User savedUser = userService.save(user);
-                return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
-            } else {
-                User savedUser = userService.save(user);
-                return new ResponseEntity<>(savedUser, HttpStatus.OK);
+            try {
+                if (user.getId() == null) {
+                    User savedUser = userService.save(user);
+                    return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
+                } else {
+                    User savedUser = userService.save(user);
+                    return new ResponseEntity<>(savedUser, HttpStatus.OK);
+                }
+            } catch(ValidationException e) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         };
     }

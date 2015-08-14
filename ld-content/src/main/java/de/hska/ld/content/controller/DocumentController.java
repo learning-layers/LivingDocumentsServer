@@ -628,7 +628,7 @@ public class DocumentController {
     }
 
     /**
-     * Fetches an attachment page for a specifc document.
+     * Fetches an attachment page for a specific document.
      * <p>
      * <pre>
      *     <b>Required roles:</b> ROLE_USER
