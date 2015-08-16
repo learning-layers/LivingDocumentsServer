@@ -1,0 +1,4 @@
+1. Create folder /var/lib/mysql on the server
+2. Setup the mysql from image tutum/mysql:5.5 via rancher
+2.1 Connect it to a volume that refers to /var/lib/mysql
+2.2 Set MYSQL_USER and MYSQL_PASS env variables
