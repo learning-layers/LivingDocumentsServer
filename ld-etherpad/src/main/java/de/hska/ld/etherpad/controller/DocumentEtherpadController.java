@@ -93,19 +93,24 @@ public class DocumentEtherpadController {
 
             // is the GroupPad available for the Document :
             String groupPadId = documentEtherpadInfoService.getGroupPadIdForDocument(document);
-            if (groupPadId == null) {
+            if (groupPadId == null && !"".equals(groupPadId)) {
                 //  otherwise create a GroupPad
                 String groupId = etherpadClient.createGroup();
+                Attachment mainContent = document.getAttachmentList().get(0);
+                byte[] mainSource = mainContent.getSource();
                 try {
-                    Attachment mainContent = document.getAttachmentList().get(0);
-                    byte[] mainSource = mainContent.getSource();
-                    String discussionText = new String(mainSource, "UTF-8");
-                    if (!"".equals(discussionText)) {
-                        groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle(), discussionText);
+                    if (mainSource != null) {
+                        String discussionText = new String(mainSource, "UTF-8");
+                        if (!"".equals(discussionText)) {
+                            groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle(), discussionText);
+                        } else {
+                            groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle());
+                        }
                     } else {
                         groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle());
                     }
                 } catch (Exception e) {
+                    System.out.println(e.getMessage());
                 }
                 //  groupPad is available associate GroupPadId for the Document
                 documentEtherpadInfoService.storeGroupPadIdForDocument(groupPadId, document);

@@ -191,6 +191,17 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     public Document addDiscussionToDocument(Long id, Document discussion) {
         Document document = findById(id);
         discussion.setParent(document);
+        discussion.setAccessList(null);
+        discussion.setAttachmentList(null);
+        discussion.setCommentList(null);
+        discussion.setSubscriptionList(null);
+        discussion.setTagList(null);
+        Attachment attachment = new Attachment();
+        attachment.setName("maincontent.html");
+        attachment.setMimeType("text/html");
+        attachment.setSource("".getBytes());
+        discussion.getAttachmentList().add(0, attachment);
+        discussion.setCreator(Core.currentUser());
         discussion = super.save(discussion);
         document.getDiscussionList().add(discussion);
         // TODO missing permission check
