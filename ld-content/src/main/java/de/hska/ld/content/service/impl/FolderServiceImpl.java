@@ -142,6 +142,7 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
             throw new ValidationException("Folder is currently not in the given parent folder with id=" + parentFolderId);
         }
 
+        // new parent is the root folder
         if (newParentFolder != null) {
             // new parent is not the root folder
             if (Core.currentUser().getId().equals(parentFolder.getCreator().getId())) {
@@ -169,24 +170,21 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
                 newParentFolder.getFolderList().add(folder);
                 propagateAccessSettings(folder.getFolderList(), folder.getDocumentList(), accessList);
             }
+        } else if (parentFolder.getCreator() != Core.currentUser()) {
+            // Move the document in the folder structure of the current user
+            // Remove document from the current folder
+            parentFolder.getFolderList().remove(folder);
+            // set new parent folder to root
+            folder.setParent(null);
+            save(folder);
         } else {
-            // new parent is the root folder
-            if (parentFolder.getCreator() != Core.currentUser()) {
-                // Move the document in the folder structure of the current user
-                // Remove document from the current folder
-                parentFolder.getFolderList().remove(folder);
-                // set new parent folder to root
-                folder.setParent(null);
-                save(folder);
-            } else {
-                // Move the document in the folder structure of the creator
-                // Remove document from the current folder
-                parentFolder.getFolderList().remove(folder);
-                // set new parent folder to root
-                folder.setParent(null);
-                // TODO reset access settings
-                save(folder);
-            }
+            // Move the document in the folder structure of the creator
+            // Remove document from the current folder
+            parentFolder.getFolderList().remove(folder);
+            // set new parent folder to root
+            folder.setParent(null);
+            // TODO reset access settings
+            save(folder);
         }
         save(parentFolder);
     }

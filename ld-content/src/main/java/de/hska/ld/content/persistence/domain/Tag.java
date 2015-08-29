@@ -57,8 +57,12 @@ public class Tag extends Content {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Tag)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Tag)) {
+            return false;
+        }
 
         Tag tag = (Tag) o;
 

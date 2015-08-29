@@ -47,12 +47,14 @@ public class CrossOriginFilter implements Filter {
         }
         try {
             chain.doFilter(req, res);
-        } catch (Exception e) {
-            if (!(e instanceof NestedServletException && e.getCause() instanceof NullPointerException && e.getCause().getMessage() == null)) {
-                if (!(e.getCause() instanceof IllegalArgumentException)) {
-                    e.printStackTrace();
+        } catch (NestedServletException nse) {
+            if (!(nse.getCause() instanceof NullPointerException && nse.getCause().getMessage() == null)) {
+                if (!(nse.getCause() instanceof IllegalArgumentException)) {
+                    nse.printStackTrace();
                 }
             }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 

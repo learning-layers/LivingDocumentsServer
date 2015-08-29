@@ -66,24 +66,25 @@ public class EtherpadClient {
         System.out.println("Response Code : "
                 + response.getStatusLine().getStatusCode());
 
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
+        BufferedReader rd = null;
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuilder result = new StringBuilder();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
 
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
-        if (etherpadSessionDto.getCode() == 1) {
+            ObjectMapper mapper = new ObjectMapper();
+            EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
+            return etherpadSessionDto.getCode() != 1 && etherpadSessionDto.getData().getGroupID().equals(groupID) && etherpadSessionDto.getData().getValidUntil() - currentTime >= 10800;
+        } catch (Exception e) {
+            if (rd != null) {
+                rd.close();
+            }
             return false;
-        } else {
-            if (etherpadSessionDto.getData().getGroupID().equals(groupID) && etherpadSessionDto.getData().getValidUntil() - currentTime >= 10800) {
-                return true;
-            } else
-                return false;
         }
     }
 
@@ -113,7 +114,6 @@ public class EtherpadClient {
     }
 
     public String createSession(String groupID, String authorID, Long validUntil) throws IOException {
-        String sessionId = "";
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/createSession";
 
@@ -136,18 +136,26 @@ public class EtherpadClient {
         System.out.println("Response Code : "
                 + response.getStatusLine().getStatusCode());
 
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
+        BufferedReader rd = null;
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuilder result = new StringBuilder();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
+            return etherpadSessionDto.getData().getSessionID();
+        } catch (Exception e) {
+            if (rd != null) {
+                rd.close();
+            }
+            throw e;
         }
-
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
-        return etherpadSessionDto.getData().getSessionID();
     }
 
     public String getReadOnlyID(String groupPadId) throws IOException {
@@ -171,28 +179,35 @@ public class EtherpadClient {
         System.out.println("Response Code : "
                 + response.getStatusLine().getStatusCode());
 
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
+        BufferedReader rd = null;
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuilder result = new StringBuilder();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
 
-        //{code: 0, message:"ok", data: {readOnlyID: "r.s8oes9dhwrvt0zif"}}
-        //{code: 1, message:"padID does not exist", data: null}
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
-        if (etherpadSessionDto.getCode() != 1) {
-            return etherpadSessionDto.getData().getReadOnlyID();
-        } else {
-            return null;
+            //{code: 0, message:"ok", data: {readOnlyID: "r.s8oes9dhwrvt0zif"}}
+            //{code: 1, message:"padID does not exist", data: null}
+            ObjectMapper mapper = new ObjectMapper();
+            EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
+            if (etherpadSessionDto.getCode() != 1) {
+                return etherpadSessionDto.getData().getReadOnlyID();
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            if (rd != null) {
+                rd.close();
+            }
+            throw e;
         }
     }
 
     public String createAuthor(String authorName) throws IOException {
-        String sessionId = "";
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/createAuthor";
 
@@ -213,17 +228,25 @@ public class EtherpadClient {
         System.out.println("Response Code : "
                 + response.getStatusLine().getStatusCode());
 
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
+        BufferedReader rd = null;
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuilder result = new StringBuilder();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            EtherpadAuthorDto etherpadAuthorDto = mapper.readValue(result.toString(), EtherpadAuthorDto.class);
+            return etherpadAuthorDto.getData().getAuthorID();
+        } catch (Exception e) {
+            if (rd != null) {
+                rd.close();
+            }
+            throw e;
         }
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadAuthorDto etherpadAuthorDto = mapper.readValue(result.toString(), EtherpadAuthorDto.class);
-        return etherpadAuthorDto.getData().getAuthorID();
     }
 
     public String createGroupPad(String groupId, String padName) throws IOException {
@@ -231,7 +254,6 @@ public class EtherpadClient {
     }
 
     public String createGroupPad(String groupId, String padName, String discussionContent) throws IOException {
-        String sessionId = "";
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/createGroupPad";
 
@@ -256,23 +278,29 @@ public class EtherpadClient {
         System.out.println("Response Code : "
                 + response.getStatusLine().getStatusCode());
 
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
+        BufferedReader rd = null;
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuilder result = new StringBuilder();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            EtherpadGroupPadDto etherpadGroupPadDto = mapper.readValue(result.toString(), EtherpadGroupPadDto.class);
+            return etherpadGroupPadDto.getData().getPadID();
+        } catch (Exception e) {
+            if (rd != null) {
+                rd.close();
+            }
+            throw e;
         }
-
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadGroupPadDto etherpadGroupPadDto = mapper.readValue(result.toString(), EtherpadGroupPadDto.class);
-        return etherpadGroupPadDto.getData().getPadID();
-
     }
 
     public String createGroup() throws IOException {
-        String sessionId = "";
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/createGroup";
 
@@ -292,21 +320,28 @@ public class EtherpadClient {
         System.out.println("Response Code : "
                 + response.getStatusLine().getStatusCode());
 
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
+        BufferedReader rd = null;
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuilder result = new StringBuilder();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            EtherpadGroupDto etherpadGroupDto = mapper.readValue(result.toString(), EtherpadGroupDto.class);
+            return etherpadGroupDto.getData().getGroupID();
+        } catch (Exception e) {
+            if (rd != null) {
+                rd.close();
+            }
+            throw e;
         }
-        ObjectMapper mapper = new ObjectMapper();
-        EtherpadGroupDto etherpadGroupDto = mapper.readValue(result.toString(), EtherpadGroupDto.class);
-        return etherpadGroupDto.getData().getGroupID();
     }
 
     public StringBuilder createPad(String padName) throws IOException {
-        String sessionId = "";
         String endpoint = etherpadEndpoint;
         String url = endpoint + "/api/1/createPad";
 

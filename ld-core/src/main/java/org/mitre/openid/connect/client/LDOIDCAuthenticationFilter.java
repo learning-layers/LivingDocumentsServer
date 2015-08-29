@@ -122,7 +122,6 @@ public class LDOIDCAuthenticationFilter extends OIDCAuthenticationFilter {
         String USERNAME = proxyUser; // username for proxy authentication
         String PASSWORD = proxyPass; // password for proxy authentication
 
-        HttpResponse resp = null;
         String PROXY_ADDRESS = "proxy.hs-karlsruhe.de"; // proxy (IP) address
         String PROXY_DOMAIN = "http"; // proxy domain
 
@@ -136,8 +135,8 @@ public class LDOIDCAuthenticationFilter extends OIDCAuthenticationFilter {
         context.setCredentialsProvider(credsProvider);
         context.setAuthCache(authCache);
 
-        String token = USERNAME + ":" + PASSWORD;
-        String auth = "Basic " + String.valueOf(Base64.encode(token.getBytes()));
+        //String token = USERNAME + ":" + PASSWORD;
+        //String auth = "Basic " + String.valueOf(Base64.encode(token.getBytes()));
         // TODO add headers to the request
         //request.addHeader("Proxy-Authorization", auth);
         //request.addHeader("Https-Proxy-Authorization", auth);
@@ -231,7 +230,7 @@ public class LDOIDCAuthenticationFilter extends OIDCAuthenticationFilter {
             httpClient = createProxyEnabledHttpClient();
         }
 
-        httpClient.getParams().setParameter("http.socket.timeout", new Integer(httpSocketTimeout));
+        httpClient.getParams().setParameter("http.socket.timeout", httpSocketTimeout);
 
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
 
@@ -410,10 +409,8 @@ public class LDOIDCAuthenticationFilter extends OIDCAuthenticationFilter {
 
                 Algorithm clientAlg = clientConfig.getIdTokenSignedResponseAlg();
 
-                if (clientAlg != null) {
-                    if (!clientAlg.equals(tokenAlg)) {
-                        throw new AuthenticationServiceException("Token algorithm " + tokenAlg + " does not match expected algorithm " + clientAlg);
-                    }
+                if (clientAlg != null && !clientAlg.equals(tokenAlg)) {
+                    throw new AuthenticationServiceException("Token algorithm " + tokenAlg + " does not match expected algorithm " + clientAlg);
                 }
 
                 if (idToken instanceof PlainJWT) {
@@ -422,7 +419,7 @@ public class LDOIDCAuthenticationFilter extends OIDCAuthenticationFilter {
                         throw new AuthenticationServiceException("Unsigned ID tokens can only be used if explicitly configured in client.");
                     }
 
-                    if (tokenAlg != null && !tokenAlg.equals(JWSAlgorithm.NONE)) {
+                    if (!tokenAlg.equals(JWSAlgorithm.NONE)) {
                         throw new AuthenticationServiceException("Unsigned token received, expected signature with " + tokenAlg);
                     }
                 } else if (idToken instanceof SignedJWT) {
@@ -559,9 +556,7 @@ public class LDOIDCAuthenticationFilter extends OIDCAuthenticationFilter {
 
                 OIDCAuthenticationToken token = new OIDCAuthenticationToken(userId, idClaims.getIssuer(), serverConfig, idTokenValue, accessTokenValue, refreshTokenValue);
 
-                Authentication authentication = this.getAuthenticationManager().authenticate(token);
-
-                return authentication;
+                return this.getAuthenticationManager().authenticate(token);
             } catch (ParseException e) {
                 throw new AuthenticationServiceException("Couldn't parse idToken: ", e);
             }

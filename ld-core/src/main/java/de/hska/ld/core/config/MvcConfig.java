@@ -38,8 +38,7 @@ public class MvcConfig extends WebMvcAutoConfiguration.WebMvcAutoConfigurationAd
 
     @Bean
     public Cloner cloner() {
-        Cloner cloner = new Cloner();
-        return cloner;
+        return new Cloner();
     }
 
     @Override

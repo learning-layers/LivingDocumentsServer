@@ -17,7 +17,7 @@ public class InfoControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testGetInfoHttpOkOnSuccess() throws Exception {
         HttpResponse response = UserSession.user().get(RESOURCE_INFO);
-        Info respondedInfo = ResponseHelper.getBody(response, Info.class);
+        ResponseHelper.getBody(response, Info.class);
 
         Assert.assertEquals(HttpStatus.OK, ResponseHelper.getStatusCode(response));
         //TODO add info data to testset

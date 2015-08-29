@@ -16,7 +16,7 @@ public class MessageAuthenticationInterceptor extends ChannelInterceptorAdapter 
         if (StompCommand.SUBSCRIBE.equals(headerAccessor.getCommand())) {
             String destination = headerAccessor.getDestination();
             Object headerAccessorUser = headerAccessor.getUser();
-            if (headerAccessorUser == null || !(headerAccessorUser instanceof UsernamePasswordAuthenticationToken)) {
+            if (!(headerAccessorUser instanceof UsernamePasswordAuthenticationToken)) {
                 throw new IllegalArgumentException("User not set");
             }
             UsernamePasswordAuthenticationToken userToken = (UsernamePasswordAuthenticationToken) headerAccessorUser;

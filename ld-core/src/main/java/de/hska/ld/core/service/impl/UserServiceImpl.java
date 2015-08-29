@@ -241,7 +241,6 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             direction = Sort.Direction.DESC;
         }
         Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
-        User user = Core.currentUser();
         return repository.findDisabledAll(pageable);
     }
 

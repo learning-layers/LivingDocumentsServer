@@ -39,11 +39,11 @@ public class Hyperlink extends Content {
     public boolean equals(Object o) {
         if (this == o) return true;
 
+        if (!(o instanceof Hyperlink)) {
+            return false;
+        }
         Hyperlink hyperlink = (Hyperlink) o;
-
-        if (!url.equals(hyperlink.url)) return false;
-        return !(description != null ? !description.equals(hyperlink.description) : hyperlink.description != null);
-
+        return url.equals(hyperlink.url) && !(description != null ? !description.equals(hyperlink.description) : hyperlink.description != null);
     }
 
     @Override

@@ -110,7 +110,6 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
             throw new ValidationException("title");
         }
         Document dbDocument = findById(document.getId());
-        User currentUser = Core.currentUser();
         if (dbDocument == null) {
             // TODO more dynamic solution
             document.setAccessList(null);

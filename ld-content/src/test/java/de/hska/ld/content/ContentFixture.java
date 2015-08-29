@@ -34,8 +34,8 @@ public class ContentFixture {
 
     static final String TEST_PDF = "test.pdf";
 
-    public static String TAG_NAME1 = "tagName1";
-    public static String TAG_DESCRIPTION1 = "tagDescription1";
+    public static final String TAG_NAME1 = "tagName1";
+    public static final String TAG_DESCRIPTION1 = "tagDescription1";
 
     public static Document newDocument() {
         Document document = new Document();

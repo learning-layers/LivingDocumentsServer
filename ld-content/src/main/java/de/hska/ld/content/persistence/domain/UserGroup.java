@@ -48,6 +48,10 @@ public class UserGroup {
             inverseJoinColumns = {@JoinColumn(name = "subusergroup_id")})
     List<UserGroup> userGroupList;
 
+    public Long getId() {
+        return id;
+    }
+
     public List<User> getUserList() {
         return userList;
     }

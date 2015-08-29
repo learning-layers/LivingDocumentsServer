@@ -72,7 +72,6 @@ public class ResponseHelper {
     public static InputStream getInputStream(HttpResponse response) throws IOException {
         HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
-        InputStream inputStream = entity.getContent();
-        return inputStream;
+        return entity.getContent();
     }
 }

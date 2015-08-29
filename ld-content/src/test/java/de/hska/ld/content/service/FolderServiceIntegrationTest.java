@@ -260,7 +260,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
     @Transactional
     public void testMoveRootFolderWhenOwner() {
         Folder folder = folderService.createFolder("Folder");
-        Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
+        folderService.createFolder("SubFolder", folder.getId());
 
         Folder newParentFolder = folderService.createFolder("NewParentFolder");
         newParentFolder = folderService.moveFolderToFolder(-1L, newParentFolder.getId(), folder.getId());
@@ -276,7 +276,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         User user = userService.findByUsername("user");
         setAuthentication(user);
         Folder folder = folderService.createFolder("Folder");
-        Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
+        folderService.createFolder("SubFolder", folder.getId());
 
         // 2. Share folder "Folder" with testUser
         folderService.shareFolder(folder.getId(), Arrays.asList(testUser), Access.Permission.READ);
@@ -301,7 +301,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
     public void testMoveSubFolderWhenOwner() {
         Folder folder = folderService.createFolder("Folder");
         Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
-        Folder subSubFolder = folderService.createFolder("SubSubFolder", subFolder.getId());
+        folderService.createFolder("SubSubFolder", subFolder.getId());
 
         Folder newParentFolder = folderService.createFolder("NewParentFolder");
         newParentFolder = folderService.moveFolderToFolder(folder.getId(), newParentFolder.getId(), subFolder.getId());
@@ -325,7 +325,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         setAuthentication(user);
         Folder folder = folderService.createFolder("Folder");
         Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
-        Folder subSubFolder = folderService.createFolder("SubSubFolder", subFolder.getId());
+        folderService.createFolder("SubSubFolder", subFolder.getId());
 
         // 2. Share folder "SubFolder" with testUser
         folderService.shareFolder(subFolder.getId(), Arrays.asList(testUser), Access.Permission.READ);
@@ -351,7 +351,7 @@ public class FolderServiceIntegrationTest extends AbstractIntegrationTest {
         setAuthentication(user);
         Folder folder = folderService.createFolder("Folder");
         Folder subFolder = folderService.createFolder("SubFolder", folder.getId());
-        Folder subSubFolder = folderService.createFolder("SubSubFolder", subFolder.getId());
+        folderService.createFolder("SubSubFolder", subFolder.getId());
 
         // 2. Share folder "SubFolder" with testUser
         folderService.shareFolder(subFolder.getId(), Arrays.asList(testUser), Access.Permission.READ);

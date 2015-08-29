@@ -125,10 +125,18 @@ public class Access {
         this.modifiedAt = new Date();
     }
 
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Access access = (Access) o;
 
