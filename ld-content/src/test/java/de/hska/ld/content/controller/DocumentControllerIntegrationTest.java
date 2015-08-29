@@ -149,10 +149,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
 
         HttpEntity entity = response.getEntity();
         System.out.println(entity.getContentType());
-        InputStream inStream=null;
-        if (entity != null) {
-            inStream = entity.getContent();
-        }
+        InputStream inStream = entity.getContent();
         InputStream inStreamExistingFile = new FileInputStream("./src/test/resources/sandbox.pdf");
         Assert.assertNotNull(inStream);
         Assert.assertNotNull(inStreamExistingFile);
@@ -183,6 +180,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         HttpResponse response = UserSession.user().post(RESOURCE_DOCUMENT, document);
         Document respondedDocument = ResponseHelper.getBody(response, Document.class);
         //Add discussion
+        Assert.assertNotNull(respondedDocument);
         String uri = RESOURCE_DOCUMENT + "/" + respondedDocument.getId() + "/discussion";
         UserSession.user().post(uri, document);
         //Get-request and assertion
@@ -319,6 +317,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseB));
         userB = ResponseHelper.getBody(responseB, User.class);
         UserSession userBSession = new UserSession();
+        Assert.assertNotNull(userB);
         userBSession = userBSession.login(userB.getUsername(), DEFAULT_PASSWORD);
 
         // userA adds document
@@ -356,6 +355,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseB));
         userB = ResponseHelper.getBody(responseB, User.class);
         UserSession userBSession = new UserSession();
+        Assert.assertNotNull(userB);
         userBSession = userBSession.login(userB.getUsername(), DEFAULT_PASSWORD);
 
         // userA adds document
@@ -412,6 +412,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseB));
         userB = ResponseHelper.getBody(responseB, User.class);
         UserSession userBSession = new UserSession();
+        Assert.assertNotNull(userB);
         userBSession = userBSession.login(userB.getUsername(), DEFAULT_PASSWORD);
 
         // userA adds document
@@ -450,6 +451,7 @@ public class DocumentControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(HttpStatus.CREATED, ResponseHelper.getStatusCode(responseB));
         userB = ResponseHelper.getBody(responseB, User.class);
         UserSession userBSession = new UserSession();
+        Assert.assertNotNull(userB);
         userBSession = userBSession.login(userB.getUsername(), DEFAULT_PASSWORD);
 
         // userA adds document
