@@ -36,21 +36,60 @@ import org.springframework.core.env.Environment;
 
 import javax.transaction.Transactional;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Date;
 
 public class DataGenerator {
 
     @Autowired
+    private Environment env;
+
+    @Autowired
     @Transactional
     public void init(DocumentService documentService, UserService userService, Environment env) {
+        String sandboxUsersConcatString = null;
+        try {
+            sandboxUsersConcatString = env.getProperty("module.sandbox.users");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        createSandboxUsers(userService, sandboxUsersConcatString);
         if (false) {
-
-
             // TODO Martin
             String ddl = env.getProperty("module.core.db.ddl");
             if ("create".equals(ddl) || "create-drop".equals(ddl)) {
                 User user = userService.findByUsername(Core.BOOTSTRAP_USER);
                 createSandboxDocument(documentService, userService, user);
             }
+        }
+    }
+
+    private User newUser(String firstname, String surname, String password) {
+        User user = new User();
+        user.setPassword(password);
+        user.setEmail(firstname + "." + surname + "@learning-layers.de");
+        user.setUsername(firstname + surname);
+        user.setFullName(firstname + " " + surname);
+        user.setLastupdatedAt(new Date());
+        return user;
+    }
+
+    private void createSandboxUsers(UserService userService, String sandboxUsersConcatString) {
+        if (sandboxUsersConcatString != null && !"".equals(sandboxUsersConcatString)) {
+            String[] sandboxUsersString = sandboxUsersConcatString.split(";");
+            Arrays.stream(sandboxUsersString).forEach(userString -> {
+                String[] userData = userString.split(":");
+                if (userData.length == 3) {
+                    User user = userService.findByUsername(userData[0]);
+                    if (user == null) {
+                        try {
+                            userService.save(newUser(userData[0], userData[1], userData[2]));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
         }
     }
 
