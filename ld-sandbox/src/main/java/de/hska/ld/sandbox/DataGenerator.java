@@ -27,7 +27,9 @@ import de.hska.ld.content.persistence.domain.Comment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
@@ -36,8 +38,10 @@ import org.springframework.core.env.Environment;
 
 import javax.transaction.Transactional;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class DataGenerator {
 
@@ -46,14 +50,14 @@ public class DataGenerator {
 
     @Autowired
     @Transactional
-    public void init(DocumentService documentService, UserService userService, Environment env) {
+    public void init(DocumentService documentService, UserService userService, RoleService roleService, Environment env) {
         String sandboxUsersConcatString = null;
         try {
             sandboxUsersConcatString = env.getProperty("module.sandbox.users");
         } catch (Exception e) {
             e.printStackTrace();
         }
-        createSandboxUsers(userService, sandboxUsersConcatString);
+        createSandboxUsers(userService, roleService, sandboxUsersConcatString);
         if (false) {
             // TODO Martin
             String ddl = env.getProperty("module.core.db.ddl");
@@ -64,7 +68,7 @@ public class DataGenerator {
         }
     }
 
-    private User newUser(String firstname, String surname, String password) {
+    private User newUser(String firstname, String surname, String password, String role) {
         User user = new User();
         user.setPassword(password);
         user.setEmail(firstname + "." + surname + "@learning-layers.de");
@@ -74,23 +78,60 @@ public class DataGenerator {
         return user;
     }
 
-    private void createSandboxUsers(UserService userService, String sandboxUsersConcatString) {
-        if (sandboxUsersConcatString != null && !"".equals(sandboxUsersConcatString)) {
-            String[] sandboxUsersString = sandboxUsersConcatString.split(";");
-            Arrays.stream(sandboxUsersString).forEach(userString -> {
-                String[] userData = userString.split(":");
-                if (userData.length == 3) {
-                    User user = userService.findByUsername(userData[0]);
-                    if (user == null) {
-                        try {
-                            userService.save(newUser(userData[0], userData[1], userData[2]));
-                        } catch (Exception e) {
-                            e.printStackTrace();
+    private void createSandboxUsers(UserService userService, RoleService roleService, String sandboxUsersConcatString) {
+        User admin = userService.findByUsername(Core.BOOTSTRAP_ADMIN);
+        userService.runAs(admin, () -> {
+            Role dbUserRole = roleService.findByName("ROLE_USER");
+            if (dbUserRole == null) {
+                // create initial roles
+                String newUserRoleName = "ROLE_USER";
+                createNewUserRole(roleService, newUserRoleName);
+                String newAdminRoleName = "ROLE_ADMIN";
+                createNewUserRole(roleService, newAdminRoleName);
+            }
+
+            final Role adminRole = roleService.findByName("ROLE_ADMIN");
+            final Role userRole = roleService.findByName("ROLE_USER");
+
+            if (sandboxUsersConcatString != null && !"".equals(sandboxUsersConcatString)) {
+                String[] sandboxUsersString = sandboxUsersConcatString.split(";");
+                Arrays.stream(sandboxUsersString).forEach(userString -> {
+                    String[] userData = userString.split(":");
+                    if (userData.length == 4) {
+                        User user = userService.findByUsername(userData[0]);
+                        if (user == null) {
+                            String firstname = userData[0];
+                            String lastname = userData[1];
+                            String password = userData[2];
+                            String role = userData[3];
+                            try {
+                                user = userService.save(newUser(firstname, lastname, password, role));
+                                if ("Admin".equals(role)) {
+                                    List<Role> roleList = new ArrayList<Role>();
+                                    roleList.add(adminRole);
+                                    roleList.add(userRole);
+                                    user.setRoleList(roleList);
+                                    userService.save(user);
+                                } else {
+                                    List<Role> roleList = new ArrayList<Role>();
+                                    roleList.add(userRole);
+                                    user.setRoleList(roleList);
+                                    userService.save(user);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
-                }
-            });
-        }
+                });
+            }
+        });
+    }
+
+    private Role createNewUserRole(RoleService roleService, String newRoleName) {
+        Role newUserRole = new Role();
+        newUserRole.setName(newRoleName);
+        return roleService.save(newUserRole);
     }
 
     private void createSandboxDocument(DocumentService documentService, UserService userService, User user) {

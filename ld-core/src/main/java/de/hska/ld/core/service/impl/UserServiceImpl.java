@@ -92,15 +92,17 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
 
     @Override
     public User save(User user) {
-
         User savedUser;
         User userFoundByUsername = findByUsername(user.getUsername());
         if (user.getId() == null) {
             User userFoundByEmail = findByEmail(user.getEmail());
             setNewUserFields(user, userFoundByUsername, userFoundByEmail);
+            if (user.getLastupdatedAt() == null) {
+                user.setLastupdatedAt(new Date());
+            }
             savedUser = super.save(user);
         } else {
-            // Check if a the current user wants to update an account owned by somebody else
+            // Check if the current user wants to update an account owned by somebody else
             User currentUser = Core.currentUser();
             boolean isAdmin = hasRole(currentUser, Core.ROLE_ADMIN);
             if (!isAdmin && currentUser != null && !currentUser.getId().equals(user.getId())) {
