@@ -34,6 +34,7 @@ public class FolderDto extends Folder {
     public Long getJsonParentId() {
         if (this.getParent() != null) {
             jsonParentId = this.getParent().getId();
+            this.setParent(null);
         }
         return jsonParentId;
     }
@@ -53,6 +54,17 @@ public class FolderDto extends Folder {
 
     public FolderDto(Folder folder) {
         try {
+            Class subclass = folder.getClass();
+            Class superclass = subclass.getSuperclass();
+            while (superclass != null) {
+                Field[] declaredFields = superclass.getDeclaredFields();
+                for (Field folderfield : declaredFields) {
+                    folderfield.setAccessible(true);
+                    Object obj = folderfield.get(folder);
+                    folderfield.set(this, obj);
+                }
+                superclass = superclass.getSuperclass();
+            }
             // extract and set values per reflection
             for (Field folderfield : folder.getClass().getDeclaredFields()) {
                 folderfield.setAccessible(true);

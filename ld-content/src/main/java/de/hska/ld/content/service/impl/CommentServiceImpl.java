@@ -61,6 +61,17 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
     @Autowired
     private SubscriptionService subscriptionService;
 
+    private Comparator<Content> byDateTime = (c1, c2) -> {
+        if (c1.getCreatedAt() == null) {
+            return -1;
+        } else if (c2.getCreatedAt() == null) {
+            return 1;
+        } else {
+            int compareVal = c2.getCreatedAt().compareTo(c1.getCreatedAt());
+            return compareVal;
+        }
+    };
+
     @Override
     public Page<Comment> getDocumentCommentsPage(Long documentId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
         Document document = documentService.findById(documentId);
@@ -172,11 +183,12 @@ public class CommentServiceImpl extends AbstractContentService<Comment> implemen
             comment.setCreatedAt(new Date());
             comment.setCreator(currentUser);
         }
-        comment = super.save(dbParentComment);
+        dbParentComment = super.save(dbParentComment);
+        // TODO add filter for current creator
+        Optional<Comment> optional = dbParentComment.getCommentList().stream().sorted(byDateTime).findFirst();
 
         sendMentionNotifications(comment);
-
-        return comment;
+        return optional.get();
     }
 
     @Override

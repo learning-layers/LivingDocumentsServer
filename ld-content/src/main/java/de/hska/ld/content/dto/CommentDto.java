@@ -35,6 +35,7 @@ public class CommentDto extends Comment {
     public Long getJsonParentId() {
         if (this.getParent() != null) {
             jsonParentId = this.getParent().getId();
+            this.setParent(null);
         }
         return jsonParentId;
     }
@@ -54,7 +55,19 @@ public class CommentDto extends Comment {
     public CommentDto(Comment comment) {
         try {
             // extract and set values per reflection
-            for (Field commentfield : comment.getClass().getDeclaredFields()) {
+            Class subclass = comment.getClass();
+            Class superclass = subclass.getSuperclass();
+            while (superclass != null) {
+                Field[] declaredFields = superclass.getDeclaredFields();
+                for (Field commentfield : declaredFields) {
+                    commentfield.setAccessible(true);
+                    Object obj = commentfield.get(comment);
+                    commentfield.set(this, obj);
+                }
+                superclass = superclass.getSuperclass();
+            }
+            Field[] declaredFields = comment.getClass().getDeclaredFields();
+            for (Field commentfield : declaredFields) {
                 commentfield.setAccessible(true);
                 Object obj = commentfield.get(comment);
                 commentfield.set(this, obj);
