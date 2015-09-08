@@ -90,7 +90,7 @@ public class Core {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             if (principal instanceof User) {
                 return (User) principal;
-            } else {
+            } else if (principal instanceof Map) {
                 Map principalMap = (Map) principal;
                 User user = null;
                 String subId = (String) principalMap.get("sub");

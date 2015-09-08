@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -41,32 +42,41 @@ public class OIDCController {
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
     public Callable authenticate(@RequestParam String issuer, @RequestHeader String Authorization) {
         return () -> {
-            // 1. check if the oidcUserinfo is accessible via the access token
-            OIDCUserinfoDto oidcUserinfoDto = authenticateTowardsOIDCIdentityProvider(issuer, Authorization);
-            if (!oidcUserinfoDto.isEmailVerified()) {
-                throw new ValidationException("user email not verified");
-            }
-
-            // 2. check if a a user account for this oidc user still exists within living documents
-            User user = userService.findBySubIdAndIssuer(oidcUserinfoDto.getSub(), issuer + "/");
-            if (user != null) {
-                // 2.1 if the user already exists
-                System.out.println(user);
-            } else {
-                // 2.2. If the user does not already exist:
-                //      Create the new user in the database
-                System.out.println("Creating a new user in the db.");
-                user = creatNewUserFromOIDCUserinfo(issuer, oidcUserinfoDto);
-            }
-
-            // 3.   After the user data or has been retrieved or created:
-            //      Update the security context with the needed information (give the user access to other rest resources)
-
-            // 4. ...
-
-
-            return user;
+            return _authenticate(issuer, Authorization);
         };
+    }
+
+    private User _authenticate(String issuer, String Authorization) throws IOException {
+        // 1. check if the oidcUserinfo is accessible via the access token
+        OIDCUserinfoDto oidcUserinfoDto = authenticateTowardsOIDCIdentityProvider(issuer, Authorization);
+        if (!oidcUserinfoDto.isEmailVerified()) {
+            throw new ValidationException("user email not verified");
+        }
+
+        // 2. check if a a user account for this oidc user still exists within living documents
+        User user = userService.findBySubIdAndIssuer(oidcUserinfoDto.getSub(), issuer + "/");
+        if (user == null) {
+            // 2.1. If the user does not already exist:
+            //      Create the new user in the database
+            user = creatNewUserFromOIDCUserinfo(issuer, oidcUserinfoDto);
+        }
+
+        // 3.   After the user data or has been retrieved or created:
+        //      Update the security context with the needed information (give the user access to other rest resources)
+        Authentication auth = null;
+        try {
+            auth = SecurityContextHolder.getContext().getAuthentication();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (auth == null) {
+            throw new ValidationException("no security context for this user available");
+        }
+
+        // 4. ...
+
+
+        return user;
     }
 
     private OIDCUserinfoDto authenticateTowardsOIDCIdentityProvider(String issuer, String Authorization) throws ValidationException, IOException {
@@ -94,9 +104,11 @@ public class OIDCController {
         }
     }
 
+    @Transactional(readOnly = false)
     private User creatNewUserFromOIDCUserinfo(String issuer, OIDCUserinfoDto userInfoDto) {
         // create a new user
         User user = new User();
+        user.setEmail(userInfoDto.getEmail());
         // check for colliding user names (via preferred user name)
         User userWithGivenPreferredUserName = userService.findByUsername(userInfoDto.getPreferredUsername());
         int i = 0;
@@ -268,6 +280,10 @@ public class OIDCController {
                 oidcAuthority[0] = (SubjectIssuerGrantedAuthority) authority;
             }
         });
+
+        if (oidcAuthority[0] == null) {
+            System.out.println("OIDC authority not set");
+        }
 
         // create new authorities that includes the authorities stored in the database
         // as well as the oidc authority

@@ -58,6 +58,10 @@ public class OIDCIdentityProviderClient {
         System.out.println("Response Code : "
                 + response.getStatusLine().getStatusCode());
 
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new ValidationException("access token is invalid");
+        }
+
         BufferedReader rd = null;
         try {
             rd = new BufferedReader(
