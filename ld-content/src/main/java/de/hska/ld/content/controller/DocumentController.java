@@ -23,6 +23,7 @@
 package de.hska.ld.content.controller;
 
 import com.rits.cloning.Cloner;
+import de.hska.ld.content.client.OIDCIdentityProviderClient;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
 import de.hska.ld.content.persistence.domain.*;
@@ -914,4 +915,28 @@ public class DocumentController {
         };
     }
 
+    @RequestMapping(method = RequestMethod.POST, value = "/token-auth")
+    public Callable createDocument(@RequestBody Document document, @RequestParam String issuer, @RequestParam String accessToken) {
+        return () -> {
+            // 1. Retrieve oidc subject information from oidc identity provider
+            // @ https://<oidc_endpoint>/userinfo?access_token=<accessToken>
+            String[] allowedIssuers = new String[1];
+            allowedIssuers[0] = "https://api.learning-layers.eu/o/oauth2";
+            boolean issuerAllowed = false;
+            for (String allowedIssuer : allowedIssuers) {
+                if (allowedIssuer.equals(issuer)) {
+                    issuerAllowed = true;
+                }
+            }
+            OIDCIdentityProviderClient client = new OIDCIdentityProviderClient();
+            if (issuerAllowed) {
+                client.getUserinfo(issuer, accessToken);
+            } else {
+                return new ValidationException("issuer");
+            }
+            //Document newDocument = documentService.save(document);
+            //return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
+            return new ResponseEntity<>(HttpStatus.OK);
+        };
+    }
 }
