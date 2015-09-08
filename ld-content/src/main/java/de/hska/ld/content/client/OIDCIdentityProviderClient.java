@@ -1,6 +1,7 @@
 package de.hska.ld.content.client;
 
 import de.hska.ld.content.dto.OIDCUserinfoDto;
+import de.hska.ld.core.exception.ValidationException;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -67,13 +68,19 @@ public class OIDCIdentityProviderClient {
             while ((line = rd.readLine()) != null) {
                 result.append(line);
             }
+            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                throw new ValidationException("access token is invalid");
+            }
             ObjectMapper mapper = new ObjectMapper();
             return mapper.readValue(result.toString(), OIDCUserinfoDto.class);
+        } catch (ValidationException ve) {
+            throw ve;
         } catch (Exception e) {
+            return null;
+        } finally {
             if (rd != null) {
                 rd.close();
             }
-            return null;
         }
     }
 
