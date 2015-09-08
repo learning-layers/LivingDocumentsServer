@@ -26,6 +26,7 @@ import com.rits.cloning.Cloner;
 import de.hska.ld.content.client.OIDCIdentityProviderClient;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
+import de.hska.ld.content.dto.OIDCUserinfoDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
@@ -930,13 +931,13 @@ public class DocumentController {
             }
             OIDCIdentityProviderClient client = new OIDCIdentityProviderClient();
             if (issuerAllowed) {
-                client.getUserinfo(issuer, accessToken);
+                OIDCUserinfoDto userInfoDto = client.getUserinfo(issuer, accessToken);
+                return new ResponseEntity<>(userInfoDto, HttpStatus.OK);
             } else {
                 return new ValidationException("issuer");
             }
             //Document newDocument = documentService.save(document);
             //return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
-            return new ResponseEntity<>(HttpStatus.OK);
         };
     }
 }

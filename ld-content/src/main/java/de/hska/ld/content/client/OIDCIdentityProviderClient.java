@@ -1,5 +1,6 @@
 package de.hska.ld.content.client;
 
+import de.hska.ld.content.dto.OIDCUserinfoDto;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -10,6 +11,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -36,7 +38,7 @@ public class OIDCIdentityProviderClient {
         // TODO set env variables if needed
     }
 
-    public String getUserinfo(String identityProviderURL, String accessToken) throws IOException {
+    public OIDCUserinfoDto getUserinfo(String identityProviderURL, String accessToken) throws IOException {
         String url = identityProviderURL + "/userinfo";
 
         //HttpClient client = HttpClientBuilder.create().build();
@@ -65,8 +67,8 @@ public class OIDCIdentityProviderClient {
             while ((line = rd.readLine()) != null) {
                 result.append(line);
             }
-
-            return result.toString();
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(result.toString(), OIDCUserinfoDto.class);
         } catch (Exception e) {
             if (rd != null) {
                 rd.close();
