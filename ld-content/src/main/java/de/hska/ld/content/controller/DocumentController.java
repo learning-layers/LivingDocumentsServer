@@ -23,10 +23,8 @@
 package de.hska.ld.content.controller;
 
 import com.rits.cloning.Cloner;
-import de.hska.ld.content.client.OIDCIdentityProviderClient;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
-import de.hska.ld.content.dto.OIDCUserinfoDto;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
@@ -34,23 +32,14 @@ import de.hska.ld.content.service.SubscriptionService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
-import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.core.service.RoleService;
-import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
-import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,12 +49,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
@@ -84,12 +71,6 @@ public class DocumentController {
 
     @Autowired
     private SubscriptionService subscriptionService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private RoleService roleService;
 
     @Autowired
     private Cloner cloner;
@@ -933,133 +914,4 @@ public class DocumentController {
         };
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/token-auth")
-    public Callable createDocument(@RequestBody Document document, @RequestParam String issuer, @RequestParam String accessToken) {
-        return () -> {
-            // 1. Retrieve oidc subject information from oidc identity provider
-            // @ https://<oidc_endpoint>/userinfo?access_token=<accessToken>
-            String[] allowedIssuers = new String[1];
-            allowedIssuers[0] = "https://api.learning-layers.eu/o/oauth2";
-            boolean issuerAllowed = false;
-            for (String allowedIssuer : allowedIssuers) {
-                if (allowedIssuer.equals(issuer)) {
-                    issuerAllowed = true;
-                }
-            }
-            OIDCIdentityProviderClient client = new OIDCIdentityProviderClient();
-            OIDCUserinfoDto userInfoDto = null;
-            if (issuerAllowed) {
-                userInfoDto = client.getUserinfo(issuer, accessToken);
-            } else {
-                return new ValidationException("issuer");
-            }
-
-            // 2. Look in the database if the user is already known to the application
-            // (via issuer and subject)
-            User user = userService.findBySubIdAndIssuer(userInfoDto.getSub(), issuer + "/");
-            if (user == null) {
-                // 2.1 If the user is not yet known to the application create a new user in the database
-
-                // create a new user
-                user = new User();
-                // check for colliding user names (via preferred user name)
-                User userWithGivenPreferredUserName = userService.findByUsername(userInfoDto.getPreferredUsername());
-                int i = 0;
-                if (userWithGivenPreferredUserName != null) {
-                    while (userWithGivenPreferredUserName != null) {
-                        String prefferedUsername = userInfoDto.getPreferredUsername() + "#" + i;
-                        userWithGivenPreferredUserName = userService.findByUsername(prefferedUsername);
-                    }
-                } else {
-                    user.setUsername(userInfoDto.getPreferredUsername());
-                }
-
-                user.setFullName(userInfoDto.getName());
-                user.setEnabled(true);
-                // apply roles
-                List<Role> roleList = new ArrayList<Role>();
-                Role userRole = roleService.findByName("ROLE_USER");
-                if (userRole == null) {
-                    // create initial roles
-                    String newUserRoleName = "ROLE_USER";
-                    userRole = createNewUserRole(newUserRoleName);
-                    String newAdminRoleName = "ROLE_ADMIN";
-                    Role adminRole = createNewUserRole(newAdminRoleName);
-                    // For the first user add the admin role
-                    roleList.add(adminRole);
-                } else {
-                    roleList.add(userRole);
-                }
-                user.setRoleList(roleList);
-                // A password is required so we set a uuid generated one
-                if ("development".equals(System.getenv("LDS_APP_INSTANCE"))) {
-                    user.setPassword("pass");
-                } else {
-                    user.setPassword(UUID.randomUUID().toString());
-                }
-                user.setSubId(userInfoDto.getSub());
-                user.setIssuer(issuer + "/");
-                String oidcUpdatedTime = userInfoDto.getUpdatedTime();
-                // oidc time: "20150701_090039"
-                // oidc format: "yyyyMMdd_HHmmss"
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-                try {
-                    Date date = sdf.parse(oidcUpdatedTime);
-                    user.setLastupdatedAt(date);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                user = userService.save(user);
-                // update security context
-                // TODO set other attributes in SecurityContext
-                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                enrichAuthoritiesWithStoredAuthorities(user, auth);
-            }
-
-            // 3. Create the document in the database
-            Document newDocument = documentService.save(document);
-
-            // 4. Create the document in the SSS together with the link to the discussion
-
-
-            // 5. Send back the document
-            return new ResponseEntity<>(newDocument, HttpStatus.OK);
-            //Document newDocument = documentService.save(document);
-            //return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
-        };
-    }
-
-    private Role createNewUserRole(String newRoleName) {
-        Role newUserRole = new Role();
-        newUserRole.setName(newRoleName);
-        return roleService.save(newUserRole);
-    }
-
-    private void enrichAuthoritiesWithStoredAuthorities(User currentUserInDb, Authentication auth) {
-        Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
-        final SubjectIssuerGrantedAuthority[] oidcAuthority = new SubjectIssuerGrantedAuthority[1];
-        authorities.forEach(authority -> {
-            if (authority instanceof SubjectIssuerGrantedAuthority) {
-                // extract the oidc authority information
-                oidcAuthority[0] = (SubjectIssuerGrantedAuthority) authority;
-            }
-        });
-
-        // create new authorities that includes the authorities stored in the database
-        // as well as the oidc authority
-        ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
-        newAuthorities.add(oidcAuthority[0]);
-        currentUserInDb.getRoleList().forEach(role -> {
-            newAuthorities.add(new SimpleGrantedAuthority(role.getName()));
-        });
-        try {
-            Field authoritiesField = AbstractAuthenticationToken.class.getDeclaredField("authorities");
-            authoritiesField.setAccessible(true);
-            authoritiesField.set(auth, newAuthorities);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        // update the authority information in the security context
-        SecurityContextHolder.getContext().setAuthentication(auth);
-    }
 }

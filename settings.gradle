@@ -9,4 +9,5 @@ def rootProjectDescriptor = settings.rootProject
 settings.createProjectDescriptor(rootProjectDescriptor, 'project-name', projectDir) */
 
 include 'ld-etherpad'
+include 'ld-oidc'
 

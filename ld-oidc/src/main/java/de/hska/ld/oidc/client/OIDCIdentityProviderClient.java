@@ -1,4 +1,4 @@
-package de.hska.ld.content.client;
+package de.hska.ld.oidc.client;
 
 import de.hska.ld.content.dto.OIDCUserinfoDto;
 import de.hska.ld.core.exception.ValidationException;
