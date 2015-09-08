@@ -20,8 +20,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 @RestController
@@ -39,7 +40,33 @@ public class OIDCController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
     public Callable authenticate(@RequestParam String issuer, @RequestHeader String Authorization) {
-        return () -> authenticateTowardsOIDCIdentityProvider(issuer, Authorization);
+        return () -> {
+            // 1. check if the oidcUserinfo is accessible via the access token
+            OIDCUserinfoDto oidcUserinfoDto = authenticateTowardsOIDCIdentityProvider(issuer, Authorization);
+            if (!oidcUserinfoDto.isEmailVerified()) {
+                throw new ValidationException("user email not verified");
+            }
+
+            // 2. check if a a user account for this oidc user still exists within living documents
+            User user = userService.findBySubIdAndIssuer(oidcUserinfoDto.getSub(), issuer + "/");
+            if (user != null) {
+                // 2.1 if the user already exists
+                System.out.println(user);
+            } else {
+                // 2.2. If the user does not already exist:
+                //      Create the new user in the database
+                System.out.println("Creating a new user in the db.");
+                user = creatNewUserFromOIDCUserinfo(issuer, oidcUserinfoDto);
+            }
+
+            // 3.   After the user data or has been retrieved or created:
+            //      Update the security context with the needed information (give the user access to other rest resources)
+
+            // 4. ...
+
+
+            return user;
+        };
     }
 
     private OIDCUserinfoDto authenticateTowardsOIDCIdentityProvider(String issuer, String Authorization) throws ValidationException, IOException {
@@ -65,6 +92,65 @@ public class OIDCController {
         } else {
             throw new ValidationException("issuer");
         }
+    }
+
+    private User creatNewUserFromOIDCUserinfo(String issuer, OIDCUserinfoDto userInfoDto) {
+        // create a new user
+        User user = new User();
+        // check for colliding user names (via preferred user name)
+        User userWithGivenPreferredUserName = userService.findByUsername(userInfoDto.getPreferredUsername());
+        int i = 0;
+        if (userWithGivenPreferredUserName != null) {
+            while (userWithGivenPreferredUserName != null) {
+                String prefferedUsername = userInfoDto.getPreferredUsername() + "#" + i;
+                userWithGivenPreferredUserName = userService.findByUsername(prefferedUsername);
+            }
+        } else {
+            user.setUsername(userInfoDto.getPreferredUsername());
+        }
+
+        user.setFullName(userInfoDto.getName());
+        user.setEnabled(true);
+        // apply roles
+        List<Role> roleList = new ArrayList<Role>();
+        Role userRole = roleService.findByName("ROLE_USER");
+        if (userRole == null) {
+            // create initial roles
+            String newUserRoleName = "ROLE_USER";
+            userRole = createNewUserRole(newUserRoleName);
+            String newAdminRoleName = "ROLE_ADMIN";
+            Role adminRole = createNewUserRole(newAdminRoleName);
+            // For the first user add the admin role
+            roleList.add(adminRole);
+        } else {
+            roleList.add(userRole);
+        }
+        user.setRoleList(roleList);
+        // A password is required so we set a uuid generated one
+        if ("development".equals(System.getenv("LDS_APP_INSTANCE"))) {
+            user.setPassword("pass");
+        } else {
+            user.setPassword(UUID.randomUUID().toString());
+        }
+        user.setSubId(userInfoDto.getSub());
+        user.setIssuer(issuer + "/");
+        String oidcUpdatedTime = userInfoDto.getUpdatedTime();
+        // oidc time: "20150701_090039"
+        // oidc format: "yyyyMMdd_HHmmss"
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        try {
+            Date date = sdf.parse(oidcUpdatedTime);
+            user.setLastupdatedAt(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        user = userService.save(user);
+        // update security context
+        // TODO set other attributes in SecurityContext
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        enrichAuthoritiesWithStoredAuthorities(user, auth);
+
+        return user;
     }
 
     /*@RequestMapping(method = RequestMethod.POST, value = "/token-auth")
