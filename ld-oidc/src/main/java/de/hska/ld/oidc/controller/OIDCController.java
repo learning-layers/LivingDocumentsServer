@@ -2,6 +2,7 @@ package de.hska.ld.oidc.controller;
 
 import de.hska.ld.content.dto.OIDCUserinfoDto;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.core.config.security.FormAuthenticationProvider;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
@@ -9,22 +10,30 @@ import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.oidc.client.OIDCIdentityProviderClient;
+import org.mitre.openid.connect.client.OIDCAuthenticationProvider;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.naming.OperationNotSupportedException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.nio.file.AccessDeniedException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 @RestController
 @RequestMapping(Core.RESOURCE_USER + "/oidc")
@@ -39,14 +48,65 @@ public class OIDCController {
     @Autowired
     private RoleService roleService;
 
-    @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
-    public Callable authenticate(@RequestParam String issuer, @RequestHeader String Authorization) {
-        return () -> {
-            return _authenticate(issuer, Authorization);
-        };
+    @Autowired
+    private FormAuthenticationProvider formAuthenticationProvider;
+
+    @Autowired
+    private OIDCAuthenticationProvider oidcAuthenticationProvider;
+
+    /*@Autowired
+    private HttpServletRequest request;*/
+
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    //HttpServletRequest request, Locale locale, Model model, Principal p
+    public String login(HttpServletRequest request, @RequestParam String username) throws OperationNotSupportedException, AccessDeniedException {
+        //String username = request.getParameter("username");
+        /*if (username == null) {
+            username = request.getParameter("user");
+        }*/
+        String password = request.getParameter("password");
+        if (username != null && password != null) {
+            try {
+                User user = userService.findByUsername(username);
+                if (user != null) {
+                    ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
+                    user.getRoleList().forEach(role -> {
+                        newAuthorities.add(new SimpleGrantedAuthority(role.getName()));
+                    });
+                    UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user, password, newAuthorities);
+                    token.setDetails(new WebAuthenticationDetails(request));
+                    Authentication authentication = formAuthenticationProvider.authenticate(token);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    throw new AccessDeniedException("Username or password wrong! (1)");
+                }
+            } catch (Exception e) {
+                SecurityContextHolder.getContext().setAuthentication(null);
+                throw new AccessDeniedException("Username or password wrong! (2)");
+            }
+
+        } else {
+            throw new UnsupportedOperationException("No Authorization credentials provided!");
+        }
+
+        return "home";
     }
 
-    private User _authenticate(String issuer, String Authorization) throws IOException {
+    @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
+    public User authenticate(HttpServletRequest request, @RequestParam String issuer, @RequestHeader String Authorization) {
+        try {
+            return _authenticate(request, issuer, Authorization);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new ValidationException("login failed");
+        }
+    }
+
+    private User _authenticate(HttpServletRequest request, String issuer, String Authorization) throws IOException {
+        if (request.getSession(false) == null) {
+            request.getSession(true);
+        }
+
         // 1. check that the OIDC token is set in the correct way
         String oidcToken = null;
         try {
@@ -66,10 +126,10 @@ public class OIDCController {
         if (user == null) {
             // 2.1. If the user does not already exist:
             //      Create the new user in the database
-            user = creatNewUserFromOIDCUserinfo(issuer, oidcUserinfoDto, oidcToken);
+            user = creatNewUserFromOIDCUserinfo(request, issuer, oidcUserinfoDto, oidcToken);
         } else {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            enrichAuthoritiesWithStoredAuthorities(oidcUserinfoDto.getSub(), issuer + "/", oidcUserinfoDto, oidcToken, user, auth);
+            enrichAuthoritiesWithStoredAuthorities(request, oidcUserinfoDto.getSub(), issuer + "/", oidcUserinfoDto, oidcToken, user, auth);
         }
 
         // 4.   After the user data has been retrieved or created:
@@ -82,6 +142,21 @@ public class OIDCController {
         }
         if (auth == null) {
             throw new ValidationException("no security context for this user available");
+        } else {
+            try {
+                Field detailsField = AbstractAuthenticationToken.class.getDeclaredField("details");
+                detailsField.setAccessible(true);
+                HttpSession session = request.getSession(false);
+                /*if (session == null || !session.isNew()) {
+                   //session = request.getSession(true);
+                }*/
+                Field authenticatedField = AbstractAuthenticationToken.class.getDeclaredField("authenticated");
+                authenticatedField.setAccessible(true);
+                authenticatedField.set(auth, true);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
         }
 
         return user;
@@ -207,7 +282,7 @@ public class OIDCController {
     }
 
     @Transactional(readOnly = false)
-    private User creatNewUserFromOIDCUserinfo(String issuer, OIDCUserinfoDto userInfoDto, String oidcToken) {
+    private User creatNewUserFromOIDCUserinfo(HttpServletRequest request, String issuer, OIDCUserinfoDto userInfoDto, String oidcToken) {
         // create a new user
         User user = new User();
         user.setEmail(userInfoDto.getEmail());
@@ -262,7 +337,7 @@ public class OIDCController {
         // update security context
         // TODO set other attributes in SecurityContext
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        enrichAuthoritiesWithStoredAuthorities(userInfoDto.getSub(), issuer + "/", userInfoDto, oidcToken, user, auth);
+        enrichAuthoritiesWithStoredAuthorities(request, userInfoDto.getSub(), issuer + "/", userInfoDto, oidcToken, user, auth);
 
         return user;
     }
@@ -273,7 +348,7 @@ public class OIDCController {
         return roleService.save(newUserRole);
     }
 
-    private void enrichAuthoritiesWithStoredAuthorities(String sub, String issuer, OIDCUserinfoDto oidcUserinfoDto, String oidcToken, User currentUserInDb, Authentication auth) {
+    private void enrichAuthoritiesWithStoredAuthorities(HttpServletRequest request, String sub, String issuer, OIDCUserinfoDto oidcUserinfoDto, String oidcToken, User user, Authentication auth) {
         DefaultUserInfo userInfo = new DefaultUserInfo();
         userInfo.setSub(oidcUserinfoDto.getSub());
         userInfo.setEmail(oidcUserinfoDto.getEmail());
@@ -295,16 +370,16 @@ public class OIDCController {
         // create new authorities that includes the authorities stored in the database
         // as well as the oidc authority
         ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
-        newAuthorities.add(oidcAuthority[0]);
-        currentUserInDb.getRoleList().forEach(role -> {
+        user.getRoleList().forEach(role -> {
             newAuthorities.add(new SimpleGrantedAuthority(role.getName()));
         });
         if (oidcAuthority[0] == null) {
             newAuthorities.add(new SubjectIssuerGrantedAuthority(sub, issuer));
+        } else {
+            newAuthorities.add(oidcAuthority[0]);
         }
         OIDCAuthenticationToken token = new OIDCAuthenticationToken(sub, issuer, userInfo, newAuthorities, null, oidcToken, null);
-
-        // update the authority information in the security context
+        token.setDetails(new WebAuthenticationDetails(request));
         SecurityContextHolder.getContext().setAuthentication(token);
     }
 }
