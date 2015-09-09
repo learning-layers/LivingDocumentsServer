@@ -1,7 +1,7 @@
 package de.hska.ld.oidc.client;
 
-import de.hska.ld.content.dto.OIDCUserinfoDto;
 import de.hska.ld.core.exception.ValidationException;
+import de.hska.ld.oidc.dto.OIDCUserinfoDto;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;

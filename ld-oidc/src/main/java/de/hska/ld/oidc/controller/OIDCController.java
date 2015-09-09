@@ -1,9 +1,8 @@
 package de.hska.ld.oidc.controller;
 
-import de.hska.ld.content.dto.OIDCUserinfoDto;
-import de.hska.ld.content.dto.SSSAuthDto;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
@@ -12,6 +11,9 @@ import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.oidc.client.OIDCIdentityProviderClient;
 import de.hska.ld.oidc.client.SSSClient;
+import de.hska.ld.oidc.dto.OIDCUserinfoDto;
+import de.hska.ld.oidc.dto.SSSAuthDto;
+import de.hska.ld.oidc.dto.SSSLivingdocsResponseDto;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
@@ -47,7 +49,7 @@ public class OIDCController {
     private RoleService roleService;
 
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
-    public User authenticate(HttpServletRequest request, @RequestParam String issuer, @RequestHeader String Authorization) {
+    public User authenticate(HttpServletRequest request, @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer, @RequestHeader String Authorization) {
         try {
             return _authenticate(request, issuer, Authorization);
         } catch (IOException e) {
@@ -119,8 +121,8 @@ public class OIDCController {
         return user;
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/token-auth")
-    public Document createDocument(HttpServletRequest request, @RequestBody Document document, @RequestParam String issuer, @RequestHeader String Authorization, @RequestParam String discussionId) throws IOException {
+    @RequestMapping(method = RequestMethod.POST, value = "/document")
+    public Document createDocument(HttpServletRequest request, @RequestBody Document document, @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer, @RequestHeader String Authorization, @RequestParam(required = false) String discussionId) throws IOException {
         _authenticate(request, issuer, Authorization);
 
         // 3. Create the document in the database
@@ -131,17 +133,18 @@ public class OIDCController {
         // SSS auth Endpoint: http://test-ll.know-center.tugraz.at/layers.test/auth/auth/
         SSSClient sssClient = new SSSClient();
         OIDCAuthenticationToken token = (OIDCAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        SSSAuthDto sssAuthDto = sssClient.authenticate(token.getAccessTokenValue());
-        String sssUserURI = sssAuthDto.getUser();
+        SSSAuthDto sssAuthDto = null;
+        try {
+            sssAuthDto = sssClient.authenticate(token.getAccessTokenValue());
+        } catch (UserNotAuthorizedException e) {
+            throw e;
+        }
 
-        /*{
-            "op": "authCheckCred",
-            "user": "http://sss.eu/111977715382594029",
-            "key": "eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0NDE3MTczMDYsImF1ZCI6WyJlZmQ1OTA0ZC0xOGZiLTRjNjUtYjFkZS1lZGExM2VlZjk1NjQiXSwiaXNzIjoiaHR0cHM6XC9cL2FwaS5sZWFybmluZy1sYXllcnMuZXVcL29cL29hdXRoMlwvIiwianRpIjoiZjdkYmU1ODEtZjg4OC00YTc4LTk0YjUtNTViMWM4NzViZjUyIiwiaWF0IjoxNDQxNzEzNzA2fQ.0pOUMkVfD62QqzaAW1BKC4pFg4LQ1Em7Y3OERfduHRzQtoUfoJ80hLDcprhmYT55I3rKhPdaOCMM62WtEHdi1iQIw3VyjXc6TAeVZkaXE07Nn4NM4uQyaixbc5V-dNDRpOmocCvpHGyrN2NMSr6J0-jnZuV2AwIuoqPk5_qm8IE"
-        }*/
+        // 4.2 Create the according SSSLivingdocs entity
+        SSSLivingdocsResponseDto sssLivingdocsResponseDto = sssClient.createDocument(token.getAccessTokenValue());
 
-// SSS livingdocs Endpoint: http://test-ll.know-center.tugraz.at/layers.test/livingdocs/livingdocs/
-//sssClient.getAllLDocs(accessToken);
+        // SSS livingdocs Endpoint: http://test-ll.know-center.tugraz.at/layers.test/livingdocs/livingdocs/
+        //sssClient.getAllLDocs(accessToken);
 
         /*{
             "uri": "SSUri",
@@ -150,10 +153,10 @@ public class OIDCController {
             "discussion": "SSUri"
         }*/
 
-// 5. Send back the document
-//return new ResponseEntity<>(newDocument, HttpStatus.OK);
-//Document newDocument = documentService.save(document);
-//return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
+        // 5. Send back the document
+        //return new ResponseEntity<>(newDocument, HttpStatus.OK);
+        //Document newDocument = documentService.save(document);
+        //return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
         return newDocument;
     }
 
