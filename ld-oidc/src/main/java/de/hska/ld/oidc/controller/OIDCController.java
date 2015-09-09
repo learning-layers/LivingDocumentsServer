@@ -133,8 +133,14 @@ public class OIDCController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document")
-    public Document createDocument(HttpServletRequest request, @RequestBody Document document, @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer, @RequestHeader String Authorization, @RequestParam(required = false) String discussionId) throws IOException, ServletException {
-        _authenticate(request, issuer, Authorization);
+    public Document createDocument(HttpServletRequest request,
+                                   @RequestBody Document document,
+                                   @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer,
+                                   @RequestHeader(required = false) String Authorization,
+                                   @RequestParam(required = false) String discussionId) throws IOException, ServletException {
+        if (Authorization != null) {
+            _authenticate(request, issuer, Authorization);
+        }
 
         // 3. Create the document in the database
         Document newDocument = documentService.save(document);
@@ -148,6 +154,7 @@ public class OIDCController {
         try {
             sssAuthDto = sssClient.authenticate(token.getAccessTokenValue());
         } catch (UserNotAuthorizedException e) {
+            // TODO delete the document when an error happens
             request.logout();
             e.printStackTrace();
             throw e;
