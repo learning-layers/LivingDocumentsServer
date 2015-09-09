@@ -57,6 +57,7 @@ subprojects {
         mavenCentral()
         maven { url 'http://repo.spring.io/libs-snapshot' }
         mavenLocal()
+        jcenter()
     }
 
     configurations {
@@ -115,6 +116,11 @@ subprojects {
         compile("org.webjars:jquery:2.1.4")
         compile("org.webjars:underscorejs:1.8.3")
         compile("org.webjars:bootstrap:2.3.2")
+
+        // Swagger
+        //compile "org.springframework.plugin:spring-plugin-metadata:1.2.0.RELEASE"
+        compile "io.springfox:springfox-swagger2:2.2.0"
+        compile "io.springfox:springfox-swagger-ui:2.2.0"
 
         // Add the core project as a dependency for each sub project
         if (project.name != 'ld-core') {
