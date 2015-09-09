@@ -1,6 +1,8 @@
 package de.hska.ld.oidc.controller;
 
 import de.hska.ld.content.dto.OIDCUserinfoDto;
+import de.hska.ld.content.dto.SSSAuthDto;
+import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.config.security.FormAuthenticationProvider;
 import de.hska.ld.core.exception.ValidationException;
@@ -10,6 +12,7 @@ import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.oidc.client.OIDCIdentityProviderClient;
+import de.hska.ld.oidc.client.SSSClient;
 import org.mitre.openid.connect.client.OIDCAuthenticationProvider;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.DefaultUserInfo;
@@ -103,6 +106,9 @@ public class OIDCController {
     }
 
     private User _authenticate(HttpServletRequest request, String issuer, String Authorization) throws IOException {
+
+        // TODO check if already authenticated
+
         if (request.getSession(false) == null) {
             request.getSession(true);
         }
@@ -162,105 +168,43 @@ public class OIDCController {
         return user;
     }
 
-    /*@RequestMapping(method = RequestMethod.POST, value = "/token-auth")
-    public Callable createDocument(@RequestBody Document document, @RequestParam String issuer, @RequestParam String accessToken, @RequestParam String discussionId) {
-        return () -> {
-            OIDCUserinfoDto userInfoDto = authenticateTowardsOIDCIdentityProvider(issuer, accessToken);
+    @RequestMapping(method = RequestMethod.POST, value = "/token-auth")
+    public Document createDocument(HttpServletRequest request, @RequestBody Document document, @RequestParam String issuer, @RequestHeader String Authorization, @RequestParam String discussionId) throws IOException {
+        _authenticate(request, issuer, Authorization);
 
-            // 2. Look in the database if the user is already known to the application
-            // (via issuer and subject)
-            User user = userService.findBySubIdAndIssuer(userInfoDto.getSub(), issuer + "/");
-            if (user == null) {
-                // 2.1 If the user is not yet known to the application create a new user in the database
+        // 3. Create the document in the database
+        Document newDocument = documentService.save(document);
 
-                // create a new user
-                user = new User();
-                // check for colliding user names (via preferred user name)
-                User userWithGivenPreferredUserName = userService.findByUsername(userInfoDto.getPreferredUsername());
-                int i = 0;
-                if (userWithGivenPreferredUserName != null) {
-                    while (userWithGivenPreferredUserName != null) {
-                        String prefferedUsername = userInfoDto.getPreferredUsername() + "#" + i;
-                        userWithGivenPreferredUserName = userService.findByUsername(prefferedUsername);
-                    }
-                } else {
-                    user.setUsername(userInfoDto.getPreferredUsername());
-                }
+        // 4. Create the document in the SSS together with the link to the discussion
+        // 4.1 Authenticate with the SSS
+        // SSS auth Endpoint: http://test-ll.know-center.tugraz.at/layers.test/auth/auth/
+        SSSClient sssClient = new SSSClient();
+        OIDCAuthenticationToken token = (OIDCAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        SSSAuthDto sssAuthDto = sssClient.authenticate(token.getAccessTokenValue());
+        String sssUserURI = sssAuthDto.getUser();
 
-                user.setFullName(userInfoDto.getName());
-                user.setEnabled(true);
-                // apply roles
-                List<Role> roleList = new ArrayList<Role>();
-                Role userRole = roleService.findByName("ROLE_USER");
-                if (userRole == null) {
-                    // create initial roles
-                    String newUserRoleName = "ROLE_USER";
-                    userRole = createNewUserRole(newUserRoleName);
-                    String newAdminRoleName = "ROLE_ADMIN";
-                    Role adminRole = createNewUserRole(newAdminRoleName);
-                    // For the first user add the admin role
-                    roleList.add(adminRole);
-                } else {
-                    roleList.add(userRole);
-                }
-                user.setRoleList(roleList);
-                // A password is required so we set a uuid generated one
-                if ("development".equals(System.getenv("LDS_APP_INSTANCE"))) {
-                    user.setPassword("pass");
-                } else {
-                    user.setPassword(UUID.randomUUID().toString());
-                }
-                user.setSubId(userInfoDto.getSub());
-                user.setIssuer(issuer + "/");
-                String oidcUpdatedTime = userInfoDto.getUpdatedTime();
-                // oidc time: "20150701_090039"
-                // oidc format: "yyyyMMdd_HHmmss"
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-                try {
-                    Date date = sdf.parse(oidcUpdatedTime);
-                    user.setLastupdatedAt(date);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                user = userService.save(user);
-                // update security context
-                // TODO set other attributes in SecurityContext
-                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                enrichAuthoritiesWithStoredAuthorities(user, auth);
-            }
+        /*{
+            "op": "authCheckCred",
+            "user": "http://sss.eu/111977715382594029",
+            "key": "eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0NDE3MTczMDYsImF1ZCI6WyJlZmQ1OTA0ZC0xOGZiLTRjNjUtYjFkZS1lZGExM2VlZjk1NjQiXSwiaXNzIjoiaHR0cHM6XC9cL2FwaS5sZWFybmluZy1sYXllcnMuZXVcL29cL29hdXRoMlwvIiwianRpIjoiZjdkYmU1ODEtZjg4OC00YTc4LTk0YjUtNTViMWM4NzViZjUyIiwiaWF0IjoxNDQxNzEzNzA2fQ.0pOUMkVfD62QqzaAW1BKC4pFg4LQ1Em7Y3OERfduHRzQtoUfoJ80hLDcprhmYT55I3rKhPdaOCMM62WtEHdi1iQIw3VyjXc6TAeVZkaXE07Nn4NM4uQyaixbc5V-dNDRpOmocCvpHGyrN2NMSr6J0-jnZuV2AwIuoqPk5_qm8IE"
+        }*/
 
-            // 3. Create the document in the database
-            Document newDocument = documentService.save(document);
+// SSS livingdocs Endpoint: http://test-ll.know-center.tugraz.at/layers.test/livingdocs/livingdocs/
+//sssClient.getAllLDocs(accessToken);
 
-            // 4. Create the document in the SSS together with the link to the discussion
-            // 4.1 Authenticate with the SSS
-            // SSS auth Endpoint: http://test-ll.know-center.tugraz.at/layers.test/auth/auth/
-            SSSClient sssClient = new SSSClient();
-            SSSAuthDto sssAuthDto = sssClient.authenticate(accessToken);
-            String sssUserURI = sssAuthDto.getUser();
+        /*{
+            "uri": "SSUri",
+            "label": "SSLabel",
+            "description": "SSTextComment",
+            "discussion": "SSUri"
+        }*/
 
-            /*{
-                "op": "authCheckCred",
-                "user": "http://sss.eu/111977715382594029",
-                "key": "eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0NDE3MTczMDYsImF1ZCI6WyJlZmQ1OTA0ZC0xOGZiLTRjNjUtYjFkZS1lZGExM2VlZjk1NjQiXSwiaXNzIjoiaHR0cHM6XC9cL2FwaS5sZWFybmluZy1sYXllcnMuZXVcL29cL29hdXRoMlwvIiwianRpIjoiZjdkYmU1ODEtZjg4OC00YTc4LTk0YjUtNTViMWM4NzViZjUyIiwiaWF0IjoxNDQxNzEzNzA2fQ.0pOUMkVfD62QqzaAW1BKC4pFg4LQ1Em7Y3OERfduHRzQtoUfoJ80hLDcprhmYT55I3rKhPdaOCMM62WtEHdi1iQIw3VyjXc6TAeVZkaXE07Nn4NM4uQyaixbc5V-dNDRpOmocCvpHGyrN2NMSr6J0-jnZuV2AwIuoqPk5_qm8IE"
-            }*/
-
-    // SSS livingdocs Endpoint: http://test-ll.know-center.tugraz.at/layers.test/livingdocs/livingdocs/
-    //sssClient.getAllLDocs(accessToken);
-
-            /*{
-                "uri": "SSUri",
-                "label": "SSLabel",
-                "description": "SSTextComment",
-                "discussion": "SSUri"
-            }*/
-
-    // 5. Send back the document
-    //return new ResponseEntity<>(newDocument, HttpStatus.OK);
-    //Document newDocument = documentService.save(document);
-    //return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
-        /*};
-    }*/
+// 5. Send back the document
+//return new ResponseEntity<>(newDocument, HttpStatus.OK);
+//Document newDocument = documentService.save(document);
+//return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
+        return newDocument;
+    }
 
     private OIDCUserinfoDto authenticateTowardsOIDCIdentityProvider(String issuer, String oidcToken) throws ValidationException, IOException {
         // Retrieve oidc subject information from oidc identity provider
