@@ -50,9 +50,12 @@ public class OIDCController {
     private RoleService roleService;
 
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
-    public User authenticate(HttpServletRequest request, @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer, @RequestHeader String Authorization) {
+    public User authenticate(HttpServletRequest request,
+                             @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer,
+                             @RequestHeader String Authorization,
+                             @RequestParam(defaultValue = "false") boolean forceUpdate) {
         try {
-            return _authenticate(request, issuer, Authorization);
+            return _authenticate(request, issuer, Authorization, forceUpdate);
         } catch (IOException e) {
             e.printStackTrace();
             throw new ValidationException("login failed");
@@ -60,6 +63,10 @@ public class OIDCController {
     }
 
     private User _authenticate(HttpServletRequest request, String issuer, String Authorization) throws IOException {
+        return this._authenticate(request, issuer, Authorization, false);
+    }
+
+    private User _authenticate(HttpServletRequest request, String issuer, String Authorization, boolean forceUpdate) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         // 1. check that the OIDC token is set in the correct way
@@ -149,20 +156,9 @@ public class OIDCController {
         // 4.2 Create the according SSSLivingdocs entity
         SSSLivingdocsResponseDto sssLivingdocsResponseDto = sssClient.createDocument(token.getAccessTokenValue());
 
-        // SSS livingdocs Endpoint: http://test-ll.know-center.tugraz.at/layers.test/livingdocs/livingdocs/
-        //sssClient.getAllLDocs(accessToken);
+        // 4.3 Retrieve the list of email addresses that have access to the livingdocument in the SSS
+        // TODO retrieve email addresses
 
-        /*{
-            "uri": "SSUri",
-            "label": "SSLabel",
-            "description": "SSTextComment",
-            "discussion": "SSUri"
-        }*/
-
-        // 5. Send back the document
-        //return new ResponseEntity<>(newDocument, HttpStatus.OK);
-        //Document newDocument = documentService.save(document);
-        //return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
         return newDocument;
     }
 
