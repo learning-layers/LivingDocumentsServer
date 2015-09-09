@@ -97,7 +97,7 @@ public class OIDCController {
             enrichAuthoritiesWithStoredAuthorities(request, oidcUserinfoDto.getSub(), issuer + "/", oidcUserinfoDto, oidcToken, user, auth);
         }
 
-        if (!authentication.isAuthenticated()) {
+        if (!authentication.isAuthenticated() || forceUpdate) {
             if (request.getSession(false) == null) {
                 request.getSession(true);
             }
