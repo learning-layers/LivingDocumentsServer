@@ -25,16 +25,20 @@ public class FormAuthenticationProvider implements AuthenticationProvider {
         Object userPrincipal = authentication.getPrincipal();
         String password = authentication.getCredentials().toString();
         if (userPrincipal instanceof User) {
-            User user = (User) userPrincipal;
-            boolean passwordMatches = passwordEncoder.matches(password, user.getPassword());
-            if (!passwordMatches) {
-                return null;
+            if (authentication.isAuthenticated()) {
+                return authentication;
             } else {
-                List<GrantedAuthority> grantedAuths = new ArrayList<>();
-                user.getRoleList().forEach(role -> {
-                    grantedAuths.add(new SimpleGrantedAuthority(role.getName()));
-                });
-                return new UsernamePasswordAuthenticationToken(user, password, grantedAuths);
+                User user = (User) userPrincipal;
+                boolean passwordMatches = passwordEncoder.matches(password, user.getPassword());
+                if (!passwordMatches) {
+                    return null;
+                } else {
+                    List<GrantedAuthority> grantedAuths = new ArrayList<>();
+                    user.getRoleList().forEach(role -> {
+                        grantedAuths.add(new SimpleGrantedAuthority(role.getName()));
+                    });
+                    return new UsernamePasswordAuthenticationToken(user, password, grantedAuths);
+                }
             }
         } else {
             return null;
