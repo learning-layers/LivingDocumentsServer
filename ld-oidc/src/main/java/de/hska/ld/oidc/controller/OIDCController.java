@@ -27,6 +27,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
@@ -125,7 +126,7 @@ public class OIDCController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document")
-    public Document createDocument(HttpServletRequest request, @RequestBody Document document, @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer, @RequestHeader String Authorization, @RequestParam(required = false) String discussionId) throws IOException {
+    public Document createDocument(HttpServletRequest request, @RequestBody Document document, @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer, @RequestHeader String Authorization, @RequestParam(required = false) String discussionId) throws IOException, ServletException {
         _authenticate(request, issuer, Authorization);
 
         // 3. Create the document in the database
@@ -140,6 +141,8 @@ public class OIDCController {
         try {
             sssAuthDto = sssClient.authenticate(token.getAccessTokenValue());
         } catch (UserNotAuthorizedException e) {
+            request.logout();
+            e.printStackTrace();
             throw e;
         }
 
