@@ -4,7 +4,6 @@ import de.hska.ld.content.dto.OIDCUserinfoDto;
 import de.hska.ld.content.dto.SSSAuthDto;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
-import de.hska.ld.core.config.security.FormAuthenticationProvider;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
@@ -13,13 +12,11 @@ import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.oidc.client.OIDCIdentityProviderClient;
 import de.hska.ld.oidc.client.SSSClient;
-import org.mitre.openid.connect.client.OIDCAuthenticationProvider;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,12 +25,10 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import javax.naming.OperationNotSupportedException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.file.AccessDeniedException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -50,50 +45,6 @@ public class OIDCController {
 
     @Autowired
     private RoleService roleService;
-
-    @Autowired
-    private FormAuthenticationProvider formAuthenticationProvider;
-
-    @Autowired
-    private OIDCAuthenticationProvider oidcAuthenticationProvider;
-
-    /*@Autowired
-    private HttpServletRequest request;*/
-
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
-    //HttpServletRequest request, Locale locale, Model model, Principal p
-    public String login(HttpServletRequest request, @RequestParam String username) throws OperationNotSupportedException, AccessDeniedException {
-        //String username = request.getParameter("username");
-        /*if (username == null) {
-            username = request.getParameter("user");
-        }*/
-        String password = request.getParameter("password");
-        if (username != null && password != null) {
-            try {
-                User user = userService.findByUsername(username);
-                if (user != null) {
-                    ArrayList<GrantedAuthority> newAuthorities = new ArrayList<GrantedAuthority>();
-                    user.getRoleList().forEach(role -> {
-                        newAuthorities.add(new SimpleGrantedAuthority(role.getName()));
-                    });
-                    UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user, password, newAuthorities);
-                    token.setDetails(new WebAuthenticationDetails(request));
-                    Authentication authentication = formAuthenticationProvider.authenticate(token);
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                } else {
-                    throw new AccessDeniedException("Username or password wrong! (1)");
-                }
-            } catch (Exception e) {
-                SecurityContextHolder.getContext().setAuthentication(null);
-                throw new AccessDeniedException("Username or password wrong! (2)");
-            }
-
-        } else {
-            throw new UnsupportedOperationException("No Authorization credentials provided!");
-        }
-
-        return "home";
-    }
 
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
     public User authenticate(HttpServletRequest request, @RequestParam String issuer, @RequestHeader String Authorization) {
