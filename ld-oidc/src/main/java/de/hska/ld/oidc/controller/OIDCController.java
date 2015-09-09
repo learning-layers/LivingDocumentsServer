@@ -59,12 +59,7 @@ public class OIDCController {
     }
 
     private User _authenticate(HttpServletRequest request, String issuer, String Authorization) throws IOException {
-
-        // TODO check if already authenticated
-
-        if (request.getSession(false) == null) {
-            request.getSession(true);
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         // 1. check that the OIDC token is set in the correct way
         String oidcToken = null;
@@ -82,39 +77,47 @@ public class OIDCController {
 
         // 3. check if a a user account for this oidc user still exists within living documents
         User user = userService.findBySubIdAndIssuer(oidcUserinfoDto.getSub(), issuer + "/");
+
         if (user == null) {
-            // 2.1. If the user does not already exist:
+            // 3.1. If the user does NOT already exist:
             //      Create the new user in the database
             user = creatNewUserFromOIDCUserinfo(request, issuer, oidcUserinfoDto, oidcToken);
         } else {
+            // 3.2. If the user does already exist:
+            //      update the user's authentication
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             enrichAuthoritiesWithStoredAuthorities(request, oidcUserinfoDto.getSub(), issuer + "/", oidcUserinfoDto, oidcToken, user, auth);
         }
 
-        // 4.   After the user data has been retrieved or created:
-        //      Update the security context with the needed information (give the user access to other rest resources)
-        Authentication auth = null;
-        try {
-            auth = SecurityContextHolder.getContext().getAuthentication();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (auth == null) {
-            throw new ValidationException("no security context for this user available");
-        } else {
+        if (!authentication.isAuthenticated()) {
+            if (request.getSession(false) == null) {
+                request.getSession(true);
+            }
+            // 4.   After the user data has been retrieved or created:
+            //      Update the security context with the needed information (give the user access to other rest resources)
+            Authentication auth = null;
             try {
-                Field detailsField = AbstractAuthenticationToken.class.getDeclaredField("details");
-                detailsField.setAccessible(true);
-                HttpSession session = request.getSession(false);
+                auth = SecurityContextHolder.getContext().getAuthentication();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (auth == null) {
+                throw new ValidationException("no security context for this user available");
+            } else {
+                try {
+                    Field detailsField = AbstractAuthenticationToken.class.getDeclaredField("details");
+                    detailsField.setAccessible(true);
+                    HttpSession session = request.getSession(false);
                 /*if (session == null || !session.isNew()) {
                    //session = request.getSession(true);
                 }*/
-                Field authenticatedField = AbstractAuthenticationToken.class.getDeclaredField("authenticated");
-                authenticatedField.setAccessible(true);
-                authenticatedField.set(auth, true);
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
+                    Field authenticatedField = AbstractAuthenticationToken.class.getDeclaredField("authenticated");
+                    authenticatedField.setAccessible(true);
+                    authenticatedField.set(auth, true);
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
