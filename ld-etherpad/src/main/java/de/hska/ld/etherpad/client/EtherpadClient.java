@@ -1,5 +1,7 @@
 package de.hska.ld.etherpad.client;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.etherpad.dto.EtherpadAuthorDto;
 import de.hska.ld.etherpad.dto.EtherpadGroupDto;
 import de.hska.ld.etherpad.dto.EtherpadGroupPadDto;
@@ -14,7 +16,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -77,7 +78,7 @@ public class EtherpadClient {
                 result.append(line);
             }
 
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
             return etherpadSessionDto.getCode() != 1 && etherpadSessionDto.getData().getGroupID().equals(groupID) && etherpadSessionDto.getData().getValidUntil() - currentTime >= 10800;
         } catch (Exception e) {
@@ -147,7 +148,7 @@ public class EtherpadClient {
                 result.append(line);
             }
 
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
             return etherpadSessionDto.getData().getSessionID();
         } catch (Exception e) {
@@ -192,7 +193,7 @@ public class EtherpadClient {
 
             //{code: 0, message:"ok", data: {readOnlyID: "r.s8oes9dhwrvt0zif"}}
             //{code: 1, message:"padID does not exist", data: null}
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             EtherpadSessionDto etherpadSessionDto = mapper.readValue(result.toString(), EtherpadSessionDto.class);
             if (etherpadSessionDto.getCode() != 1) {
                 return etherpadSessionDto.getData().getReadOnlyID();
@@ -238,7 +239,7 @@ public class EtherpadClient {
             while ((line = rd.readLine()) != null) {
                 result.append(line);
             }
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             EtherpadAuthorDto etherpadAuthorDto = mapper.readValue(result.toString(), EtherpadAuthorDto.class);
             return etherpadAuthorDto.getData().getAuthorID();
         } catch (Exception e) {
@@ -289,7 +290,7 @@ public class EtherpadClient {
                 result.append(line);
             }
 
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             EtherpadGroupPadDto etherpadGroupPadDto = mapper.readValue(result.toString(), EtherpadGroupPadDto.class);
             return etherpadGroupPadDto.getData().getPadID();
         } catch (Exception e) {
@@ -330,7 +331,7 @@ public class EtherpadClient {
             while ((line = rd.readLine()) != null) {
                 result.append(line);
             }
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             EtherpadGroupDto etherpadGroupDto = mapper.readValue(result.toString(), EtherpadGroupDto.class);
             return etherpadGroupDto.getData().getGroupID();
         } catch (Exception e) {

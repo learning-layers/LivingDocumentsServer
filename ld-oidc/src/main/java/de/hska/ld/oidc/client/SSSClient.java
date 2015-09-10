@@ -1,5 +1,7 @@
 package de.hska.ld.oidc.client;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.oidc.dto.SSSAuthDto;
@@ -16,7 +18,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -100,7 +101,7 @@ public class SSSClient {
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
                 throw new ValidationException("access token is invalid");
             }
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             return mapper.readValue(result.toString(), SSSAuthDto.class);
         } catch (ValidationException ve) {
             throw ve;
@@ -131,7 +132,7 @@ public class SSSClient {
         post.setHeader("User-Agent", "Mozilla/5.0");
         post.setHeader("Authorization", "Bearer " + accessToken);
 
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         SSSLivingdocsRequestDto sssLivingdocsRequestDto = new SSSLivingdocsRequestDto();
         sssLivingdocsRequestDto.setUri("https://localhost:9000/document/3");
         sssLivingdocsRequestDto.setDescription("description2");
@@ -162,7 +163,7 @@ public class SSSClient {
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
                 throw new ValidationException("access token is invalid");
             }
-            mapper = new ObjectMapper();
+            mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             return mapper.readValue(result.toString(), SSSLivingdocsResponseDto.class);
         } catch (ValidationException ve) {
             throw ve;

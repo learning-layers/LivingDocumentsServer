@@ -1,5 +1,7 @@
 package de.hska.ld.oidc.client;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.oidc.dto.OIDCUserinfoDto;
 import org.apache.http.HttpResponse;
@@ -12,7 +14,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -75,7 +76,7 @@ public class OIDCIdentityProviderClient {
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
                 throw new ValidationException("access token is invalid");
             }
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             return mapper.readValue(result.toString(), OIDCUserinfoDto.class);
         } catch (ValidationException ve) {
             throw ve;
