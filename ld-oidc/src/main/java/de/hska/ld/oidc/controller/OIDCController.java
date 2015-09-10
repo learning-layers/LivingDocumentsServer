@@ -134,6 +134,7 @@ public class OIDCController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document")
+    @Transactional(readOnly = false, rollbackFor = RuntimeException.class)
     public Document createDocument(HttpServletRequest request,
                                    @RequestBody Document document,
                                    @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer,
@@ -160,7 +161,6 @@ public class OIDCController {
         try {
             sssAuthDto = sssClient.authenticate(token.getAccessTokenValue());
         } catch (UserNotAuthorizedException e) {
-            // TODO delete the document when an error happens
             request.logout();
             e.printStackTrace();
             throw new UnauthorizedClientException("oidc token invalid");
