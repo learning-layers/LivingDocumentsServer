@@ -14,6 +14,7 @@ import org.mitre.openid.connect.config.ServerConfiguration;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -25,56 +26,36 @@ import java.util.*;
 @Component
 @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
 public class ODICCoreConfig {
-    public static String CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS = null;
-    public static String SERVER_ENDPOINT_EXTERNAL = null;
-    public static String OPENID_CONNECT_IDENTITY_PROVIDER = null;
-
-    public static String SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN = null;
-    public static String SIMPLE_WEB_APP_JWK = null;
-    public static String ACCOUNT_CHOOSER = null;
-    public static String CLIENT_ID = null;
-    public static String CLIENT_SECRET = null;
-    public static String OIDC_APPLICATION_NAME = null;
-
-    static {
-        CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS = System.getenv("LDS_CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS");
-        SERVER_ENDPOINT_EXTERNAL = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
-        OPENID_CONNECT_IDENTITY_PROVIDER = System.getenv("LDS_OPENID_CONNECT_IDENTITY_PROVIDER");
-
-        SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN = SERVER_ENDPOINT_EXTERNAL + "/simple-web-app/openid_connect_login";
-        SIMPLE_WEB_APP_JWK = SERVER_ENDPOINT_EXTERNAL + "/simple-web-app/jwk";
-        ACCOUNT_CHOOSER = SERVER_ENDPOINT_EXTERNAL + "/account-chooser/";
-        CLIENT_ID = System.getenv("LDS_OIDC_CLIENT_ID");
-        CLIENT_SECRET = System.getenv("LDS_OIDC_CLIENT_SECRET");
-        OIDC_APPLICATION_NAME = System.getenv("LDS_APPLICATION_NAME");
-    }
+    public static String SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN = "/simple-web-app/openid_connect_login";
+    public static String SIMPLE_WEB_APP_JWK = "/simple-web-app/jwk";
+    public static String ACCOUNT_CHOOSER = "/account-chooser/";
 
     @Bean
-    public StaticServerConfigurationService staticServerConfigurationService() {
+    public StaticServerConfigurationService staticServerConfigurationService(Environment env) {
         StaticServerConfigurationService staticServerConfigurationService = new StaticServerConfigurationService();
         Map<String, ServerConfiguration> serverConfigs = new HashMap<>();
         ServerConfiguration serverConfig = new ServerConfiguration();
-        serverConfig.setIssuer(OPENID_CONNECT_IDENTITY_PROVIDER);
-        serverConfig.setAuthorizationEndpointUri(OPENID_CONNECT_IDENTITY_PROVIDER + "authorize");
-        serverConfig.setTokenEndpointUri(OPENID_CONNECT_IDENTITY_PROVIDER + "token");
-        serverConfig.setUserInfoUri(OPENID_CONNECT_IDENTITY_PROVIDER + "userinfo");
-        serverConfig.setJwksUri(OPENID_CONNECT_IDENTITY_PROVIDER + "jwk");
-        serverConfigs.put(OPENID_CONNECT_IDENTITY_PROVIDER, serverConfig);
+        serverConfig.setIssuer(env.getProperty("module.core.oidc.identity.provider.url"));
+        serverConfig.setAuthorizationEndpointUri(env.getProperty("module.core.oidc.identity.provider.url") + "authorize");
+        serverConfig.setTokenEndpointUri(env.getProperty("module.core.oidc.identity.provider.url") + "token");
+        serverConfig.setUserInfoUri(env.getProperty("module.core.oidc.identity.provider.url") + "userinfo");
+        serverConfig.setJwksUri(env.getProperty("module.core.oidc.identity.provider.url") + "jwk");
+        serverConfigs.put(env.getProperty("module.core.oidc.identity.provider.url"), serverConfig);
         staticServerConfigurationService.setServers(serverConfigs);
         return staticServerConfigurationService;
     }
 
     @Bean
-    public HybridServerConfigurationService hybridServerConfigurationService() {
+    public HybridServerConfigurationService hybridServerConfigurationService(Environment env) {
         HybridServerConfigurationService hybridServerConfigurationService = new HybridServerConfigurationService();
         Map<String, ServerConfiguration> serverConfigs = new HashMap<>();
         ServerConfiguration serverConfig = new ServerConfiguration();
-        serverConfig.setIssuer(OPENID_CONNECT_IDENTITY_PROVIDER);
-        serverConfig.setAuthorizationEndpointUri(OPENID_CONNECT_IDENTITY_PROVIDER + "authorize");
-        serverConfig.setTokenEndpointUri(OPENID_CONNECT_IDENTITY_PROVIDER + "token");
-        serverConfig.setUserInfoUri(OPENID_CONNECT_IDENTITY_PROVIDER + "userinfo");
-        serverConfig.setJwksUri(OPENID_CONNECT_IDENTITY_PROVIDER + "jwk");
-        serverConfigs.put(OPENID_CONNECT_IDENTITY_PROVIDER, serverConfig);
+        serverConfig.setIssuer(env.getProperty("module.core.oidc.identity.provider.url"));
+        serverConfig.setAuthorizationEndpointUri(env.getProperty("module.core.oidc.identity.provider.url") + "authorize");
+        serverConfig.setTokenEndpointUri(env.getProperty("module.core.oidc.identity.provider.url") + "token");
+        serverConfig.setUserInfoUri(env.getProperty("module.core.oidc.identity.provider.url") + "userinfo");
+        serverConfig.setJwksUri(env.getProperty("module.core.oidc.identity.provider.url") + "jwk");
+        serverConfigs.put(env.getProperty("module.core.oidc.identity.provider.url"), serverConfig);
         hybridServerConfigurationService.setServers(serverConfigs);
         return hybridServerConfigurationService;
     }
@@ -92,7 +73,7 @@ public class ODICCoreConfig {
     }
 
     @Bean
-    public DynamicRegistrationClientConfigurationService dynamicClientConfigurationService() {
+    public DynamicRegistrationClientConfigurationService dynamicClientConfigurationService(Environment env) {
         DynamicRegistrationClientConfigurationService dynamicRegistrationClientConfigurationService = new DynamicRegistrationClientConfigurationService();
 
         Set<String> scope = new HashSet<>();
@@ -103,15 +84,15 @@ public class ODICCoreConfig {
         scope.add("phone");
 
         Set<String> redirectUris = new HashSet<>();
-        redirectUris.add(SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN);
+        redirectUris.add(env.getProperty("module.core.oidc.server.endpoint.external.url") + SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN);
 
         RegisteredClient client = new RegisteredClient();
-        client.setClientName(OIDC_APPLICATION_NAME);
+        client.setClientName(env.getProperty("module.core.oidc.client.name"));
         client.setScope(scope);
         client.setTokenEndpointAuthMethod(ClientDetailsEntity.AuthMethod.SECRET_BASIC);
         client.setRedirectUris(redirectUris);
         client.setRequestObjectSigningAlg(JWSAlgorithm.RS256);
-        client.setJwksUri(SIMPLE_WEB_APP_JWK);
+        client.setJwksUri(env.getProperty("module.core.oidc.server.endpoint.external.url") + SIMPLE_WEB_APP_JWK);
 
         dynamicRegistrationClientConfigurationService.setTemplate(client);
 
@@ -119,7 +100,7 @@ public class ODICCoreConfig {
     }
 
     @Bean
-    public StaticClientConfigurationService staticClientConfigurationService() {
+    public StaticClientConfigurationService staticClientConfigurationService(Environment env) {
         StaticClientConfigurationService staticClientConfigurationService = new StaticClientConfigurationService();
 
         Map<String, RegisteredClient> clientMap = new HashMap<>();
@@ -132,16 +113,16 @@ public class ODICCoreConfig {
         scope.add("phone");
 
         Set<String> redirectUris = new HashSet<>();
-        redirectUris.add(SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN);
+        redirectUris.add(env.getProperty("module.core.oidc.server.endpoint.external.url") + SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN);
 
         RegisteredClient client = new RegisteredClient();
-        client.setClientId(CLIENT_ID);
-        client.setClientSecret(CLIENT_SECRET);
+        client.setClientId(env.getProperty("module.core.oidc.client.id"));
+        client.setClientSecret(env.getProperty("module.core.oidc.client.secret"));
         client.setScope(scope);
         client.setTokenEndpointAuthMethod(ClientDetailsEntity.AuthMethod.SECRET_BASIC);
         client.setRedirectUris(redirectUris);
 
-        clientMap.put(OPENID_CONNECT_IDENTITY_PROVIDER, client);
+        clientMap.put(env.getProperty("module.core.oidc.identity.provider.url"), client);
 
         staticClientConfigurationService.setClients(clientMap);
 
@@ -149,7 +130,7 @@ public class ODICCoreConfig {
     }
 
     @Bean
-    public HybridClientConfigurationService hybridClientConfigurationService() {
+    public HybridClientConfigurationService hybridClientConfigurationService(Environment env) {
         HybridClientConfigurationService hybridClientConfigurationService = new HybridClientConfigurationService();
 
         Map<String, RegisteredClient> clientMap = new IdentityHashMap<>();
@@ -162,16 +143,16 @@ public class ODICCoreConfig {
         scope.add("phone");
 
         Set<String> redirectUris = new HashSet<>();
-        redirectUris.add(SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN);
+        redirectUris.add(env.getProperty("module.core.oidc.server.endpoint.external.url") + SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN);
 
         RegisteredClient client = new RegisteredClient();
-        client.setClientId(CLIENT_ID);
-        client.setClientSecret(CLIENT_SECRET);
+        client.setClientId(env.getProperty("module.core.oidc.client.id"));
+        client.setClientSecret(env.getProperty("module.core.oidc.client.secret"));
         client.setScope(scope);
         client.setTokenEndpointAuthMethod(ClientDetailsEntity.AuthMethod.SECRET_BASIC);
         client.setRedirectUris(redirectUris);
 
-        clientMap.put(OPENID_CONNECT_IDENTITY_PROVIDER, client);
+        clientMap.put(env.getProperty("module.core.oidc.identity.provider.url"), client);
 
         hybridClientConfigurationService.setClients(clientMap);
 
@@ -183,10 +164,10 @@ public class ODICCoreConfig {
         scope2.add("phone");
 
         Set<String> redirectUris2 = new HashSet<>();
-        redirectUris2.add(SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN);
+        redirectUris2.add(env.getProperty("module.core.oidc.server.endpoint.external.url") + SIMPLE_WEB_APP_OPENID_CONNECT_LOGIN);
 
         RegisteredClient client2 = new RegisteredClient();
-        client2.setClientName(OIDC_APPLICATION_NAME);
+        client2.setClientName(env.getProperty("module.core.oidc.client.name"));
         client2.setScope(scope2);
         client2.setTokenEndpointAuthMethod(ClientDetailsEntity.AuthMethod.SECRET_BASIC);
         client2.setRedirectUris(redirectUris2);
@@ -210,9 +191,9 @@ public class ODICCoreConfig {
     }
 
     @Bean
-    public StaticSingleIssuerService staticIssuerService() {
+    public StaticSingleIssuerService staticIssuerService(Environment env) {
         StaticSingleIssuerService staticSingleIssuerService = new StaticSingleIssuerService();
-        staticSingleIssuerService.setIssuer(OPENID_CONNECT_IDENTITY_PROVIDER);
+        staticSingleIssuerService.setIssuer(env.getProperty("module.core.oidc.identity.provider.url"));
         return staticSingleIssuerService;
     }
 
@@ -224,9 +205,9 @@ public class ODICCoreConfig {
     }
 
     @Bean
-    public ThirdPartyIssuerService thirdPartyIssuerService() {
+    public ThirdPartyIssuerService thirdPartyIssuerService(Environment env) {
         ThirdPartyIssuerService thirdPartyIssuerService = new ThirdPartyIssuerService();
-        thirdPartyIssuerService.setAccountChooserUrl(ACCOUNT_CHOOSER);
+        thirdPartyIssuerService.setAccountChooserUrl(env.getProperty("module.core.oidc.server.endpoint.external.url") + ACCOUNT_CHOOSER);
         return thirdPartyIssuerService;
     }
 

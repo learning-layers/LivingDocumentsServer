@@ -18,6 +18,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -89,9 +90,11 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
     private RoleService roleService;
 
     @Autowired
+    private Environment env;
+
+    @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth
-                .userDetailsService(userService)
+        auth.userDetailsService(userService)
                 .passwordEncoder(passwordEncoder());
     }
 
@@ -102,7 +105,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
         oidcFilter.setAuthenticationSuccessHandler(new AuthenticationSuccessHandler() {
             @Override
             public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                response.sendRedirect(ODICCoreConfig.CLIENT_REDIRECT_AFTER_LOGIN_SUCCESS);
+                response.sendRedirect(env.getProperty("module.core.oidc.redirect.to.client"));
             }
         });
         oidcFilter.setApplicationEventPublisher(new ApplicationEventPublisher() {
@@ -132,7 +135,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         Map.Entry<String, String> entry = (Map.Entry<String, String>) iterator.next();
                         if ("iss".equals(entry.getKey())) {
                             issuer = entry.getValue();
-                            if (!ODICCoreConfig.OPENID_CONNECT_IDENTITY_PROVIDER.equals(issuer)) {
+                            if (!env.getProperty("module.core.oidc.identity.provider.url").equals(issuer)) {
                                 throw new UnsupportedOperationException("Wrong or no issuer found!");
                             }
                         }
