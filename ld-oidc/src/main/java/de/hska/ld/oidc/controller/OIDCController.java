@@ -23,6 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -140,6 +141,11 @@ public class OIDCController {
                                    @RequestParam(required = false) String discussionId) throws IOException, ServletException {
         if (Authorization != null) {
             _authenticate(request, issuer, Authorization);
+        } else {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (!auth.isAuthenticated()) {
+                throw new UnauthorizedClientException("not authenticated");
+            }
         }
 
         // 3. Create the document in the database
@@ -157,7 +163,7 @@ public class OIDCController {
             // TODO delete the document when an error happens
             request.logout();
             e.printStackTrace();
-            throw e;
+            throw new UnauthorizedClientException("oidc token invalid");
         }
 
         // 4.2 Create the according SSSLivingdocs entity
