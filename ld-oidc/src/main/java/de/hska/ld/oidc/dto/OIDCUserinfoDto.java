@@ -15,6 +15,7 @@ public class OIDCUserinfoDto {
     @JsonProperty("updated_time")
     String updatedTime;
     String email;
+    String picture;
     @JsonProperty("email_verified")
     boolean emailVerified;
 
@@ -82,6 +83,12 @@ public class OIDCUserinfoDto {
         this.emailVerified = emailVerified;
     }
 
+    public String getPicture() {
+        return picture;
+    }
 
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
 }
 
