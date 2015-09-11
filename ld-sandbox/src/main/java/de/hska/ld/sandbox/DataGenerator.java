@@ -46,19 +46,17 @@ import java.util.List;
 public class DataGenerator {
 
     @Autowired
-    private Environment env;
-
-    @Autowired
     @Transactional
     public void init(DocumentService documentService, UserService userService, RoleService roleService, Environment env) {
-        String sandboxUsersConcatString = null;
-        try {
-            sandboxUsersConcatString = env.getProperty("module.sandbox.users");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        createSandboxUsers(userService, roleService, sandboxUsersConcatString);
         if (false) {
+            String sandboxUsersConcatString = null;
+            try {
+                sandboxUsersConcatString = env.getProperty("module.sandbox.users");
+                createSandboxUsers(userService, roleService, sandboxUsersConcatString);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             // TODO Martin
             String ddl = env.getProperty("module.core.db.ddl");
             if ("create".equals(ddl) || "create-drop".equals(ddl)) {

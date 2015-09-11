@@ -43,7 +43,7 @@ public class CrossOriginFilter implements Filter {
             response.setHeader("Access-Control-Allow-Origin", origin);
             response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT");
             response.setHeader("Access-Control-Max-Age", "3600");
-            response.setHeader("Access-Control-Allow-Headers", "x-requested-with, Content-Type");
+            response.setHeader("Access-Control-Allow-Headers", "x-requested-with, Content-Type, Authorization");
         }
         try {
             chain.doFilter(req, res);

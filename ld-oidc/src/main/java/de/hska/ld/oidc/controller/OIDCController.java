@@ -140,14 +140,14 @@ public class OIDCController {
                                    @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer,
                                    @RequestHeader(required = false) String Authorization,
                                    @RequestParam(required = false) String discussionId) throws IOException, ServletException {
-        if (Authorization != null) {
+        //if (Authorization != null) {
             _authenticate(request, issuer, Authorization);
-        } else {
+        /*} else {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (!auth.isAuthenticated()) {
                 throw new UnauthorizedClientException("not authenticated");
             }
-        }
+        }*/
 
         // 3. Create the document in the database
         Document newDocument = documentService.save(document);
@@ -156,7 +156,9 @@ public class OIDCController {
         // 4.1 Authenticate with the SSS
         // SSS auth Endpoint: http://test-ll.know-center.tugraz.at/layers.test/auth/auth/
         SSSClient sssClient = new SSSClient();
-        OIDCAuthenticationToken token = (OIDCAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        //if (auth instanceof AnonymousAuthenticationToken) {
+        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
         SSSAuthDto sssAuthDto = null;
         try {
             sssAuthDto = sssClient.authenticate(token.getAccessTokenValue());
@@ -167,12 +169,15 @@ public class OIDCController {
         }
 
         // 4.2 Create the according SSSLivingdocs entity
-        SSSLivingdocsResponseDto sssLivingdocsResponseDto = sssClient.createDocument(token.getAccessTokenValue());
+        SSSLivingdocsResponseDto sssLivingdocsResponseDto = sssClient.createDocument(document, discussionId, token.getAccessTokenValue());
 
         // 4.3 Retrieve the list of email addresses that have access to the livingdocument in the SSS
         // TODO retrieve email addresses
 
         return newDocument;
+        /*} else {
+            throw new UnauthorizedClientException("anonymous user session");
+        }*/
     }
 
     private OIDCUserinfoDto authenticateTowardsOIDCIdentityProvider(String issuer, String oidcToken) throws ValidationException, IOException {

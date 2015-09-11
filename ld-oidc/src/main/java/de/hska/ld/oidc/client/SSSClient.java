@@ -2,6 +2,7 @@ package de.hska.ld.oidc.client;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.oidc.dto.SSSAuthDto;
@@ -18,8 +19,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
@@ -33,8 +32,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 public class SSSClient {
-    @Autowired
-    private Environment env;
 
     @PostConstruct
     public void postConstruct() {
@@ -118,7 +115,7 @@ public class SSSClient {
 
     }
 
-    public SSSLivingdocsResponseDto createDocument(String accessToken) throws IOException {
+    public SSSLivingdocsResponseDto createDocument(Document document, String discussionId, String accessToken) throws IOException {
         // TODO enable https
         String url = "http://test-ll.know-center.tugraz.at/layers.test/livingdocs/livingdocs/";
 
@@ -134,10 +131,13 @@ public class SSSClient {
 
         ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         SSSLivingdocsRequestDto sssLivingdocsRequestDto = new SSSLivingdocsRequestDto();
-        sssLivingdocsRequestDto.setUri("https://localhost:9000/document/3");
-        sssLivingdocsRequestDto.setDescription("description2");
-        //sssLivingdocsRequestDto.setDiscussion();
-        //sssLivingdocsRequestDto.setLabel();
+        String externalServerAddress = "http://178.62.62.23:9000"; //env.getProperty("module.core.oidc.server.endpoint.external.url");
+        sssLivingdocsRequestDto.setUri(externalServerAddress + "/document/" + document.getId());
+        sssLivingdocsRequestDto.setDescription("description of document with id=" + document.getId());
+        if (discussionId != null) {
+            sssLivingdocsRequestDto.setDiscussion(discussionId);
+        }
+        sssLivingdocsRequestDto.setLabel(document.getTitle());
         String sssLivingdocsRequestDtoString = mapper.writeValueAsString(sssLivingdocsRequestDto);
         StringEntity stringEntity = new StringEntity(sssLivingdocsRequestDtoString, ContentType.create("application/json", "UTF-8"));
         post.setEntity(stringEntity);
