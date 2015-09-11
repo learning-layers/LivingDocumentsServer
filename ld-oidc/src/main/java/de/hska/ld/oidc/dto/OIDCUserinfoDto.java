@@ -1,21 +1,29 @@
 package de.hska.ld.oidc.dto;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class OIDCUserinfoDto {
     // {"sub":"","name":"","preferred_username":"","given_name":"","family_name":"","updated_time":"20150821_103013","email":"","email_verified":true}
     String sub;
+
     String name;
+
     @JsonProperty("preferred_username")
     String preferredUsername;
+
     @JsonProperty("given_name")
     String givenName;
+
     @JsonProperty("family_name")
     String familyName;
+
     @JsonProperty("updated_time")
     String updatedTime;
+
     String email;
+
     String picture;
+
     @JsonProperty("email_verified")
     boolean emailVerified;
 
