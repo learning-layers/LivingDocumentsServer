@@ -235,6 +235,11 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 }
             }
 
+            @Override
+            public void publishEvent(Object event) {
+                throw new RuntimeException("Publish event call failed not implemented yet.");
+            }
+
             private void enrichAuthoritiesWithStoredAuthorities(User currentUserInDb, Authentication auth) {
                 Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
                 final SubjectIssuerGrantedAuthority[] oidcAuthority = new SubjectIssuerGrantedAuthority[1];
