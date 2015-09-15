@@ -11,6 +11,7 @@ import springfox.documentation.swagger.web.UiConfiguration;
 
 import static springfox.documentation.builders.PathSelectors.regex;
 
+//TODO: is there a possibility to turn off swagger in production?
 @Configuration
 public class SwaggerConfig {
     @Bean
