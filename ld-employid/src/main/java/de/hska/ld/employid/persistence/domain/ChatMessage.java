@@ -1,12 +1,11 @@
 package de.hska.ld.employid.persistence.domain;
 
 import de.hska.ld.core.persistence.domain.User;
-import de.hska.ld.employid.util.Employid;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatMessage extends Content{
+public class ChatMessage extends ContentEID {
 
     private String message;
 

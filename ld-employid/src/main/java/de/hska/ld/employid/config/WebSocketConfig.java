@@ -14,7 +14,7 @@ import org.springframework.web.socket.config.annotation.WebSocketTransportRegist
 import java.util.List;
 
 @Configuration
-@EnableWebSocketMessageBroker
+//@EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
 
     @Override

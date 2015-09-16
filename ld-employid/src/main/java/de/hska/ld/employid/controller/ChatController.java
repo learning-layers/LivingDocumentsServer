@@ -19,8 +19,8 @@ import java.util.concurrent.Callable;
 @Controller
 public class ChatController {
 
-    @Autowired
-    private ChatService chatService;
+    /*@Autowired
+    private ChatService chatService;*/
 
     /*@Secured(Core.ROLE_USER)
     @MessageMapping("/meeting/{meetingId}/message")

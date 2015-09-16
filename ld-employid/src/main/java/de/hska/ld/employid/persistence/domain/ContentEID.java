@@ -1,7 +1,6 @@
 package de.hska.ld.employid.persistence.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 
@@ -12,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public abstract class Content {
+public abstract class ContentEID {
 
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE)
@@ -40,11 +39,11 @@ public abstract class Content {
     @Column(name = "deleted", nullable = false)
     private boolean deleted;
 
-    @OneToMany(cascade = CascadeType.ALL)
+   /* @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ld_content_access",
             joinColumns = {@JoinColumn(name = "content_id")},
             inverseJoinColumns = {@JoinColumn(name = "access_id")})
-    private List<Access> accessList;
+    private List<Access> accessList;*/
 
     public Long getId() {
         return id;
@@ -87,7 +86,7 @@ public abstract class Content {
         this.deleted = deleted;
     }
 
-    public List<Access> getAccessList() {
+    /*public List<Access> getAccessList() {
         if (accessList == null) {
             accessList = new ArrayList<>();
         }
@@ -96,7 +95,7 @@ public abstract class Content {
 
     public void setAccessList(List<Access> accessList) {
         this.accessList = accessList;
-    }
+    }*/
 
     public boolean isAccessAll() {
         return accessAll;
@@ -128,7 +127,7 @@ public abstract class Content {
             return false;
         }
 
-        Content content = (Content) o;
+        ContentEID content = (ContentEID) o;
 
         return !(id != null ? !id.equals(content.id) : content.id != null);
     }
@@ -140,7 +139,7 @@ public abstract class Content {
 
     @Override
     public String toString() {
-        return "Content{" +
+        return "ContentEID{" +
                 "id=" + id +
                 ", version=" + version +
                 ", createdAt=" + createdAt +

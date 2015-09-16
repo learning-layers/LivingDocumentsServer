@@ -1,6 +1,5 @@
 package de.hska.ld.employid.persistence.domain;
 
-import de.hska.ld.employid.util.Employid;
 import org.hibernate.search.annotations.*;
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -11,7 +10,7 @@ import javax.persistence.Table;
 @Entity
 @Indexed
 @Table(name = "eid_meeting")
-public class Meeting extends Content {
+public class Meeting extends ContentEID {
 
     @NotBlank
     @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO)
