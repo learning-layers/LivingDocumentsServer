@@ -1,4 +1,4 @@
-package de.hska.ld.content.config.message;
+/*package de.hska.ld.content.config.message;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,4 +49,4 @@ public class MessageConfig extends AbstractWebSocketMessageBrokerConfigurer {
     public MessageAuthenticationInterceptor messageAuthenticationInterceptor() {
         return new MessageAuthenticationInterceptor();
     }
-}
+}*/
