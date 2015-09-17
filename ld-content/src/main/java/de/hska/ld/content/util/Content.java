@@ -29,4 +29,5 @@ public class Content {
     public static final String RESOURCE_TAG = Core.RESOURCE_API + "/tags";
     public static final String RESOURCE_COMMENT = Core.RESOURCE_API + "/comments";
     public static final String RESOURCE_FOLDER = Core.RESOURCE_API + "/folders";
+    public static final String RESOURCE_USER = Core.RESOURCE_API + "/users";
 }
