@@ -64,12 +64,15 @@ public class User implements UserDetails {
     private String email;
 
     @Column(name = "subId", nullable = true)
+    @JsonIgnore
     private String subId;
 
     @Column(name = "issuer", nullable = true)
+    @JsonIgnore
     private String issuer;
 
     @Email
+    @JsonIgnore
     private String emailToBeConfirmed;
 
     @Column(name = "password", nullable = false)
