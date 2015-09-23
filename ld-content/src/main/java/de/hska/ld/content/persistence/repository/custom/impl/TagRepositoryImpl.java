@@ -31,11 +31,12 @@ public class TagRepositoryImpl implements TagRepositoryCustom {
         // or the Lucene programmatic API. The Hibernate Search DSL is recommended though
         QueryBuilder searchQb = fullTextEntityManager.getSearchFactory().buildQueryBuilder().forEntity(Tag.class).get();
         org.apache.lucene.search.Query luceneQuery = searchQb
-                .phrase()
+                .keyword()
+                .fuzzy()
+                .withEditDistanceUpTo(2)
+                .withPrefixLength(1)
                 .onField("name").andField("description")
-                        //.onFields("title", "description")
-                .sentence(searchTerm)
-                        //.matching(searchTerm)
+                .matching(searchTerm)
                 .createQuery();
 
         /*org.apache.lucene.search.Query luceneQuery = searchQb.keyword()
