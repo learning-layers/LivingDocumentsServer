@@ -59,7 +59,7 @@ public class PersistenceConfig {
     @Autowired
     private void init() {
         String ddl = env.getProperty("module.core.db.ddl");
-        if (ddl != null && ddl.contains("update")) {
+        if (ddl != null && ddl.contains("create-drop")) {
             try {
                 FileUtils.deleteDirectory(new File(env.getProperty("module.core.search.location")));
             } catch (IOException e) {
