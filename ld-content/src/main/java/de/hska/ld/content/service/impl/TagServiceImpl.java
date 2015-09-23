@@ -76,7 +76,7 @@ public class TagServiceImpl extends AbstractContentService<Tag> implements TagSe
             direction = Sort.Direction.DESC;
         }
         Pageable pageable = new PageRequest(pageNumber, 1, direction, sortProperty);
-        Page<Tag> tagsPage = repository.findByNamePagable(tagName, pageable);
+        Page<Tag> tagsPage = repositoryCustom.searchTagByNameOrDescription(tagName, pageable);
         long totalElements = tagsPage.getTotalElements();
         int totalElementsInt = (int) totalElements;
         if (totalElements == 0) {
