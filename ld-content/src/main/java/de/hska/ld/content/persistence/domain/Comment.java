@@ -46,7 +46,7 @@ public class Comment extends Content {
     @Column(name = "text", nullable = false, columnDefinition = "TEXT")
     private String text;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Fetch(value = FetchMode.SUBSELECT)
     @JoinTable(name = "ld_comment_like_user",
             joinColumns = {@JoinColumn(name = "comment_id")},

@@ -66,21 +66,21 @@ public abstract class Content {
     @Column(name = "deleted", nullable = false)
     private boolean deleted;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @Fetch(value = FetchMode.SUBSELECT)
     @JoinTable(name = "ld_content_tag",
             joinColumns = {@JoinColumn(name = "content_id")},
             inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private List<Tag> tagList;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL)
     @Fetch(value = FetchMode.SUBSELECT)
     @JoinTable(name = "ld_content_access",
             joinColumns = {@JoinColumn(name = "content_id")},
             inverseJoinColumns = {@JoinColumn(name = "access_id")})
     private List<Access> accessList;
 
-    @OneToMany(cascade = CascadeType.PERSIST, mappedBy = "parent", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.PERSIST, mappedBy = "parent")
     @Fetch(value = FetchMode.SUBSELECT)
     private List<Comment> commentList;
 
