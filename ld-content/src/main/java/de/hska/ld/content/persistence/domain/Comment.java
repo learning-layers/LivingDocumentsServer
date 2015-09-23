@@ -25,6 +25,8 @@ package de.hska.ld.content.persistence.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.hska.ld.core.persistence.domain.User;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
@@ -45,6 +47,7 @@ public class Comment extends Content {
     private String text;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
     @JoinTable(name = "ld_comment_like_user",
             joinColumns = {@JoinColumn(name = "comment_id")},
             inverseJoinColumns = {@JoinColumn(name = "user_id")})

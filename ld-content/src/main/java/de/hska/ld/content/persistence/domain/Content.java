@@ -26,6 +26,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.search.annotations.DocumentId;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -37,6 +40,7 @@ import java.util.List;
 public abstract class Content {
 
     @Id
+    @DocumentId
     @GeneratedValue(strategy = GenerationType.TABLE)
     @Column(name = "id")
     private Long id;
@@ -62,19 +66,22 @@ public abstract class Content {
     @Column(name = "deleted", nullable = false)
     private boolean deleted;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
     @JoinTable(name = "ld_content_tag",
             joinColumns = {@JoinColumn(name = "content_id")},
             inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private List<Tag> tagList;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
     @JoinTable(name = "ld_content_access",
             joinColumns = {@JoinColumn(name = "content_id")},
             inverseJoinColumns = {@JoinColumn(name = "access_id")})
     private List<Access> accessList;
 
-    @OneToMany(cascade = CascadeType.PERSIST, mappedBy = "parent")
+    @OneToMany(cascade = CascadeType.PERSIST, mappedBy = "parent", fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
     private List<Comment> commentList;
 
     public Long getId() {

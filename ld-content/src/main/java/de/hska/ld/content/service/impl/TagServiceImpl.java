@@ -24,6 +24,7 @@ package de.hska.ld.content.service.impl;
 
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.persistence.repository.TagRepository;
+import de.hska.ld.content.persistence.repository.custom.TagRepositoryCustom;
 import de.hska.ld.content.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -37,6 +38,9 @@ public class TagServiceImpl extends AbstractContentService<Tag> implements TagSe
 
     @Autowired
     private TagRepository repository;
+
+    @Autowired
+    private TagRepositoryCustom repositoryCustom;
 
     @Override
     public Page<Tag> getTagsPage(Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
@@ -76,10 +80,10 @@ public class TagServiceImpl extends AbstractContentService<Tag> implements TagSe
         long totalElements = tagsPage.getTotalElements();
         int totalElementsInt = (int) totalElements;
         if (totalElements == 0) {
-            return repository.findByNamePagable(tagName, pageable);
+            return repositoryCustom.searchTagByNameOrDescription(tagName, pageable);
         } else {
             Pageable pageable2 = new PageRequest(pageNumber, totalElementsInt, direction, sortProperty);
-            return repository.findByNamePagable(tagName, pageable2);
+            return repositoryCustom.searchTagByNameOrDescription(tagName, pageable2);
         }
     }
 

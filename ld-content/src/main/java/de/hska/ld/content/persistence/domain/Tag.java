@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.persistence.domain;
 
+import org.hibernate.search.annotations.*;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.Column;
@@ -29,13 +30,16 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @Entity
+@Indexed
 @Table(name = "ld_tag")
 public class Tag extends Content {
 
     @NotBlank
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO)
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO)
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
