@@ -64,6 +64,26 @@ public class TagServiceImpl extends AbstractContentService<Tag> implements TagSe
     }
 
     @Override
+    public Page<Tag> getFindByTagNameTagsPage(String tagName, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty) {
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, 1, direction, sortProperty);
+        Page<Tag> tagsPage = repository.findByNamePagable(tagName, pageable);
+        long totalElements = tagsPage.getTotalElements();
+        int totalElementsInt = (int) totalElements;
+        if (totalElements == 0) {
+            return repository.findByNamePagable(tagName, pageable);
+        } else {
+            Pageable pageable2 = new PageRequest(pageNumber, totalElementsInt, direction, sortProperty);
+            return repository.findByNamePagable(tagName, pageable2);
+        }
+    }
+
+    @Override
     public TagRepository getRepository() {
         return repository;
     }

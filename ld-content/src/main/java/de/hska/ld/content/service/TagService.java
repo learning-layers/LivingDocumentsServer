@@ -33,4 +33,6 @@ public interface TagService extends Service<Tag> {
     Tag updateTag(Long tagId, Tag tag);
 
     Tag findByName(String tagName);
+
+    Page<Tag> getFindByTagNameTagsPage(String tagName, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
 }

@@ -165,4 +165,21 @@ public class TagController {
             }
         };
     }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/name/{tagName}/list")
+    public Callable getTagsPage(@PathVariable String tagName,
+                                @RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        return () -> {
+            Page<Tag> tagsPage = tagService.getFindByTagNameTagsPage(tagName, pageNumber, pageSize, sortDirection, sortProperty);
+            if (tagsPage != null) {
+                return new ResponseEntity<>(tagsPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
+    }
 }
