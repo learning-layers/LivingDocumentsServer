@@ -35,11 +35,13 @@ import javax.persistence.Table;
 public class Tag extends Content {
 
     @NotBlank
-    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO)
+    @Field(index = Index.YES, analyze = Analyze.NO, store = Store.NO)
+
     @Column(name = "name", nullable = false)
     private String name;
 
     @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO)
+    @Boost(0.8f)
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 

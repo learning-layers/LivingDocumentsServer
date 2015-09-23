@@ -26,7 +26,7 @@ public class TagRepositoryImpl implements TagRepositoryCustom {
         FullTextEntityManager fullTextEntityManager =
                 org.hibernate.search.jpa.Search.getFullTextEntityManager(em);
 
-        // create native Lucene query unsing the query DSL
+        // create native Lucene query using the query DSL
         // alternatively you can write the Lucene query using the Lucene query parser
         // or the Lucene programmatic API. The Hibernate Search DSL is recommended though
         QueryBuilder searchQb = fullTextEntityManager.getSearchFactory().buildQueryBuilder().forEntity(Tag.class).get();
@@ -39,12 +39,9 @@ public class TagRepositoryImpl implements TagRepositoryCustom {
                 .matching(searchTerm)
                 .createQuery();
 
-        /*org.apache.lucene.search.Query luceneQuery = searchQb.keyword()
-                .onFields("name")
-                .matching(searchTerm).createQuery();*/
-
         // wrap Lucene query in a javax.persistence.Query
         javax.persistence.Query jpaQuery = fullTextEntityManager.createFullTextQuery(luceneQuery, Tag.class);
+        //.setProjection(ProjectionConstants.THIS, ProjectionConstants.SCORE); -> when needed to check the similarity
 
         long total = jpaQuery.getResultList().size();
 
