@@ -29,4 +29,7 @@ public interface FolderRepository extends CrudRepository<Folder, Long> {
 
     @Query("SELECT dl FROM Folder f INNER JOIN f.documentList dl WHERE f.id = :folderId")
     Page<Document> getSubDocumentsPage(@Param("folderId") Long folderId, Pageable pageable);
+
+    @Query("SELECT f FROM Folder f WHERE f.parent is null AND f.creator.id = :userId")
+    Page<Folder> getFoldersPage(@Param("userId") Long userId, Pageable pageable);
 }

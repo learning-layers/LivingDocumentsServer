@@ -15,12 +15,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 @RestController
 @RequestMapping(Content.RESOURCE_FOLDER)
@@ -237,6 +239,23 @@ public class FolderController {
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET)
+    @Transactional(readOnly = true)
+    public Callable getFoldersPage(@RequestParam(value = "page-number", defaultValue = "0") Integer pageNumber,
+                                   @RequestParam(value = "page-size", defaultValue = "10") Integer pageSize,
+                                   @RequestParam(value = "sort-direction", defaultValue = "DESC") String sortDirection,
+                                   @RequestParam(value = "sort-property", defaultValue = "createdAt") String sortProperty) {
+        return () -> {
+            Page<Folder> foldersPage = folderService.getFoldersPage(pageNumber, pageSize, sortDirection, sortProperty);
+            if (foldersPage != null) {
+                return new ResponseEntity<>(foldersPage, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        };
     }
 
     //TODO description

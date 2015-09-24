@@ -469,6 +469,19 @@ public class FolderServiceImpl extends AbstractContentService<Folder> implements
                 || isPredecessorOf(folderId, folderToCheck.getParent().getId()));
     }
 
+    @Override
+    public Page<Folder> getFoldersPage(int pageNumber, int pageSize, String sortDirection, String sortProperty) {
+        Sort.Direction direction;
+        if (Sort.Direction.ASC.toString().equals(sortDirection)) {
+            direction = Sort.Direction.ASC;
+        } else {
+            direction = Sort.Direction.DESC;
+        }
+        Pageable pageable = new PageRequest(pageNumber, pageSize, direction, sortProperty);
+        User user = Core.currentUser();
+        return repository.getFoldersPage(user.getId(), pageable);
+    }
+
     public Folder shareSubFolder(Long folderId, List<User> userList, Access.Permission... permission) {
         Folder folder = findById(folderId);
         if (checkPermissionResult(folder, Access.Permission.WRITE)) {
