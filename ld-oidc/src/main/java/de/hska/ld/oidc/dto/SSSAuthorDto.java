@@ -1,8 +1,20 @@
 package de.hska.ld.oidc.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class SSSAuthorDto extends SSSEntityDto {
     String description;
     String email;
+
+    @JsonIgnore
+    public SSSAuthorDto getAuthor() {
+        return author;
+    }
+
+    @JsonIgnore
+    public void setAuthor(SSSAuthorDto author) {
+        this.author = author;
+    }
 
     public String getDescription() {
         return description;

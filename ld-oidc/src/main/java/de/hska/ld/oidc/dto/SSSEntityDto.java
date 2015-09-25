@@ -5,6 +5,7 @@ public class SSSEntityDto {
     String label;
     String creationTime;
     String type;
+    SSSAuthorDto author;
 
     public String getId() {
         return id;
@@ -36,5 +37,13 @@ public class SSSEntityDto {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public SSSAuthorDto getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(SSSAuthorDto author) {
+        this.author = author;
     }
 }

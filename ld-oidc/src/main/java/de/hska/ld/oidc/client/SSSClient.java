@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
-import de.hska.ld.oidc.dto.SSSAuthDto;
-import de.hska.ld.oidc.dto.SSSDiscsDto;
-import de.hska.ld.oidc.dto.SSSLivingdocsRequestDto;
-import de.hska.ld.oidc.dto.SSSLivingdocsResponseDto;
+import de.hska.ld.oidc.dto.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -184,19 +181,31 @@ public class SSSClient {
     public SSSDiscsDto getDiscussionsForDocument(Long documentId, String accessToken) throws IOException {
         // TODO enable https
         //http://test-ll.know-center.tugraz.at/layers.test/discs/discs/targets/http%253A%252F%252F178.62.62.23%253A9000%252Fdocument%252F65554
-        String url = sssServerAddress + "/discs/discs/targets/" + URLEncoder.encode(URLEncoder.encode(documentNamePrefix + documentId, "UTF-8"), "UTF-8");
+        String url = sssServerAddress + "/discs/discs/filtered/targets/" + URLEncoder.encode(URLEncoder.encode(documentNamePrefix + documentId, "UTF-8"), "UTF-8");
 
         //HttpClient client = HttpClientBuilder.create().build();
         //HttpClient client = createHttpsClient();
         HttpClient client = HttpClientBuilder.create().build();
-        HttpGet get = new HttpGet(url);
+        HttpPost post = new HttpPost(url);
 
         // add header
-        get.setHeader("Content-type", "application/json");
-        get.setHeader("User-Agent", "Mozilla/5.0");
-        get.setHeader("Authorization", "Bearer " + accessToken);
+        post.setHeader("Content-type", "application/json");
+        post.setHeader("User-Agent", "Mozilla/5.0");
+        post.setHeader("Authorization", "Bearer " + accessToken);
 
-        HttpResponse response = client.execute(get);
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        SSSDiscsFilteredTargetsRequestDto sssDiscsFilteredTargetsRequestDto = new SSSDiscsFilteredTargetsRequestDto();
+        sssDiscsFilteredTargetsRequestDto.setSetAttachedEntities(true);
+        sssDiscsFilteredTargetsRequestDto.setSetCircleTypes(true);
+        sssDiscsFilteredTargetsRequestDto.setSetComments(true);
+        sssDiscsFilteredTargetsRequestDto.setSetEntries(true);
+        sssDiscsFilteredTargetsRequestDto.setSetLikes(true);
+        sssDiscsFilteredTargetsRequestDto.setSetTags(true);
+        String sssLivingdocsRequestDtoString = mapper.writeValueAsString(sssDiscsFilteredTargetsRequestDto);
+        StringEntity stringEntity = new StringEntity(sssLivingdocsRequestDtoString, ContentType.create("application/json", "UTF-8"));
+        post.setEntity(stringEntity);
+
+        HttpResponse response = client.execute(post);
         System.out.println("Response Code : "
                 + response.getStatusLine().getStatusCode());
 
@@ -217,7 +226,7 @@ public class SSSClient {
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
                 throw new ValidationException("access token is invalid");
             }
-            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             return mapper.readValue(result.toString(), SSSDiscsDto.class);
         } catch (ValidationException ve) {
             throw ve;
