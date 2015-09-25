@@ -160,6 +160,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         }
 
                         user.setFullName(oidcUserInfo.getName());
+                        user.setEmail(oidcUserInfo.getEmail());
                         user.setEnabled(true);
                         // apply roles
                         List<Role> roleList = new ArrayList<Role>();
@@ -223,6 +224,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                                 }
 
                                 currentUserInDb.setFullName(oidcUserInfo.getName());
+                                currentUserInDb.setEmail(oidcUserInfo.getEmail());
                                 currentUserInDb = userService.save(currentUserInDb);
                             }
                         } catch (ParseException e) {
