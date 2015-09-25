@@ -2,46 +2,10 @@ package de.hska.ld.oidc.dto;
 
 import java.util.List;
 
-public class SSSDiscDto {
-    String id;
-    String label;
-    String creationTime;
-    String type;
+public class SSSDiscDto extends SSSEntityDto {
     SSSAuthorDto author;
     String description;
     List<SSSQAEntryDto> entries;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-    public String getCreationTime() {
-        return creationTime;
-    }
-
-    public void setCreationTime(String creationTime) {
-        this.creationTime = creationTime;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public SSSAuthorDto getAuthor() {
         return author;
