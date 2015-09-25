@@ -41,23 +41,4 @@ public class DiscussionController {
             return new ResponseEntity<>(sssDiscsDto.getDiscs(), HttpStatus.OK);
         };
     }
-
-    //http://sss.eu/191158787126258569
-    /*@RequestMapping(method = RequestMethod.GET, value = "/document/{documentId}/discussions/list")
-    public Callable getDisscussionList(@PathVariable Long documentId) {
-        return () -> {
-            //Document document = documentService.findById(documentId);
-            //if (document == null) {
-            //    throw new ValidationException("documentId");
-            //}
-
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-
-            SSSClient sssClient = new SSSClient();
-            SSSDiscsDto sssDiscsDto = sssClient.getDiscussionsForDocument(documentId, token.getAccessTokenValue());
-
-            return new ResponseEntity<>(sssDiscsDto.getDiscs(), HttpStatus.OK);
-        };
-    }*/
 }
