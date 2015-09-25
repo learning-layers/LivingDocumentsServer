@@ -1,15 +1,14 @@
 package de.hska.ld.oidc.dto;
 
-import java.util.List;
 
-public class SSSDiscDto {
+public class SSSQAEntryDto {
     String id;
     String label;
     String creationTime;
     String type;
     SSSAuthorDto author;
     String description;
-    List<SSSQAEntryDto> entries;
+    String content;
 
     public String getId() {
         return id;
@@ -59,11 +58,11 @@ public class SSSDiscDto {
         this.description = description;
     }
 
-    public List<SSSQAEntryDto> getEntries() {
-        return entries;
+    public String getContent() {
+        return content;
     }
 
-    public void setEntries(List<SSSQAEntryDto> entries) {
-        this.entries = entries;
+    public void setContent(String content) {
+        this.content = content;
     }
 }
