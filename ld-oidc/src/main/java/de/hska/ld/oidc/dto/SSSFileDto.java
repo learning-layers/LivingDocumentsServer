@@ -1,9 +1,10 @@
 package de.hska.ld.oidc.dto;
 
 public class SSSFileDto extends SSSEntityDto {
-    String fileExt;
-    String mimeType;
-    String downloadLink;
+    private String fileExt;
+    private String mimeType;
+    private String downloadLink;
+    private String fileIcon;
 
     public String getFileExt() {
         return fileExt;
@@ -27,5 +28,13 @@ public class SSSFileDto extends SSSEntityDto {
 
     public void setDownloadLink(String downloadLink) {
         this.downloadLink = downloadLink;
+    }
+
+    public void setFileIcon(String fileIcon) {
+        this.fileIcon = fileIcon;
+    }
+
+    public String getFileIcon() {
+        return fileIcon;
     }
 }

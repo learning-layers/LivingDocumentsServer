@@ -60,13 +60,14 @@ public class DiscussionController {
             }
             SSSFileEntitiesDto sssFileEntitiesDto = fetchFileEntityInformation(sssClient, preloadAttachmentIds, token);
 
-            if (sssFileEntitiesDto.getEntities() != null) {
+            if (sssFileEntitiesDto != null && sssFileEntitiesDto.getEntities() != null) {
                 for (SSSFileEntityDto sssFileEntityDto : sssFileEntitiesDto.getEntities()) {
                     sssFileEntityDto.getId();
                     for (SSSDiscDto discussion : discussionList) {
                         List<SSSEntityDto> attachedEntities = discussion.getAttachedEntities();
                         for (SSSEntityDto attachedEntity : attachedEntities) {
                             if (sssFileEntityDto.getId().equals(attachedEntity.getId())) {
+                                sssFileEntityDto.getFile().setFileIcon(getIconTypeFromFile(sssFileEntityDto));
                                 attachedEntity.setFile(sssFileEntityDto.getFile());
                             }
                         }
@@ -75,6 +76,7 @@ public class DiscussionController {
                             List<SSSEntityDto> entryAttachedEntities = entry.getAttachedEntities();
                             for (SSSEntityDto entryAttachedEntity : entryAttachedEntities) {
                                 if (sssFileEntityDto.getId().equals(entryAttachedEntity.getId())) {
+                                    sssFileEntityDto.getFile().setFileIcon(getIconTypeFromFile(sssFileEntityDto));
                                     entryAttachedEntity.setFile(sssFileEntityDto.getFile());
                                 }
                             }
