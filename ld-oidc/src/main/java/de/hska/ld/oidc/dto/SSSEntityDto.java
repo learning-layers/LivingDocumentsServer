@@ -1,11 +1,15 @@
 package de.hska.ld.oidc.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SSSEntityDto {
     String id;
     String label;
     String creationTime;
     String type;
     SSSAuthorDto author;
+    SSSFileDto file;
 
     public String getId() {
         return id;
@@ -45,5 +49,13 @@ public class SSSEntityDto {
 
     public void setAuthor(SSSAuthorDto author) {
         this.author = author;
+    }
+
+    public SSSFileDto getFile() {
+        return file;
+    }
+
+    public void setFile(SSSFileDto file) {
+        this.file = file;
     }
 }

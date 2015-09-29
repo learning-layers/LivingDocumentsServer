@@ -56,22 +56,42 @@ public class DiscussionController {
                     }
                 }
             }
-            SSSFileEntitiesDto sssFileEntitiesDto = constructFileDownloadURI(sssClient, preloadAttachmentIds, token);
-            DiscussionListDto discussionListDto = new DiscussionListDto();
-            discussionListDto.setDiscussions(sssDiscsDto);
-            discussionListDto.setFileEnities(sssFileEntitiesDto);
-            return new ResponseEntity<>(discussionListDto, HttpStatus.OK);
+            SSSFileEntitiesDto sssFileEntitiesDto = fetchFileEntityInformation(sssClient, preloadAttachmentIds, token);
+
+            if (sssFileEntitiesDto.getEntities() != null) {
+                for (SSSFileEntityDto sssFileEntityDto : sssFileEntitiesDto.getEntities()) {
+                    sssFileEntityDto.getId();
+                    for (SSSDiscDto discussion : discussionList) {
+                        List<SSSEntityDto> attachedEntities = discussion.getAttachedEntities();
+                        for (SSSEntityDto attachedEntity : attachedEntities) {
+                            if (sssFileEntityDto.getId().equals(attachedEntity.getId())) {
+                                attachedEntity.setFile(sssFileEntityDto.getFile());
+                            }
+                        }
+                        List<SSSQAEntryDto> entryList = discussion.getEntries();
+                        for (SSSQAEntryDto entry : entryList) {
+                            List<SSSEntityDto> entryAttachedEntities = entry.getAttachedEntities();
+                            for (SSSEntityDto entryAttachedEntity : entryAttachedEntities) {
+                                if (sssFileEntityDto.getId().equals(entryAttachedEntity.getId())) {
+                                    entryAttachedEntity.setFile(sssFileEntityDto.getFile());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return new ResponseEntity<>(sssDiscsDto, HttpStatus.OK);
         };
     }
 
-    private SSSFileEntitiesDto constructFileDownloadURI(SSSClient sssClient, List<String> attachmentIds, OIDCAuthenticationToken token) {
+    private SSSFileEntitiesDto fetchFileEntityInformation(SSSClient sssClient, List<String> attachmentIds, OIDCAuthenticationToken token) {
         SSSFileEntitiesDto fileEntitiesDto = null;
         try {
             fileEntitiesDto = sssClient.getFileEntity(attachmentIds, token.getAccessTokenValue());
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return fileEntitiesDto;
     }
 
@@ -81,5 +101,72 @@ public class DiscussionController {
                 prefetchArray.add(entity.getId());
             }
         }
+    }
+
+    private String getIconTypeFromFile(SSSFileEntityDto fileEntity) {
+        //var mimeType = fileEntity.mimeType;
+        // XXX This is due to issues with mimeType
+        String mimeType = fileEntity.getFile().getMimeType();
+        String name = fileEntity.getFile().getType();
+
+        if (mimeType != null && !"".equals(mimeType)) {
+            switch (mimeType) {
+                case "application/pdf":
+                    name = "filePdf";
+                    break;
+                case "image/png":
+                case "image/jpeg":
+                case "image/x-icon":
+                case "image/gif":
+                case "image/svg+xml":
+                case "image/bmp":
+                case "image/tiff":
+                    name = "fileImage";
+                    break;
+                case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                case "application/msword":
+                    name = "fileDoc";
+                    break;
+                case "application/vnd.ms-excel":
+                case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+                    name = "fileSpreadsheet";
+                    break;
+                case "application/vnd.ms-powerpoint":
+                case "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+                    name = "filePresentation";
+                    break;
+            }
+        } else {
+            switch (fileEntity.getId().substring(fileEntity.getId().length() - 4).toLowerCase()) {
+                case ".pdf":
+                    name = "filePdf";
+                    break;
+                case ".png":
+                case ".jpg":
+                case "jpeg":
+                case ".ico":
+                case ".gif":
+                case ".svg":
+                case ".bmp":
+                case ".tif":
+                case "tiff":
+                    name = "fileImage";
+                    break;
+                case "docx":
+                case ".doc":
+                    name = "fileDoc";
+                    break;
+                case ".xls":
+                case "xlsx":
+                    name = "fileSpreadsheet";
+                    break;
+                case ".ppt":
+                case "pptx":
+                    name = "filePresentation";
+                    break;
+            }
+        }
+
+        return name;
     }
 }
