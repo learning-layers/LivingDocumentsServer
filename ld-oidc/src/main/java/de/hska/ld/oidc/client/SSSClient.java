@@ -238,4 +238,61 @@ public class SSSClient {
             }
         }
     }
+
+    public SSSFileEntitiesDto getFileEntity(String attachmentId, String accessToken) throws IOException {
+        String url = sssServerAddress + "/entities/entities/filtered/" + URLEncoder.encode(URLEncoder.encode(attachmentId, "UTF-8"), "UTF-8");
+
+        //HttpClient client = HttpClientBuilder.create().build();
+        //HttpClient client = createHttpsClient();
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("Content-type", "application/json");
+        post.setHeader("User-Agent", "Mozilla/5.0");
+        post.setHeader("Authorization", "Bearer " + accessToken);
+
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        SSSEntitiesFilteredEntitiesRequestDto sssDiscsFilteredTargetsRequestDto = new SSSEntitiesFilteredEntitiesRequestDto();
+        sssDiscsFilteredTargetsRequestDto.setSetDiscs(true);
+        sssDiscsFilteredTargetsRequestDto.setSetThumb(true);
+        String sssLivingdocsRequestDtoString = mapper.writeValueAsString(sssDiscsFilteredTargetsRequestDto);
+        StringEntity stringEntity = new StringEntity(sssLivingdocsRequestDtoString, ContentType.create("application/json", "UTF-8"));
+        post.setEntity(stringEntity);
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new UserNotAuthorizedException();
+        }
+
+        BufferedReader rd = null;
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                throw new ValidationException("access token is invalid");
+            }
+            mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            SSSFileEntitiesDto fileEntitiesDto = mapper.readValue(result.toString(), SSSFileEntitiesDto.class);
+            ;
+            return fileEntitiesDto;
+        } catch (ValidationException ve) {
+            throw ve;
+        } catch (Exception e) {
+            return null;
+        } finally {
+            if (rd != null) {
+                rd.close();
+            }
+        }
+    }
 }
