@@ -8,6 +8,7 @@ import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,12 +22,13 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 @RestController
-@RequestMapping(Core.RESOURCE_USER + "/disussions")
+@RequestMapping("/api/disussions")
 public class DiscussionController {
 
     @Autowired
     private DocumentService documentService;
 
+    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/document/{documentId}/discussions/list")
     public Callable getDisscussionList(@PathVariable Long documentId) {
         return () -> {
@@ -82,6 +84,20 @@ public class DiscussionController {
             }
 
             return new ResponseEntity<>(sssDiscsDto, HttpStatus.OK);
+        };
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/fileEntity/{fileEntityId}/download")
+    public Callable getDisscussionList(@PathVariable String fileEntityId) {
+        return () -> {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+            SSSClient sssClient = new SSSClient();
+            String downloadLink = sssClient.getSssServerAddress() +
+                    "/files/files/download?" +
+                    "file=" + fileEntityId + "&key=" + token.getAccessTokenValue();
+            return new ResponseEntity<>(downloadLink, HttpStatus.OK);
         };
     }
 

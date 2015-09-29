@@ -37,6 +37,10 @@ public class SSSClient {
     private String documentNamePrefix = "http://178.62.62.23:9000/document/";
     private String sssServerAddress = "http://test-ll.know-center.tugraz.at/layers.test";
 
+    public String getSssServerAddress() {
+        return sssServerAddress;
+    }
+
     @PostConstruct
     public void postConstruct() {
         // TODO set env variables if needed
