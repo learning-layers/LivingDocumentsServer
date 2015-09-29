@@ -1,9 +1,12 @@
 package de.hska.ld.oidc.dto;
 
 
+import java.util.List;
+
 public class SSSQAEntryDto extends SSSEntityDto {
     String description;
     String content;
+    List<SSSEntityDto> attachedEntities;
 
     public String getDescription() {
         return description;
@@ -19,5 +22,13 @@ public class SSSQAEntryDto extends SSSEntityDto {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public List<SSSEntityDto> getAttachedEntities() {
+        return attachedEntities;
+    }
+
+    public void setAttachedEntities(List<SSSEntityDto> attachedEntities) {
+        this.attachedEntities = attachedEntities;
     }
 }

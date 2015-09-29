@@ -23,12 +23,14 @@ import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 public class SSSClient {
 
@@ -239,8 +241,23 @@ public class SSSClient {
         }
     }
 
-    public SSSFileEntitiesDto getFileEntity(String attachmentId, String accessToken) throws IOException {
-        String url = sssServerAddress + "/entities/entities/filtered/" + URLEncoder.encode(URLEncoder.encode(attachmentId, "UTF-8"), "UTF-8");
+    public SSSFileEntitiesDto getFileEntity(List<String> attachmentIds, String accessToken) throws IOException {
+        String attachmentIdString = "";
+        boolean firstAttachmentId = true;
+        for (String attachmentId : attachmentIds) {
+            String separator = ",";
+            if (firstAttachmentId) {
+                separator = "";
+                firstAttachmentId = false;
+            }
+            try {
+                attachmentIdString += separator + URLEncoder.encode(attachmentId, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+        attachmentIdString = URLEncoder.encode(attachmentIdString, "UTF-8");
+        String url = sssServerAddress + "/entities/entities/filtered/" + attachmentIdString;
 
         //HttpClient client = HttpClientBuilder.create().build();
         //HttpClient client = createHttpsClient();
@@ -254,8 +271,8 @@ public class SSSClient {
 
         ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         SSSEntitiesFilteredEntitiesRequestDto sssDiscsFilteredTargetsRequestDto = new SSSEntitiesFilteredEntitiesRequestDto();
-        sssDiscsFilteredTargetsRequestDto.setSetDiscs(true);
-        sssDiscsFilteredTargetsRequestDto.setSetThumb(true);
+        sssDiscsFilteredTargetsRequestDto.setSetDiscs(false);
+        sssDiscsFilteredTargetsRequestDto.setSetThumb(false);
         String sssLivingdocsRequestDtoString = mapper.writeValueAsString(sssDiscsFilteredTargetsRequestDto);
         StringEntity stringEntity = new StringEntity(sssLivingdocsRequestDtoString, ContentType.create("application/json", "UTF-8"));
         post.setEntity(stringEntity);
@@ -265,7 +282,9 @@ public class SSSClient {
                 + response.getStatusLine().getStatusCode());
 
         if (response.getStatusLine().getStatusCode() != 200) {
-            throw new UserNotAuthorizedException();
+            if (response.getStatusLine().getStatusCode() == 403) {
+                throw new UserNotAuthorizedException();
+            }
         }
 
         BufferedReader rd = null;
@@ -283,7 +302,7 @@ public class SSSClient {
             }
             mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             SSSFileEntitiesDto fileEntitiesDto = mapper.readValue(result.toString(), SSSFileEntitiesDto.class);
-            ;
+
             return fileEntitiesDto;
         } catch (ValidationException ve) {
             throw ve;
