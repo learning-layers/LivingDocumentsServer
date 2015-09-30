@@ -141,7 +141,7 @@ public class SSSClient {
         SSSLivingdocsRequestDto sssLivingdocsRequestDto = new SSSLivingdocsRequestDto();
         String externalServerAddress = documentNamePrefix; //env.getProperty("module.core.oidc.server.endpoint.external.url");
         sssLivingdocsRequestDto.setUri(externalServerAddress + document.getId());
-        sssLivingdocsRequestDto.setDescription("description of document with id=" + document.getId());
+        sssLivingdocsRequestDto.setDescription(document.getDescription());
         if (discussionId != null) {
             sssLivingdocsRequestDto.setDiscussion(discussionId);
         }

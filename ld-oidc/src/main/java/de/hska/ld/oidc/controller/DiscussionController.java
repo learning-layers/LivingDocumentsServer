@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 @RestController
-@RequestMapping("/api/disussions")
+@RequestMapping("/api/discussions")
 public class DiscussionController {
 
     @Autowired
