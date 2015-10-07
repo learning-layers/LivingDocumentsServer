@@ -253,37 +253,35 @@ public class DocumentController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
     @Transactional(readOnly = true)
-    public Callable readDocument(@PathVariable Long documentId) {
-        return () -> {
-            Document document = documentService.findById(documentId);
-            if (document != null) {
-                try {
-                    documentService.checkPermission(document, Access.Permission.READ);
-                } catch (Exception e) {
-                    documentEventsPublisher.sendDocumentReadEvent(document);
-                    documentService.checkPermission(document, Access.Permission.READ);
-                }
-            } else {
-                throw new NotFoundException("id");
+    public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
+        Document document = documentService.findById(documentId);
+        if (document != null) {
+            try {
+                documentService.checkPermission(document, Access.Permission.READ);
+            } catch (Exception e) {
+                documentEventsPublisher.sendDocumentReadEvent(document);
+                documentService.checkPermission(document, Access.Permission.READ);
             }
-            Document documentClone = cloner.shallowClone(document);
-            documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class, User.class);
-            documentClone.setAttachmentList(new ArrayList<>(document.getAttachmentList()));
-            documentClone.setCommentList(document.getCommentList());
-            documentClone.setTagList(document.getTagList());
-            documentClone.setHyperlinkList(document.getHyperlinkList());
-            documentClone.setAttachmentList(documentClone.getAttachmentList().stream().filter(a -> !"maincontent.html".equals(a.getName())).collect(Collectors.toList()));
-            Access access = documentService.getCurrentUserPermissions(documentId, "all");
-            if (access != null) {
-                List<Access> readAccessList = new ArrayList<>();
-                readAccessList.add(access);
-                documentClone.setAccessList(readAccessList);
-            }
-            if (documentClone.isDeleted()) {
-                throw new NotFoundException("id");
-            }
-            return new ResponseEntity<>(documentClone, HttpStatus.OK);
-        };
+        } else {
+            throw new NotFoundException("id");
+        }
+        Document documentClone = cloner.shallowClone(document);
+        documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class, User.class);
+        documentClone.setAttachmentList(new ArrayList<>(document.getAttachmentList()));
+        documentClone.setCommentList(document.getCommentList());
+        documentClone.setTagList(document.getTagList());
+        documentClone.setHyperlinkList(document.getHyperlinkList());
+        documentClone.setAttachmentList(documentClone.getAttachmentList().stream().filter(a -> !"maincontent.html".equals(a.getName())).collect(Collectors.toList()));
+        Access access = documentService.getCurrentUserPermissions(documentId, "all");
+        if (access != null) {
+            List<Access> readAccessList = new ArrayList<>();
+            readAccessList.add(access);
+            documentClone.setAccessList(readAccessList);
+        }
+        if (documentClone.isDeleted()) {
+            throw new NotFoundException("id");
+        }
+        return new ResponseEntity<>(documentClone, HttpStatus.OK);
     }
 
     /**
