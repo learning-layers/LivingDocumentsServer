@@ -318,4 +318,120 @@ public class SSSClient {
             }
         }
     }
+
+    public SSSCreateDiscResponseDto createDiscussion(String documentId, SSSCreateDiscRequestDto discRequestDto, String accessToken) throws IOException {
+        String sssDocumentId = documentNamePrefix + documentId;
+        SSSCreateDiscRequestDto sssCreateDiscRequestDto = new SSSCreateDiscRequestDto();
+        sssCreateDiscRequestDto.setDescription(discRequestDto.getDescription());
+        sssCreateDiscRequestDto.setLabel(discRequestDto.getLabel());
+        sssCreateDiscRequestDto.setEntities(discRequestDto.getEntities());
+        discRequestDto.getTargets().add(sssDocumentId);
+        sssCreateDiscRequestDto.setTargets(discRequestDto.getTargets());
+
+        String url = sssServerAddress + "/discs/discs";
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("Content-type", "application/json");
+        post.setHeader("User-Agent", "Mozilla/5.0");
+        post.setHeader("Authorization", "Bearer " + accessToken);
+
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        String sssLivingdocsRequestDtoString = mapper.writeValueAsString(sssCreateDiscRequestDto);
+        StringEntity stringEntity = new StringEntity(sssLivingdocsRequestDtoString, ContentType.create("application/json", "UTF-8"));
+        post.setEntity(stringEntity);
+        BufferedReader rd = null;
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            if (response.getStatusLine().getStatusCode() == 403) {
+                throw new UserNotAuthorizedException();
+            }
+        }
+
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                throw new ValidationException("access token is invalid");
+            }
+            mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            SSSCreateDiscResponseDto sssCreateDiscResponseDto = mapper.readValue(result.toString(), SSSCreateDiscResponseDto.class);
+            return sssCreateDiscResponseDto;
+        } catch (ValidationException ve) {
+            throw ve;
+        } catch (Exception e) {
+            return null;
+        } finally {
+            if (rd != null) {
+                rd.close();
+            }
+        }
+    }
+
+    public void addTagTo(String discOrEntry, String tag, String accessToken) throws IOException {
+        String url = sssServerAddress + "/tags/tags";
+
+        SSSTagRequestDto sssTagRequestDto = new SSSTagRequestDto();
+        sssTagRequestDto.setEntity(discOrEntry);
+        sssTagRequestDto.setLabel(tag);
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("Content-type", "application/json");
+        post.setHeader("User-Agent", "Mozilla/5.0");
+        post.setHeader("Authorization", "Bearer " + accessToken);
+
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        String sssLivingdocsRequestDtoString = mapper.writeValueAsString(sssTagRequestDto);
+        StringEntity stringEntity = new StringEntity(sssLivingdocsRequestDtoString, ContentType.create("application/json", "UTF-8"));
+        post.setEntity(stringEntity);
+        BufferedReader rd = null;
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            if (response.getStatusLine().getStatusCode() == 403) {
+                throw new UserNotAuthorizedException();
+            }
+        }
+
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                throw new ValidationException("access token is invalid");
+            }
+            return;
+        } catch (ValidationException ve) {
+            throw ve;
+        } catch (Exception e) {
+            return;
+        } finally {
+            if (rd != null) {
+                rd.close();
+            }
+        }
+    }
 }

@@ -11,10 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -91,7 +88,7 @@ public class DiscussionController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/fileEntity/{fileEntityId}/download")
-    public Callable getDisscussionList(@PathVariable String fileEntityId) {
+    public Callable getFileDownloadLink(@PathVariable String fileEntityId) {
         return () -> {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
@@ -101,6 +98,35 @@ public class DiscussionController {
                     "file=" + fileEntityId + "&key=" + token.getAccessTokenValue();
             return new ResponseEntity<>(downloadLink, HttpStatus.OK);
         };
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/document/{documentId}/discussion")
+    public ResponseEntity createDiscussion(@PathVariable String documentId, @RequestBody SSSCreateDiscRequestDto discRequestDto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+        SSSClient sssClient = new SSSClient();
+        SSSCreateDiscResponseDto sssCreateDiscResponseDto = null;
+        // remove tag list because the sss doesn't know how to process this
+        List<String> tagList = discRequestDto.getTags();
+        discRequestDto.setTags(null);
+        try {
+            sssCreateDiscResponseDto = sssClient.createDiscussion(documentId, discRequestDto, token.getAccessTokenValue());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        if (tagList != null && tagList.size() > 0) {
+            for (String tag : tagList) {
+                try {
+                    sssClient.addTagTo(sssCreateDiscResponseDto.getDisc(), tag, token.getAccessTokenValue());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     private SSSFileEntitiesDto fetchFileEntityInformation(SSSClient sssClient, List<String> attachmentIds, OIDCAuthenticationToken token) {
