@@ -129,6 +129,35 @@ public class DiscussionController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/discussion/comment")
+    public ResponseEntity createCommentForDiscussion(@RequestBody SSSEntryForDiscussionRequestDto entryForDiscRequestDto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+        SSSClient sssClient = new SSSClient();
+        SSSEntryForDiscussionResponseDto sssEntryForDiscussionResponseDto = null;
+        // remove tag list because the sss doesn't know how to process this
+        List<String> tagList = entryForDiscRequestDto.getTags();
+        entryForDiscRequestDto.setTags(null);
+        try {
+            sssEntryForDiscussionResponseDto = sssClient.createEntryForDiscussion(entryForDiscRequestDto, token.getAccessTokenValue());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        if (tagList != null && tagList.size() > 0) {
+            for (String tag : tagList) {
+                try {
+                    sssClient.addTagTo(sssEntryForDiscussionResponseDto.getEntry(), tag, token.getAccessTokenValue());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     private SSSFileEntitiesDto fetchFileEntityInformation(SSSClient sssClient, List<String> attachmentIds, OIDCAuthenticationToken token) {
         SSSFileEntitiesDto fileEntitiesDto = null;
         try {
