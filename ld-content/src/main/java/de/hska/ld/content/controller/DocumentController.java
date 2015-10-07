@@ -25,6 +25,7 @@ package de.hska.ld.content.controller;
 import com.rits.cloning.Cloner;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
+import de.hska.ld.content.events.document.DocumentEventsPublisher;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
@@ -71,6 +72,9 @@ public class DocumentController {
 
     @Autowired
     private SubscriptionService subscriptionService;
+
+    @Autowired
+    private DocumentEventsPublisher documentEventsPublisher;
 
     @Autowired
     private Cloner cloner;
@@ -158,11 +162,10 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST)
-    public Callable createDocument(@RequestBody Document document) {
-        return () -> {
-            Document newDocument = documentService.save(document);
-            return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
-        };
+    public ResponseEntity<Document> createDocument(@RequestBody Document document) {
+        Document newDocument = documentService.save(document);
+        documentEventsPublisher.sendDocumentCreationEvent(newDocument);
+        return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
     }
 
     /**
@@ -254,7 +257,12 @@ public class DocumentController {
         return () -> {
             Document document = documentService.findById(documentId);
             if (document != null) {
-                documentService.checkPermission(document, Access.Permission.READ);
+                try {
+                    documentService.checkPermission(document, Access.Permission.READ);
+                } catch (Exception e) {
+                    documentEventsPublisher.sendDocumentReadEvent(document);
+                    documentService.checkPermission(document, Access.Permission.READ);
+                }
             } else {
                 throw new NotFoundException("id");
             }
