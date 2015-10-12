@@ -42,6 +42,9 @@ import java.util.*;
 public class OIDCController {
 
     @Autowired
+    private SSSClient sssClient;
+
+    @Autowired
     private DocumentService documentService;
 
     @Autowired
@@ -155,7 +158,6 @@ public class OIDCController {
         // 4. Create the document in the SSS together with the link to the discussion
         // 4.1 Authenticate with the SSS
         // SSS auth Endpoint: http://test-ll.know-center.tugraz.at/layers.test/auth/auth/
-        SSSClient sssClient = new SSSClient();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         //if (auth instanceof AnonymousAuthenticationToken) {
         OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;

@@ -23,6 +23,9 @@ import java.util.concurrent.Callable;
 public class DiscussionController {
 
     @Autowired
+    private SSSClient sssClient;
+
+    @Autowired
     private DocumentService documentService;
 
     @Secured(Core.ROLE_USER)
@@ -36,8 +39,6 @@ public class DiscussionController {
 
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-
-            SSSClient sssClient = new SSSClient();
             SSSDiscsDto sssDiscsDto = sssClient.getDiscussionsForDocument(documentId, token.getAccessTokenValue());
             List<SSSDiscDto> discussionList = sssDiscsDto.getDiscs();
 
@@ -92,7 +93,6 @@ public class DiscussionController {
         return () -> {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-            SSSClient sssClient = new SSSClient();
             String downloadLink = sssClient.getSssServerAddress() +
                     "/files/files/download?" +
                     "file=" + fileEntityId + "&key=" + token.getAccessTokenValue();
@@ -105,7 +105,6 @@ public class DiscussionController {
     public ResponseEntity createDiscussion(@PathVariable String documentId, @RequestBody SSSCreateDiscRequestDto discRequestDto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-        SSSClient sssClient = new SSSClient();
         SSSCreateDiscResponseDto sssCreateDiscResponseDto = null;
         // remove tag list because the sss doesn't know how to process this
         List<String> tagList = discRequestDto.getTags();
@@ -134,7 +133,6 @@ public class DiscussionController {
     public ResponseEntity createCommentForDiscussion(@RequestBody SSSEntryForDiscussionRequestDto entryForDiscRequestDto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-        SSSClient sssClient = new SSSClient();
         SSSEntryForDiscussionResponseDto sssEntryForDiscussionResponseDto = null;
         // remove tag list because the sss doesn't know how to process this
         List<String> tagList = entryForDiscRequestDto.getTags();

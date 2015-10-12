@@ -26,12 +26,14 @@ import com.rits.cloning.Cloner;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
 import de.hska.ld.content.events.document.DocumentEventsPublisher;
+import de.hska.ld.content.events.document.DocumentReadEvent;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.SubscriptionService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
+import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
@@ -252,15 +254,20 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, noRollbackFor = UserNotAuthorizedException.class)
     public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
         Document document = documentService.findById(documentId);
         if (document != null) {
             try {
                 documentService.checkPermission(document, Access.Permission.READ);
-            } catch (Exception e) {
-                documentEventsPublisher.sendDocumentReadEvent(document);
-                documentService.checkPermission(document, Access.Permission.READ);
+            } catch (UserNotAuthorizedException e) {
+                DocumentReadEvent documentReadEvent = documentEventsPublisher.sendDocumentReadEvent(document);
+                Document resultDocument = documentReadEvent.getResultDocument();
+                if (resultDocument != null && resultDocument.getAttachmentList() != null) {
+                    documentService.checkPermission(resultDocument, Access.Permission.READ);
+                } else {
+                    documentService.checkPermission(document, Access.Permission.READ);
+                }
             }
         } else {
             throw new NotFoundException("id");

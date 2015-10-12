@@ -1,8 +1,7 @@
 package de.hska.ld.content.events.document;
 
-import org.springframework.context.ApplicationEvent;
-
-public class DocumentCreationEvent extends ApplicationEvent {
+public class DocumentCreationEvent extends DocumentResultEvent {
+    private static final long serialVersionUID = -8433782861887348259L;
 
     /**
      * Create a new ApplicationEvent.

@@ -474,6 +474,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     }
 
     @Override
+    @Transactional
     public Document addAccess(Long documentId, String combinedUserIdString, String combinedPermissionString) {
         Document document = findById(documentId);
         List<User> userList;

@@ -1,8 +1,6 @@
 package de.hska.ld.content.events.document;
 
-import org.springframework.context.ApplicationEvent;
-
-public class DocumentReadEvent extends ApplicationEvent {
+public class DocumentReadEvent extends DocumentResultEvent {
     /**
      * Create a new ApplicationEvent.
      *

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
+import de.hska.ld.oidc.client.exception.NotYetKnownException;
 import de.hska.ld.oidc.dto.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -17,8 +18,9 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.net.ssl.SSLContext;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,18 +34,17 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+@Component
 public class SSSClient {
+
+    @Autowired
+    private ObjectMapper mapper;
 
     private String documentNamePrefix = "http://178.62.62.23:9000/document/";
     private String sssServerAddress = "http://test-ll.know-center.tugraz.at/layers.test";
 
     public String getSssServerAddress() {
         return sssServerAddress;
-    }
-
-    @PostConstruct
-    public void postConstruct() {
-        // TODO set env variables if needed
     }
 
     private CloseableHttpClient createHttpsClient() throws IOException {
@@ -72,18 +73,13 @@ public class SSSClient {
     }
 
     public SSSAuthDto authenticate(String accessToken) throws IOException {
-        // TODO enable https
         String url = sssServerAddress + "/auth/auth/";
 
-        //HttpClient client = HttpClientBuilder.create().build();
-        //HttpClient client = createHttpsClient();
-        HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = getHttpClientFor(url);
         HttpGet get = new HttpGet(url);
+        addHeaderInformation(get, accessToken);
 
-        // add header
-        get.setHeader("Content-type", "application/json");
-        get.setHeader("User-Agent", "Mozilla/5.0");
-        get.setHeader("Authorization", "Bearer " + accessToken);
+
 
         HttpResponse response = client.execute(get);
         System.out.println("Response Code : "
@@ -106,7 +102,6 @@ public class SSSClient {
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
                 throw new ValidationException("access token is invalid");
             }
-            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             return mapper.readValue(result.toString(), SSSAuthDto.class);
         } catch (ValidationException ve) {
             throw ve;
@@ -124,20 +119,12 @@ public class SSSClient {
     }
 
     public SSSLivingdocsResponseDto createDocument(Document document, String discussionId, String accessToken) throws IOException {
-        // TODO enable https
         String url = sssServerAddress + "/livingdocs/livingdocs/";
 
-        //HttpClient client = HttpClientBuilder.create().build();
-        //HttpClient client = createHttpsClient();
-        HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
+        addHeaderInformation(post, accessToken);
 
-        // add header
-        post.setHeader("Content-type", "application/json");
-        post.setHeader("User-Agent", "Mozilla/5.0");
-        post.setHeader("Authorization", "Bearer " + accessToken);
-
-        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         SSSLivingdocsRequestDto sssLivingdocsRequestDto = new SSSLivingdocsRequestDto();
         String externalServerAddress = documentNamePrefix; //env.getProperty("module.core.oidc.server.endpoint.external.url");
         sssLivingdocsRequestDto.setUri(externalServerAddress + document.getId());
@@ -171,7 +158,6 @@ public class SSSClient {
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
                 throw new ValidationException("access token is invalid");
             }
-            mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             return mapper.readValue(result.toString(), SSSLivingdocsResponseDto.class);
         } catch (ValidationException ve) {
             throw ve;
@@ -185,21 +171,13 @@ public class SSSClient {
     }
 
     public SSSDiscsDto getDiscussionsForDocument(Long documentId, String accessToken) throws IOException {
-        // TODO enable https
         //http://test-ll.know-center.tugraz.at/layers.test/discs/discs/targets/http%253A%252F%252F178.62.62.23%253A9000%252Fdocument%252F65554
         String url = sssServerAddress + "/discs/discs/filtered/targets/" + URLEncoder.encode(URLEncoder.encode(documentNamePrefix + documentId, "UTF-8"), "UTF-8");
 
-        //HttpClient client = HttpClientBuilder.create().build();
-        //HttpClient client = createHttpsClient();
-        HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
+        addHeaderInformation(post, accessToken);
 
-        // add header
-        post.setHeader("Content-type", "application/json");
-        post.setHeader("User-Agent", "Mozilla/5.0");
-        post.setHeader("Authorization", "Bearer " + accessToken);
-
-        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         SSSDiscsFilteredTargetsRequestDto sssDiscsFilteredTargetsRequestDto = new SSSDiscsFilteredTargetsRequestDto();
         sssDiscsFilteredTargetsRequestDto.setSetAttachedEntities(true);
         sssDiscsFilteredTargetsRequestDto.setSetCircleTypes(true);
@@ -232,7 +210,6 @@ public class SSSClient {
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
                 throw new ValidationException("access token is invalid");
             }
-            mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             return mapper.readValue(result.toString(), SSSDiscsDto.class);
         } catch (ValidationException ve) {
             throw ve;
@@ -263,17 +240,10 @@ public class SSSClient {
         attachmentIdString = URLEncoder.encode(attachmentIdString, "UTF-8");
         String url = sssServerAddress + "/entities/entities/filtered/" + attachmentIdString;
 
-        //HttpClient client = HttpClientBuilder.create().build();
-        //HttpClient client = createHttpsClient();
-        HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
+        addHeaderInformation(post, accessToken);
 
-        // add header
-        post.setHeader("Content-type", "application/json");
-        post.setHeader("User-Agent", "Mozilla/5.0");
-        post.setHeader("Authorization", "Bearer " + accessToken);
-
-        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         SSSEntitiesFilteredEntitiesRequestDto sssDiscsFilteredTargetsRequestDto = new SSSEntitiesFilteredEntitiesRequestDto();
         sssDiscsFilteredTargetsRequestDto.setSetDiscs(false);
         sssDiscsFilteredTargetsRequestDto.setSetThumb(false);
@@ -304,7 +274,6 @@ public class SSSClient {
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
                 throw new ValidationException("access token is invalid");
             }
-            mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             SSSFileEntitiesDto fileEntitiesDto = mapper.readValue(result.toString(), SSSFileEntitiesDto.class);
 
             return fileEntitiesDto;
@@ -330,15 +299,10 @@ public class SSSClient {
 
         String url = sssServerAddress + "/discs/discs";
 
-        HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
+        addHeaderInformation(post, accessToken);
 
-        // add header
-        post.setHeader("Content-type", "application/json");
-        post.setHeader("User-Agent", "Mozilla/5.0");
-        post.setHeader("Authorization", "Bearer " + accessToken);
-
-        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String sssLivingdocsRequestDtoString = mapper.writeValueAsString(sssCreateDiscRequestDto);
         StringEntity stringEntity = new StringEntity(sssLivingdocsRequestDtoString, ContentType.create("application/json", "UTF-8"));
         post.setEntity(stringEntity);
@@ -366,7 +330,6 @@ public class SSSClient {
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
                 throw new ValidationException("access token is invalid");
             }
-            mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             SSSCreateDiscResponseDto sssCreateDiscResponseDto = mapper.readValue(result.toString(), SSSCreateDiscResponseDto.class);
             return sssCreateDiscResponseDto;
         } catch (ValidationException ve) {
@@ -387,15 +350,10 @@ public class SSSClient {
         sssTagRequestDto.setEntity(discOrEntry);
         sssTagRequestDto.setLabel(tag);
 
-        HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
+        addHeaderInformation(post, accessToken);
 
-        // add header
-        post.setHeader("Content-type", "application/json");
-        post.setHeader("User-Agent", "Mozilla/5.0");
-        post.setHeader("Authorization", "Bearer " + accessToken);
-
-        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String sssLivingdocsRequestDtoString = mapper.writeValueAsString(sssTagRequestDto);
         StringEntity stringEntity = new StringEntity(sssLivingdocsRequestDtoString, ContentType.create("application/json", "UTF-8"));
         post.setEntity(stringEntity);
@@ -438,15 +396,10 @@ public class SSSClient {
     public SSSEntryForDiscussionResponseDto createEntryForDiscussion(SSSEntryForDiscussionRequestDto entryForDiscRequestDto, String accessToken) throws IOException {
         String url = sssServerAddress + "/discs/discs";
 
-        HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
+        addHeaderInformation(post, accessToken);
 
-        // add header
-        post.setHeader("Content-type", "application/json");
-        post.setHeader("User-Agent", "Mozilla/5.0");
-        post.setHeader("Authorization", "Bearer " + accessToken);
-
-        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String sssLivingdocsRequestDtoString = mapper.writeValueAsString(entryForDiscRequestDto);
         StringEntity stringEntity = new StringEntity(sssLivingdocsRequestDtoString, ContentType.create("application/json", "UTF-8"));
         post.setEntity(stringEntity);
@@ -486,5 +439,124 @@ public class SSSClient {
                 rd.close();
             }
         }
+    }
+
+    public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, NotYetKnownException {
+        String url = sssServerAddress + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(documentNamePrefix + documentId, "UTF-8"), "UTF-8");
+
+        HttpClient client = getHttpClientFor(url);
+        HttpPost post = new HttpPost(url);
+        addHeaderInformation(post, accessToken);
+
+        StringEntity stringEntity = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
+        post.setEntity(stringEntity);
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        if (response.getStatusLine().getStatusCode() == 404) {
+            throw new NotYetKnownException();
+        }
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new UserNotAuthorizedException();
+        }
+
+        BufferedReader rd = null;
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                throw new ValidationException("access token is invalid");
+            }
+            return mapper.readValue(result.toString(), SSSLivingDocResponseDto.class);
+        } catch (ValidationException ve) {
+            throw ve;
+        } catch (Exception e) {
+            return null;
+        } finally {
+            if (rd != null) {
+                rd.close();
+            }
+        }
+    }
+
+    private HttpClient getHttpClientFor(String url) {
+        if (url.startsWith("https")) {
+            try {
+                return createHttpsClient();
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException("Couldn't create https client!");
+            }
+        } else if (url.startsWith("http")) {
+            return HttpClientBuilder.create().build();
+        } else {
+            throw new RuntimeException("Protocol unknown!");
+        }
+    }
+
+    public SSSLivingDocResponseDto getLDocEmailsById(Long documentId, String accessToken) throws IOException {
+        String url = sssServerAddress + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(documentNamePrefix + documentId, "UTF-8"), "UTF-8");
+
+        HttpClient client = getHttpClientFor(url);
+        HttpPost post = new HttpPost(url);
+        addHeaderInformation(post, accessToken);
+
+        StringEntity stringEntity = new StringEntity("{\"setUsers\": true}", ContentType.create("application/json", "UTF-8"));
+        post.setEntity(stringEntity);
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new UserNotAuthorizedException();
+        }
+
+        BufferedReader rd = null;
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                throw new ValidationException("access token is invalid");
+            }
+            return mapper.readValue(result.toString(), SSSLivingDocResponseDto.class);
+        } catch (ValidationException ve) {
+            throw ve;
+        } catch (Exception e) {
+            return null;
+        } finally {
+            if (rd != null) {
+                rd.close();
+            }
+        }
+    }
+
+    private HttpPost addHeaderInformation(HttpPost post, String accessToken) {
+        post.setHeader("Content-type", "application/json");
+        post.setHeader("User-Agent", "Mozilla/5.0");
+        post.setHeader("Authorization", "Bearer " + accessToken);
+        return post;
+    }
+
+    private HttpGet addHeaderInformation(HttpGet get, String accessToken) {
+        get.setHeader("Content-type", "application/json");
+        get.setHeader("User-Agent", "Mozilla/5.0");
+        get.setHeader("Authorization", "Bearer " + accessToken);
+        return get;
     }
 }

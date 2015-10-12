@@ -100,6 +100,7 @@ public abstract class AbstractContentService<T extends Content> extends Abstract
             }
         } catch (NoSuchElementException e) {
             access = new Access();
+            access.setCreator(Core.currentUser());
             t.getAccessList().add(access);
             access.setUser(user);
             access.getPermissionList().addAll(Arrays.asList(permissions));
