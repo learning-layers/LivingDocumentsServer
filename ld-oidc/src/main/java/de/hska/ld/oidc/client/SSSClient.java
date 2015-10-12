@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
+import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
 import de.hska.ld.oidc.client.exception.NotYetKnownException;
 import de.hska.ld.oidc.dto.*;
 import org.apache.http.HttpResponse;
@@ -118,7 +119,7 @@ public class SSSClient {
 
     }
 
-    public SSSLivingdocsResponseDto createDocument(Document document, String discussionId, String accessToken) throws IOException {
+    public SSSLivingdocsResponseDto createDocument(Document document, String discussionId, String accessToken) throws IOException, AuthenticationNotValidException {
         String url = sssServerAddress + "/livingdocs/livingdocs/";
 
         HttpClient client = getHttpClientFor(url);
@@ -142,7 +143,7 @@ public class SSSClient {
                 + response.getStatusLine().getStatusCode());
 
         if (response.getStatusLine().getStatusCode() != 200) {
-            throw new UserNotAuthorizedException();
+            throw new AuthenticationNotValidException();
         }
 
         BufferedReader rd = null;
@@ -441,7 +442,7 @@ public class SSSClient {
         }
     }
 
-    public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, NotYetKnownException {
+    public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, NotYetKnownException, AuthenticationNotValidException {
         String url = sssServerAddress + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(documentNamePrefix + documentId, "UTF-8"), "UTF-8");
 
         HttpClient client = getHttpClientFor(url);
@@ -460,7 +461,7 @@ public class SSSClient {
         }
 
         if (response.getStatusLine().getStatusCode() != 200) {
-            throw new UserNotAuthorizedException();
+            throw new AuthenticationNotValidException();
         }
 
         BufferedReader rd = null;
@@ -503,7 +504,7 @@ public class SSSClient {
         }
     }
 
-    public SSSLivingDocResponseDto getLDocEmailsById(Long documentId, String accessToken) throws IOException {
+    public SSSLivingDocResponseDto getLDocEmailsById(Long documentId, String accessToken) throws IOException, AuthenticationNotValidException {
         String url = sssServerAddress + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(documentNamePrefix + documentId, "UTF-8"), "UTF-8");
 
         HttpClient client = getHttpClientFor(url);
@@ -518,7 +519,7 @@ public class SSSClient {
                 + response.getStatusLine().getStatusCode());
 
         if (response.getStatusLine().getStatusCode() != 200) {
-            throw new UserNotAuthorizedException();
+            throw new AuthenticationNotValidException();
         }
 
         BufferedReader rd = null;

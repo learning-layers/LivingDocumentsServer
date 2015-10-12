@@ -8,6 +8,7 @@ import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.oidc.client.SSSClient;
+import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
 import de.hska.ld.oidc.client.exception.CreationFailedException;
 import de.hska.ld.oidc.client.exception.NotYetKnownException;
 import de.hska.ld.oidc.dto.SSSLivingDocResponseDto;
@@ -71,48 +72,52 @@ public class LDToSSSEventListener {
         String sssLivingDocId = null;
         Long newDocumentId = document.getId();
         try {
-            SSSLivingDocResponseDto sssLivingdocsResponseDto = sssClient.getLDocById(newDocumentId, token.getAccessTokenValue());
+            try {
+                SSSLivingDocResponseDto sssLivingdocsResponseDto = sssClient.getLDocById(newDocumentId, token.getAccessTokenValue());
+                SSSLivingdoc sssLivingDoc = sssLivingdocsResponseDto.getLivingDoc();
+                if (sssLivingDoc != null && sssLivingDoc.getId() != null) {
+                    isAlreadyKnownToSSS = true;
+                }
+            } catch (NotYetKnownException e) {
+                //
+            }
+            if (!isAlreadyKnownToSSS) {
+                // create the living document in the SSS
+                SSSLivingdocsResponseDto sssLivingdocsResponseDto2 = sssClient.createDocument(document, null, token.getAccessTokenValue());
+                sssLivingDocId = sssLivingdocsResponseDto2.getLivingDoc();
+                if (sssLivingDocId == null) {
+                    throw new CreationFailedException(newDocumentId);
+                }
+            }
+            // Retrieve users/emails that have access to this living document declared by the SSS
+            SSSLivingDocResponseDto sssLivingdocsResponseDto = sssClient.getLDocEmailsById(newDocumentId, token.getAccessTokenValue());
             SSSLivingdoc sssLivingDoc = sssLivingdocsResponseDto.getLivingDoc();
-            if (sssLivingDoc != null && sssLivingDoc.getId() != null) {
-                isAlreadyKnownToSSS = true;
-            }
-        } catch (NotYetKnownException e) {
-            //
-        }
-        if (!isAlreadyKnownToSSS) {
-            // create the living document in the SSS
-            SSSLivingdocsResponseDto sssLivingdocsResponseDto2 = sssClient.createDocument(document, null, token.getAccessTokenValue());
-            sssLivingDocId = sssLivingdocsResponseDto2.getLivingDoc();
-            if (sssLivingDocId == null) {
-                throw new CreationFailedException(newDocumentId);
-            }
-        }
-        // Retrieve users/emails that have access to this living document declared by the SSS
-        SSSLivingDocResponseDto sssLivingdocsResponseDto = sssClient.getLDocEmailsById(newDocumentId, token.getAccessTokenValue());
-        SSSLivingdoc sssLivingDoc = sssLivingdocsResponseDto.getLivingDoc();
-        if (sssLivingDoc != null && sssLivingDoc.getUsers() != null) {
-            StringBuilder sb = new StringBuilder();
-            boolean first = true;
-            for (SSSUserDto userDto : sssLivingDoc.getUsers()) {
-                if (!emailAddressesThatHaveAccess.contains(userDto.getLabel())) {
-                    User user = userService.findByEmail(userDto.getLabel());
-                    if (user != null && user.getId() != null && document.getCreator() != null &&
-                            document.getCreator().getId() != null && !user.getId().equals(document.getCreator().getId())) {
-                        if (first) {
-                            sb.append(user.getId());
-                            first = false;
-                        } else {
-                            sb.append(";").append(user.getId());
+            if (sssLivingDoc != null && sssLivingDoc.getUsers() != null) {
+                StringBuilder sb = new StringBuilder();
+                boolean first = true;
+                for (SSSUserDto userDto : sssLivingDoc.getUsers()) {
+                    if (!emailAddressesThatHaveAccess.contains(userDto.getLabel())) {
+                        User user = userService.findByEmail(userDto.getLabel());
+                        if (user != null && user.getId() != null && document.getCreator() != null &&
+                                document.getCreator().getId() != null && !user.getId().equals(document.getCreator().getId())) {
+                            if (first) {
+                                sb.append(user.getId());
+                                first = false;
+                            } else {
+                                sb.append(";").append(user.getId());
+                            }
                         }
                     }
                 }
+                String userIds = sb.toString();
+                if (!"".equals(userIds)) {
+                    Document resultDocument = documentService.addAccess(document.getId(), userIds, "READ;WRITE");
+                    resultDocument.getAttachmentList().size();
+                    return resultDocument;
+                }
             }
-            String userIds = sb.toString();
-            if (!"".equals(userIds)) {
-                Document resultDocument = documentService.addAccess(document.getId(), userIds, "READ;WRITE");
-                resultDocument.getAttachmentList().size();
-                return resultDocument;
-            }
+        } catch (AuthenticationNotValidException eAuth) {
+            //
         }
         return document;
     }

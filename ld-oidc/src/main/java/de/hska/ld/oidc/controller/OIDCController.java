@@ -11,6 +11,7 @@ import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.oidc.client.OIDCIdentityProviderClient;
 import de.hska.ld.oidc.client.SSSClient;
+import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
 import de.hska.ld.oidc.dto.OIDCUserinfoDto;
 import de.hska.ld.oidc.dto.SSSAuthDto;
 import de.hska.ld.oidc.dto.SSSLivingdocsResponseDto;
@@ -171,7 +172,11 @@ public class OIDCController {
         }
 
         // 4.2 Create the according SSSLivingdocs entity
-        SSSLivingdocsResponseDto sssLivingdocsResponseDto = sssClient.createDocument(document, discussionId, token.getAccessTokenValue());
+        try {
+            SSSLivingdocsResponseDto sssLivingdocsResponseDto = sssClient.createDocument(document, discussionId, token.getAccessTokenValue());
+        } catch (AuthenticationNotValidException eAuth) {
+            throw new UserNotAuthorizedException();
+        }
 
         // 4.3 Retrieve the list of email addresses that have access to the livingdocument in the SSS
         // TODO retrieve email addresses
