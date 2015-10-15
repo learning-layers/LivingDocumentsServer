@@ -66,7 +66,7 @@ public abstract class Content {
     @Column(name = "deleted", nullable = false)
     private boolean deleted;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @Fetch(value = FetchMode.SUBSELECT)
     @JoinTable(name = "ld_content_tag",
             joinColumns = {@JoinColumn(name = "content_id")},
