@@ -20,6 +20,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.net.ssl.SSLContext;
@@ -41,11 +42,11 @@ public class SSSClient {
     @Autowired
     private ObjectMapper mapper;
 
-    private String documentNamePrefix = "http://178.62.62.23:9000/document/";
-    private String sssServerAddress = "http://test-ll.know-center.tugraz.at/layers.test";
+    @Autowired
+    private Environment env;
 
     public String getSssServerAddress() {
-        return sssServerAddress;
+        return env.getProperty("sss.server.endpoint");
     }
 
     private CloseableHttpClient createHttpsClient() throws IOException {
@@ -74,7 +75,7 @@ public class SSSClient {
     }
 
     public SSSAuthDto authenticate(String accessToken) throws IOException {
-        String url = sssServerAddress + "/auth/auth/";
+        String url = env.getProperty("sss.server.endpoint") + "/auth/auth/";
 
         HttpClient client = getHttpClientFor(url);
         HttpGet get = new HttpGet(url);
@@ -120,14 +121,14 @@ public class SSSClient {
     }
 
     public SSSLivingdocsResponseDto createDocument(Document document, String discussionId, String accessToken) throws IOException, AuthenticationNotValidException {
-        String url = sssServerAddress + "/livingdocs/livingdocs/";
+        String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/";
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
         addHeaderInformation(post, accessToken);
 
         SSSLivingdocsRequestDto sssLivingdocsRequestDto = new SSSLivingdocsRequestDto();
-        String externalServerAddress = documentNamePrefix; //env.getProperty("module.core.oidc.server.endpoint.external.url");
+        String externalServerAddress = env.getProperty("sss.document.name.prefix"); //env.getProperty("module.core.oidc.server.endpoint.external.url");
         sssLivingdocsRequestDto.setUri(externalServerAddress + document.getId());
         sssLivingdocsRequestDto.setDescription(document.getDescription());
         if (discussionId != null) {
@@ -173,7 +174,7 @@ public class SSSClient {
 
     public SSSDiscsDto getDiscussionsForDocument(Long documentId, String accessToken) throws IOException {
         //http://test-ll.know-center.tugraz.at/layers.test/discs/discs/targets/http%253A%252F%252F178.62.62.23%253A9000%252Fdocument%252F65554
-        String url = sssServerAddress + "/discs/discs/filtered/targets/" + URLEncoder.encode(URLEncoder.encode(documentNamePrefix + documentId, "UTF-8"), "UTF-8");
+        String url = env.getProperty("sss.server.endpoint") + "/discs/discs/filtered/targets/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
@@ -239,7 +240,7 @@ public class SSSClient {
             }
         }
         attachmentIdString = URLEncoder.encode(attachmentIdString, "UTF-8");
-        String url = sssServerAddress + "/entities/entities/filtered/" + attachmentIdString;
+        String url = env.getProperty("sss.server.endpoint") + "/entities/entities/filtered/" + attachmentIdString;
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
@@ -290,7 +291,7 @@ public class SSSClient {
     }
 
     public SSSCreateDiscResponseDto createDiscussion(String documentId, SSSCreateDiscRequestDto discRequestDto, String accessToken) throws IOException {
-        String sssDocumentId = documentNamePrefix + documentId;
+        String sssDocumentId = env.getProperty("sss.document.name.prefix") + documentId;
         SSSCreateDiscRequestDto sssCreateDiscRequestDto = new SSSCreateDiscRequestDto();
         sssCreateDiscRequestDto.setDescription(discRequestDto.getDescription());
         sssCreateDiscRequestDto.setLabel(discRequestDto.getLabel());
@@ -298,7 +299,7 @@ public class SSSClient {
         discRequestDto.getTargets().add(sssDocumentId);
         sssCreateDiscRequestDto.setTargets(discRequestDto.getTargets());
 
-        String url = sssServerAddress + "/discs/discs";
+        String url = env.getProperty("sss.server.endpoint") + "/discs/discs";
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
@@ -345,7 +346,7 @@ public class SSSClient {
     }
 
     public void addTagTo(String discOrEntry, String tag, String accessToken) throws IOException {
-        String url = sssServerAddress + "/tags/tags";
+        String url = env.getProperty("sss.server.endpoint") + "/tags/tags";
 
         SSSTagRequestDto sssTagRequestDto = new SSSTagRequestDto();
         sssTagRequestDto.setEntity(discOrEntry);
@@ -395,7 +396,7 @@ public class SSSClient {
     }
 
     public SSSEntryForDiscussionResponseDto createEntryForDiscussion(SSSEntryForDiscussionRequestDto entryForDiscRequestDto, String accessToken) throws IOException {
-        String url = sssServerAddress + "/discs/discs";
+        String url = env.getProperty("sss.server.endpoint") + "/discs/discs";
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
@@ -443,7 +444,7 @@ public class SSSClient {
     }
 
     public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, NotYetKnownException, AuthenticationNotValidException {
-        String url = sssServerAddress + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(documentNamePrefix + documentId, "UTF-8"), "UTF-8");
+        String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
@@ -505,7 +506,7 @@ public class SSSClient {
     }
 
     public SSSLivingDocResponseDto getLDocEmailsById(Long documentId, String accessToken) throws IOException, AuthenticationNotValidException {
-        String url = sssServerAddress + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(documentNamePrefix + documentId, "UTF-8"), "UTF-8");
+        String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
