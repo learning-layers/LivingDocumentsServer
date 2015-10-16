@@ -25,7 +25,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.junit.Assert;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URI;
@@ -40,6 +43,7 @@ import java.util.Set;
 
 import static de.hska.ld.core.util.CoreUtil.PASSWORD;
 
+@Component
 public class UserSession {
 
     private static final String ADMIN_USERNAME = "admin";
@@ -47,13 +51,18 @@ public class UserSession {
     private static final String USER_USERNAME = "user";
     private static final String USER_PASSWORD = "pass";
 
-    private String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+    private String endpoint = null;
+    private static String staticEndpoint = null;
     private String loginURL = endpoint + "/login";
 
     private CookieStore cookieStore = new BasicCookieStore();
 
-    public UserSession() {
+    @Autowired
+    private Environment env;
 
+    public UserSession() {
+        this.endpoint = env.getProperty("module.core.oidc.server.endpoint.external.url");
+        staticEndpoint = env.getProperty("module.core.oidc.server.endpoint.external.url");
     }
 
     public UserSession loginAsAdmin() throws Exception {
@@ -285,7 +294,7 @@ public class UserSession {
     public static boolean isRedirectToLoginPresent(HttpResponse response) {
         Header[] headers = response.getAllHeaders();
         for (Header header : headers) {
-            if ("Location".equals(header.getName()) && (System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL") + "/openid_connect_login").equals(header.getValue())) {
+            if ("Location".equals(header.getName()) && (staticEndpoint + "/openid_connect_login").equals(header.getValue())) {
                 return true;
             }
         }

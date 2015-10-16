@@ -19,6 +19,7 @@ import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -53,6 +54,9 @@ public class OIDCController {
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    private Environment env;
 
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
     public User authenticate(HttpServletRequest request,
@@ -241,7 +245,7 @@ public class OIDCController {
         }
         user.setRoleList(roleList);
         // A password is required so we set a uuid generated one
-        if ("development".equals(System.getenv("LDS_APP_INSTANCE"))) {
+        if ("development".equals(env.getProperty("lds.app.instance"))) {
             user.setPassword("pass");
         } else {
             user.setPassword(UUID.randomUUID().toString());

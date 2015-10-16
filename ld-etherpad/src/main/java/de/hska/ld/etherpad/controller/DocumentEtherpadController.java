@@ -192,7 +192,7 @@ public class DocumentEtherpadController {
     @RequestMapping(method = RequestMethod.POST, value = "/etherpad/update")
     public Callable updateDocumentThroughEtherpad(@RequestBody EtherpadDocumentUpdateDto etherpadDocumentUpdateDto) {
         return () -> {
-            if (System.getenv("LDS_API_KEY").equals(etherpadDocumentUpdateDto.getApiKey())) {
+            if (env.getProperty("module.etherpad.apikey").equals(etherpadDocumentUpdateDto.getApiKey())) {
                 String authorId = etherpadDocumentUpdateDto.getAuthorId();
                 UserEtherpadInfo userEtherpadInfo = userEtherpadInfoService.findByAuthorId(authorId);
                 DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoService.findByGroupPadId(etherpadDocumentUpdateDto.getPadId());

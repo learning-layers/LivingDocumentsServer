@@ -178,7 +178,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         }
                         user.setRoleList(roleList);
                         // A password is required so we set a uuid generated one
-                        if ("development".equals(System.getenv("LDS_APP_INSTANCE"))) {
+                        if ("development".equals(env.getProperty("lds.app.instance"))) {
                             user.setPassword("pass");
                         } else {
                             user.setPassword(UUID.randomUUID().toString());
@@ -354,7 +354,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public OIDCAuthenticationFilter openIdConnectAuthenticationFilter() throws Exception {
-        OIDCAuthenticationFilter oidcAuthenticationFilter = MitreOidcHelper.createOIDCAuthenticationFilter();
+        OIDCAuthenticationFilter oidcAuthenticationFilter = MitreOidcHelper.createOIDCAuthenticationFilter(env);
         oidcAuthenticationFilter.setAuthenticationManager(authenticationManager);
 
         oidcAuthenticationFilter.setIssuerService(hybridIssuerService);

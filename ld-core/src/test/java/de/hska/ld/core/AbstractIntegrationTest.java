@@ -49,6 +49,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -80,6 +81,9 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    private Environment env;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate template = new LDRestTemplate();
@@ -293,7 +297,7 @@ public abstract class AbstractIntegrationTest {
             String authString = new String(auth);
             String[] splittedAuthString = authString.split(":");
             try {
-                String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+                String endpoint = env.getProperty("module.core.oidc.server.endpoint.external.url");
                 String url = endpoint + "/login";
 
                 CookieStore cookieStore = new BasicCookieStore();
@@ -324,7 +328,7 @@ public abstract class AbstractIntegrationTest {
             String usernameAndPassword = user.getUsername() + ":" + PASSWORD;
             this.auth = usernameAndPassword.getBytes();
             try {
-                String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+                String endpoint = env.getProperty("module.core.oidc.server.endpoint.external.url");
                 String url = endpoint + "/login";
 
                 CookieStore cookieStore = new BasicCookieStore();
@@ -360,7 +364,7 @@ public abstract class AbstractIntegrationTest {
         public HttpRequestWrapper asUser() {
             this.auth = AUTH_USER;
             try {
-                String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+                String endpoint = env.getProperty("module.core.oidc.server.endpoint.external.url");
                 String url = endpoint + "/login";
 
                 CookieStore cookieStore = new BasicCookieStore();
@@ -396,7 +400,7 @@ public abstract class AbstractIntegrationTest {
         public HttpRequestWrapper asAdmin() {
             this.auth = AUTH_ADMIN;
             try {
-                String endpoint = System.getenv("LDS_SERVER_ENDPOINT_EXTERNAL");
+                String endpoint = env.getProperty("module.core.oidc.server.endpoint.external.url");
                 String url = endpoint + "/login";
 
                 CookieStore cookieStore = new BasicCookieStore();
