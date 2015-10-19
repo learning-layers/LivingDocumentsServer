@@ -175,7 +175,9 @@ public class DocumentEtherpadController {
             // we need return types, cookie with sessionId and the URL of Etherpads Pad
             javax.servlet.http.Cookie myCookie = new javax.servlet.http.Cookie("sessionID", sessionId);
             myCookie.setPath("/");
-            myCookie.setDomain(env.getProperty("module.core.oidc.server.endpoint.main.domain"));
+            if (!"localhost".equals(env.getProperty("module.core.oidc.server.endpoint.main.domain"))) {
+                myCookie.setDomain(env.getProperty("module.core.oidc.server.endpoint.main.domain"));
+            }
             response.addCookie(myCookie);
             // return Etherpad URL path
             String padURL = null;
