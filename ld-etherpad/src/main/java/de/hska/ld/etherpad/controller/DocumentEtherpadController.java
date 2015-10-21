@@ -102,7 +102,10 @@ public class DocumentEtherpadController {
                     if (mainSource != null) {
                         String discussionText = new String(mainSource, "UTF-8");
                         if (!"".equals(discussionText)) {
-                            groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle(), discussionText);
+                            groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle());
+                            //groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle(), discussionText);
+                            etherpadClient.setGroupPadContent(groupPadId, discussionText);
+                            //setHTML(padID, html)
                         } else {
                             groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle());
                         }

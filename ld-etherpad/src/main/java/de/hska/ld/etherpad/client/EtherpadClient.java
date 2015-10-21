@@ -374,4 +374,39 @@ public class EtherpadClient {
         }
         return result;
     }
+
+    public StringBuilder setGroupPadContent(String groupPadId, String discussionText) throws IOException {
+        String endpoint = etherpadEndpoint;
+        String url = endpoint + "/api/1/setHTML";
+
+        //HttpClient client = HttpClientBuilder.create().build();
+        //setHTML(padID, html)
+        HttpClient client = createHttpsClient();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("User-Agent", "Mozilla/5.0");
+
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("apikey", etherpadAPIKey));
+        urlParameters.add(new BasicNameValuePair("padID", groupPadId));
+        //urlParameters.add(new BasicNameValuePair("text", "API"));
+        urlParameters.add(new BasicNameValuePair("html", "<!DOCTYPE html><html><head><title></title></head><body>" + discussionText + "</body></html>"));
+
+        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        BufferedReader rd = new BufferedReader(
+                new InputStreamReader(response.getEntity().getContent()));
+
+        StringBuilder result = new StringBuilder();
+        String line = "";
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+        return result;
+    }
 }

@@ -40,6 +40,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -596,18 +597,22 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     @Transactional(readOnly = false)
     public Document addDiscussionToDocument(Long documentId, DiscussionSectionDto discussionSectionDto) {
         Document document = addDiscussionToDocument(documentId, discussionSectionDto.getDocument());
+        Document discussion = createDiscussionContent(discussionSectionDto, document);
+        return discussion;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false)
+    private Document createDiscussionContent(DiscussionSectionDto discussionSectionDto, Document document) {
         Document discussion = document.getDiscussionList().get(document.getDiscussionList().size() - 1);
         discussion.setCreator(Core.currentUser());
         if (discussionSectionDto.getSectionText() != null) {
             List<Attachment> attachmentList = discussion.getAttachmentList();
-            Attachment mainAttachment = new Attachment();
-            mainAttachment.setName("maincontent.html");
-            mainAttachment.setMimeType("text/html");
-            attachmentList.add(mainAttachment);
+            Attachment mainAttachment = attachmentList.get(0);
             mainAttachment.setCreator(Core.currentUser());
             mainAttachment.setSource(discussionSectionDto.getSectionText().getBytes());
         }
-        return super.save(discussion);
+        discussion = super.save(discussion);
+        return discussion;
     }
 
     @Override
