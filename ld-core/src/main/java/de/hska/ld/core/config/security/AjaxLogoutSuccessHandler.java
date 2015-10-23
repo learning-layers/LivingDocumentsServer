@@ -22,6 +22,8 @@
 
 package de.hska.ld.core.config.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AbstractAuthenticationTargetUrlRequestHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -34,6 +36,9 @@ import java.io.IOException;
 
 public class AjaxLogoutSuccessHandler extends AbstractAuthenticationTargetUrlRequestHandler
         implements LogoutSuccessHandler {
+
+    @Autowired
+    private Environment env;
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -48,6 +53,9 @@ public class AjaxLogoutSuccessHandler extends AbstractAuthenticationTargetUrlReq
         //
         javax.servlet.http.Cookie cookie = new Cookie("sessionID", "");
         cookie.setPath("/");
+        if (!"localhost".equals(env.getProperty("module.core.oidc.server.endpoint.main.domain"))) {
+            cookie.setDomain(env.getProperty("module.core.oidc.server.endpoint.main.domain"));
+        }
         cookie.setMaxAge(0);
         response.addCookie(cookie);
 

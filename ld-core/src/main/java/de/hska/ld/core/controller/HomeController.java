@@ -24,6 +24,7 @@ import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -37,7 +38,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.annotation.Resource;
 import javax.naming.OperationNotSupportedException;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.nio.file.AccessDeniedException;
 import java.security.Principal;
 import java.util.Locale;
@@ -63,6 +66,9 @@ public class HomeController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private Environment env;
 
     /**
      * Simply selects the home view to render by returning its name.
@@ -140,8 +146,15 @@ public class HomeController {
     }
 
     @RequestMapping("/logout")
-    public String logout(HttpServletRequest request, Principal p) throws ServletException {
+    public String logout(HttpServletRequest request, HttpServletResponse response, Principal p) throws ServletException {
         request.logout();
+        javax.servlet.http.Cookie cookie = new Cookie("sessionID", "");
+        cookie.setPath("/");
+        if (!"localhost".equals(env.getProperty("module.core.oidc.server.endpoint.main.domain"))) {
+            cookie.setDomain(env.getProperty("module.core.oidc.server.endpoint.main.domain"));
+        }
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
         return "redirect:";
     }
 }
