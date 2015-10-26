@@ -57,7 +57,10 @@ public class Document extends Content {
     private List<Attachment> attachmentList;
 
     @Transient
-    private int attachmentCount;
+    private int fileAttachmentCount;
+
+    @Transient
+    private int mediaAttachmentCount;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ld_discussion",
@@ -104,12 +107,20 @@ public class Document extends Content {
         this.description = description;
     }
 
-    public int getAttachmentCount() {
-        return attachmentCount;
+    public int getFileAttachmentCount() {
+        return fileAttachmentCount;
     }
 
-    public void setAttachmentCount(int attachmentCount) {
-        this.attachmentCount = attachmentCount;
+    public void setFileAttachmentCount(int fileAttachmentCount) {
+        this.fileAttachmentCount = fileAttachmentCount;
+    }
+
+    public int getMediaAttachmentCount() {
+        return mediaAttachmentCount;
+    }
+
+    public void setMediaAttachmentCount(int mediaAttachmentCount) {
+        this.mediaAttachmentCount = mediaAttachmentCount;
     }
 
     @JsonProperty("attachments")

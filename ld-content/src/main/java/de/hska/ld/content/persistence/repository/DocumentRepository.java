@@ -62,11 +62,21 @@ public interface DocumentRepository extends DocumentRepositoryCustom, CrudReposi
             "WHERE d.id = :documentId AND (atl.mimeType NOT IN (:excludedMimeTypes) OR atl.mimeType IS null) AND (atl.deleted = false OR atl.deleted IS NULL) AND atl.name <> 'maincontent.html'")
     Page<Attachment> findAttachmentsWithTypeExclusionForDocument(@Param("documentId") Long documentId, @Param("excludedMimeTypes") List<String> excludedAttachmentTypesList, Pageable pageable);
 
+    @Query("SELECT COUNT(atl) from Document d LEFT JOIN d.attachmentList atl " +
+            "WHERE d.id = :documentId AND (atl.mimeType NOT IN (:excludedMimeTypes) OR atl.mimeType IS null) AND (atl.deleted = false OR atl.deleted IS NULL) AND atl.name <> 'maincontent.html'")
+    long countAttachmentsWithTypeExclusionForDocument(@Param("documentId") Long documentId, @Param("excludedMimeTypes") List<String> excludedAttachmentTypesList);
+
     @Query("SELECT atl from Document d LEFT JOIN d.attachmentList atl " +
             "WHERE d.id = :documentId AND atl.mimeType IN (:mimeTypes) AND atl.mimeType NOT IN (:excludedMimeTypes) AND (atl.deleted = false OR atl.deleted IS NULL) AND atl.name <> 'maincontent.html'")
     Page<Attachment> findAttachmentsByTypeWithExclusionForDocument(@Param("documentId") Long documentId,
                                                                    @Param("mimeTypes") List<String> attachmentTypes,
                                                                    @Param("excludedMimeTypes") List<String> excludedAttachmentTypesList, Pageable pageable);
+
+    @Query("SELECT COUNT(atl) from Document d LEFT JOIN d.attachmentList atl " +
+            "WHERE d.id = :documentId AND atl.mimeType IN (:mimeTypes) AND atl.mimeType NOT IN (:excludedMimeTypes) AND (atl.deleted = false OR atl.deleted IS NULL) AND atl.name <> 'maincontent.html'")
+    long countAttachmentsByTypeWithExclusionForDocument(@Param("documentId") Long documentId,
+                                                        @Param("mimeTypes") List<String> attachmentTypes,
+                                                        @Param("excludedMimeTypes") List<String> excludedAttachmentTypesList);
 
     @Query("SELECT acc from Document d LEFT JOIN d.accessList acc WHERE d.id = :documentId AND acc.user.id = :userId")
     List<Access> getCurrentUserPermissionsForDocument(@Param("documentId") Long documentId, @Param("userId") Long userId);

@@ -107,4 +107,6 @@ public interface DocumentService extends ContentService<Document> {
     void removeAccess(Long documentId, Long userId);
 
     void updatedByUser(User user, Document document);
+
+    void fillAttachedEntitiesCounters(Document document);
 }

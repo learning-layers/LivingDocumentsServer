@@ -693,6 +693,56 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         attachmentService.save(mainContent);
     }
 
+    @Override
+    public void fillAttachedEntitiesCounters(Document document) {
+        String[] imageMimeType = {
+                "image/cis-cod",
+                "image/cmu-raster",
+                "image/fif",
+                "image/gif",
+                "image/ief",
+                "image/jpeg",
+                "image/png",
+                "image/tiff",
+                "image/vasa",
+                "image/vnd.wap.wbmp",
+                "image/x-freehand",
+                "image/x-icon",
+                "image/x-portable-anymap",
+                "image/x-portable-bitmap",
+                "image/x-portable-graymap",
+                "image/x-portable-pixmap",
+                "image/x-rgb",
+                "image/x-windowdump",
+                "image/x-xbitmap",
+                "image/x-xpixmap"
+        };
+        String concatImageMimeType = String.join(";", imageMimeType);
+        long fileAttachmentCount = getAttachmentCount(document, "all", concatImageMimeType); // exclude image types
+        document.setFileAttachmentCount((int) fileAttachmentCount);
+        long mediaAttachmentCount = getAttachmentCount(document, concatImageMimeType, ""); // include image types
+        document.setMediaAttachmentCount((int) mediaAttachmentCount);
+    }
+
+    private long getAttachmentCount(Document document, String attachmentType, String excludedAttachmentTypes) {
+        List<String> attachmentTypes = Arrays.asList(attachmentType.split(";"));
+        if (attachmentTypes.size() == 0) {
+            attachmentTypes.add("NoValue");
+        }
+        List<String> excludedAttachmentTypesList;
+        if (!"".equals(excludedAttachmentTypes)) {
+            excludedAttachmentTypesList = Arrays.asList(excludedAttachmentTypes.split(";"));
+        } else {
+            excludedAttachmentTypesList = new ArrayList<>();
+            excludedAttachmentTypesList.add("NoValue");
+        }
+        if ("all".equals(attachmentType)) {
+            return repository.countAttachmentsWithTypeExclusionForDocument(document.getId(), excludedAttachmentTypesList);
+        } else {
+            return repository.countAttachmentsByTypeWithExclusionForDocument(document.getId(), attachmentTypes, excludedAttachmentTypesList);
+        }
+    }
+
     public void addAccess(Long documentId, List<User> userList, List<Access.Permission> permissionList) {
         Document document = findById(documentId);
         for (User user : userList) {

@@ -277,7 +277,9 @@ public class DocumentController {
         documentClone.setCommentList(document.getCommentList());
         documentClone.setTagList(document.getTagList());
         documentClone.setHyperlinkList(document.getHyperlinkList());
-        documentClone.setAttachmentCount(document.getAttachmentList().size() - 1);
+        documentService.fillAttachedEntitiesCounters(document);
+        documentClone.setFileAttachmentCount(document.getFileAttachmentCount());
+        documentClone.setMediaAttachmentCount(document.getMediaAttachmentCount());
         Access access = documentService.getCurrentUserPermissions(documentId, "all");
         if (access != null) {
             List<Access> readAccessList = new ArrayList<>();
