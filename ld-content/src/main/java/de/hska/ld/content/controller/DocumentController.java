@@ -54,6 +54,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -626,8 +627,10 @@ public class DocumentController {
             try {
                 Attachment attachment = documentService.getAttachmentByAttachmentId(documentId, attachmentId);
                 InputStream is = null;
-                if (attachment.getSourceBlob() != null) {
-                    is = attachment.getSourceBlob().getBinaryStream();
+                if (attachment.getFileBlobBean() != null && attachment.getFileBlobBean().getSourceBlob() != null) {
+                    Blob blob = attachment.getFileBlobBean().getSourceBlob();
+                    is = blob.getBinaryStream();
+                    response.setContentLength((int) blob.length());
                 } else {
                     byte[] source = attachment.getSource();
                     if (source != null) {

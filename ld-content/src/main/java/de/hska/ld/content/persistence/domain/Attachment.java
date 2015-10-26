@@ -31,7 +31,6 @@ import javax.persistence.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
-import java.sql.Blob;
 
 @Entity
 @Table(name = "ld_attachment")
@@ -77,11 +76,16 @@ public class Attachment extends Content {
     @JsonIgnore
     private byte[] source;
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "sourceBlob")
-    @JsonIgnore
-    private Blob sourceBlob;
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private FileBlobBean fileBlobBean;
+
+    public FileBlobBean getFileBlobBean() {
+        return fileBlobBean;
+    }
+
+    public void setFileBlobBean(FileBlobBean fileBlobBean) {
+        this.fileBlobBean = fileBlobBean;
+    }
 
     public String getName() {
         return name;
@@ -105,13 +109,5 @@ public class Attachment extends Content {
 
     public void setSource(byte[] source) {
         this.source = source;
-    }
-
-    public Blob getSourceBlob() {
-        return sourceBlob;
-    }
-
-    public void setSourceBlob(Blob sourceBlob) {
-        this.sourceBlob = sourceBlob;
     }
 }

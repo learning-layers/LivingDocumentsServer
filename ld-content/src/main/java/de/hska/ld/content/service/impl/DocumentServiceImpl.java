@@ -241,7 +241,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         LobHelper lobHelper = session.getLobHelper();
         Blob dataBlob = lobHelper.createBlob(is, fileSize);
 
-        attachment.setSourceBlob(dataBlob);
+        FileBlobBean fileBlobBean = new FileBlobBean();
+        fileBlobBean.setSourceBlob(dataBlob);
+        attachment.setFileBlobBean(fileBlobBean);
 
         attachment.setCreator(Core.currentUser());
         document.getAttachmentList().add(attachment);
