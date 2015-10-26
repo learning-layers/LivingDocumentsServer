@@ -112,6 +112,7 @@ public class User implements UserDetails {
     private byte[] avatar;
 
     @Transient
+    @JsonIgnore
     private Date fetchedFromDB;
 
     @PostPersist

@@ -25,6 +25,8 @@ package de.hska.ld.content.persistence.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.hska.ld.core.persistence.domain.User;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.search.annotations.*;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.validator.constraints.NotBlank;
@@ -51,7 +53,11 @@ public class Document extends Content {
     @JoinTable(name = "ld_document_attachment",
             joinColumns = {@JoinColumn(name = "document_id")},
             inverseJoinColumns = {@JoinColumn(name = "attachment_id")})
+    @LazyCollection(LazyCollectionOption.EXTRA)
     private List<Attachment> attachmentList;
+
+    @Transient
+    private int attachmentCount;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ld_discussion",
@@ -96,6 +102,14 @@ public class Document extends Content {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public int getAttachmentCount() {
+        return attachmentCount;
+    }
+
+    public void setAttachmentCount(int attachmentCount) {
+        this.attachmentCount = attachmentCount;
     }
 
     @JsonProperty("attachments")

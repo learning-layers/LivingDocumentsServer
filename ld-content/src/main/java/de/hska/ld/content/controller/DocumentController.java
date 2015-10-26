@@ -263,7 +263,7 @@ public class DocumentController {
             } catch (UserNotAuthorizedException e) {
                 DocumentReadEvent documentReadEvent = documentEventsPublisher.sendDocumentReadEvent(document);
                 Document resultDocument = documentReadEvent.getResultDocument();
-                if (resultDocument != null && resultDocument.getAttachmentList() != null) {
+                if (resultDocument != null && resultDocument.getAttachmentList().size() > 0) {
                     documentService.checkPermission(resultDocument, Access.Permission.READ);
                 } else {
                     documentService.checkPermission(document, Access.Permission.READ);
@@ -273,12 +273,11 @@ public class DocumentController {
             throw new NotFoundException("id");
         }
         Document documentClone = cloner.shallowClone(document);
-        documentService.loadContentCollection(document, Attachment.class, Comment.class, Tag.class, Hyperlink.class, User.class);
-        documentClone.setAttachmentList(new ArrayList<>(document.getAttachmentList()));
+        documentService.loadContentCollection(document, Comment.class, Tag.class, Hyperlink.class, User.class);
         documentClone.setCommentList(document.getCommentList());
         documentClone.setTagList(document.getTagList());
         documentClone.setHyperlinkList(document.getHyperlinkList());
-        documentClone.setAttachmentList(documentClone.getAttachmentList().stream().filter(a -> !"maincontent.html".equals(a.getName())).collect(Collectors.toList()));
+        documentClone.setAttachmentCount(document.getAttachmentList().size() - 1);
         Access access = documentService.getCurrentUserPermissions(documentId, "all");
         if (access != null) {
             List<Access> readAccessList = new ArrayList<>();

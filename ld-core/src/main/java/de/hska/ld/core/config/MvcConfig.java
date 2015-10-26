@@ -35,6 +35,7 @@ public class MvcConfig extends WebMvcAutoConfiguration.WebMvcAutoConfigurationAd
     public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         Hibernate4Module hibernate4Module = new Hibernate4Module();
+        hibernate4Module.disable(Hibernate4Module.Feature.USE_TRANSIENT_ANNOTATION);
         objectMapper.registerModule(hibernate4Module);
         return objectMapper;
     }
