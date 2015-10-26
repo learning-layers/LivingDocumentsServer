@@ -34,6 +34,8 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.service.annotation.Logging;
 import de.hska.ld.core.util.Core;
+import org.hibernate.LobHelper;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -44,8 +46,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Blob;
 import java.util.*;
 
 @Service
@@ -68,6 +72,9 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private EntityManager em;
 
     private Comparator<Content> byDateTime = (c1, c2) -> {
         if (c1.getCreatedAt() == null) {
@@ -214,7 +221,7 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
     @Override
     public Long addAttachment(Long documentId, MultipartFile file, String fileName) {
         try {
-            return addAttachment(documentId, file.getInputStream(), fileName);
+            return addAttachment(documentId, file.getInputStream(), fileName, file.getSize());
         } catch (IOException e) {
             throw new ValidationException("file");
         }
@@ -222,17 +229,25 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
 
     @Override
     @Transactional
-    public Long addAttachment(Long documentId, InputStream is, String fileName) {
+    public Long addAttachment(Long documentId, InputStream is, String fileName, long fileSize) {
         Document document = findById(documentId);
         if (document == null) {
             throw new ValidationException("id");
         }
         checkPermission(document, Access.Permission.WRITE);
-        Attachment attachment = new Attachment(is, fileName);
+        Attachment attachment = new Attachment(fileName);
+
+        Session session = (Session) em.getDelegate();
+        LobHelper lobHelper = session.getLobHelper();
+        Blob dataBlob = lobHelper.createBlob(is, fileSize);
+
+        attachment.setSourceBlob(dataBlob);
+
         attachment.setCreator(Core.currentUser());
         document.getAttachmentList().add(attachment);
         document = super.save(document);
         createNotifications(document, Subscription.Type.ATTACHMENT);
+
         return document.getAttachmentList().get(document.getAttachmentList().size() - 1).getId();
     }
 

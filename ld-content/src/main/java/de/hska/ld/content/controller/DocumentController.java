@@ -624,8 +624,17 @@ public class DocumentController {
         return () -> {
             try {
                 Attachment attachment = documentService.getAttachmentByAttachmentId(documentId, attachmentId);
-                byte[] source = attachment.getSource();
-                InputStream is = new ByteArrayInputStream(source);
+                InputStream is = null;
+                if (attachment.getSourceBlob() != null) {
+                    is = attachment.getSourceBlob().getBinaryStream();
+                } else {
+                    byte[] source = attachment.getSource();
+                    if (source != null) {
+                        is = new ByteArrayInputStream(source);
+                    } else {
+                        throw new NotFoundException("source");
+                    }
+                }
                 response.setContentType(attachment.getMimeType());
                 String fileName = URLEncoder.encode(attachment.getName(), "UTF-8");
                 fileName = URLDecoder.decode(fileName, "ISO8859_1");

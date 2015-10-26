@@ -32,12 +32,10 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.transaction.Transactional;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -154,14 +152,14 @@ public class DataGenerator {
             User adminUser = userService.findByUsername(Core.BOOTSTRAP_ADMIN);
             documentService.addAccess(document.getId(), adminUser, Access.Permission.READ, Access.Permission.WRITE);
 
-            String fileName = "sandbox.pdf";
+            /*String fileName = "sandbox.pdf";
             InputStream in = null;
             try {
                 in = DataGenerator.class.getResourceAsStream("/" + fileName);
                 documentService.addAttachment(document.getId(), in, fileName);
             } finally {
                 IOUtils.closeQuietly(in);
-            }
+            }*/
         });
     }
 }

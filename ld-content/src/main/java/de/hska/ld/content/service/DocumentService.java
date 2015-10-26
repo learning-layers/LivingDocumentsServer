@@ -54,7 +54,7 @@ public interface DocumentService extends ContentService<Document> {
 
     Long addAttachment(Long documentId, MultipartFile file, String fileName);
 
-    Long addAttachment(Long documentId, InputStream is, String fileName);
+    Long addAttachment(Long documentId, InputStream is, String fileName, long size);
 
     Attachment getAttachment(Long documentId, int position);
 

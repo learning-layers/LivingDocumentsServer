@@ -31,6 +31,7 @@ import javax.persistence.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
+import java.sql.Blob;
 
 @Entity
 @Table(name = "ld_attachment")
@@ -38,6 +39,10 @@ public class Attachment extends Content {
     private static final Logger LOGGER = LoggerFactory.getLogger(Attachment.class);
 
     public Attachment() {
+    }
+
+    public Attachment(String name) {
+        setNewValues(name);
     }
 
     public Attachment(InputStream inputStream, String name) {
@@ -54,6 +59,11 @@ public class Attachment extends Content {
         }
     }
 
+    public void setNewValues(String name) {
+        this.mimeType = URLConnection.guessContentTypeFromName(name);
+        this.name = name;
+    }
+
     @Column(name = "name", nullable = false)
     private String name;
 
@@ -66,6 +76,12 @@ public class Attachment extends Content {
     @Column(name = "source")
     @JsonIgnore
     private byte[] source;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "sourceBlob")
+    @JsonIgnore
+    private Blob sourceBlob;
 
     public String getName() {
         return name;
@@ -89,5 +105,13 @@ public class Attachment extends Content {
 
     public void setSource(byte[] source) {
         this.source = source;
+    }
+
+    public Blob getSourceBlob() {
+        return sourceBlob;
+    }
+
+    public void setSourceBlob(Blob sourceBlob) {
+        this.sourceBlob = sourceBlob;
     }
 }
