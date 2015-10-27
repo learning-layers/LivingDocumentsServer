@@ -103,6 +103,9 @@ public class DocumentEtherpadController {
                 try {
                     String urlEncodedDocumentTitle = URLEncoder.encode(URLEncoder.encode(document.getTitle(), "UTF-8"), "UTF-8");
                     String groupPadTitle = StringUtils.left(urlEncodedDocumentTitle, 50);
+                    while (groupPadTitle.endsWith("%")) {
+                        groupPadTitle = groupPadTitle.substring(0, groupPadTitle.length() - 1);
+                    }
                     if (mainSource != null) {
                         String discussionText = new String(mainSource, "UTF-8");
                         if (!"".equals(discussionText)) {
