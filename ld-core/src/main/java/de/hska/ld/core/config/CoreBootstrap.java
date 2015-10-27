@@ -50,8 +50,16 @@ public class CoreBootstrap {
 
             bootstrapPassword = env.getProperty("module.core.bootstrap.admin.password");
             if (bootstrapPassword != null && !"".equals(bootstrapPassword)) {
-                userService.save(getUser("user", "user", userRole));
-                userService.save(getUser("admin", "admin", userRole, adminRole));
+                try {
+                    userService.save(getUser("user", "user", userRole));
+                } catch (Exception e) {
+                    //
+                }
+                try {
+                    userService.save(getUser("admin", "admin", userRole, adminRole));
+                } catch (Exception e) {
+                    //
+                }
             }
         }
     }

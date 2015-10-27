@@ -53,7 +53,10 @@ public class DocumentEtherpadInfoServiceImpl implements DocumentEtherpadInfoServ
     @Transactional(readOnly = false)
     public void storeGroupPadIdForDocument(String groupPadId, Document document) {
         // associate GroupPadId for the Document and save it
-        DocumentEtherpadInfo documentEtherpadInfo = new DocumentEtherpadInfo();
+        DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoRepository.findByDocument(document);
+        if (documentEtherpadInfo == null) {
+            documentEtherpadInfo = new DocumentEtherpadInfo();
+        }
         documentEtherpadInfo.setGroupPadId(groupPadId);
         documentEtherpadInfo.setDocument(document);
         documentEtherpadInfoRepository.save(documentEtherpadInfo);

@@ -425,10 +425,10 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
             throw new ValidationException("password");
         }
         if (userFoundByUsername != null) {
-            throw new AlreadyExistsException("username");
+            throw new AlreadyExistsException("username=" + userFoundByUsername.getUsername());
         }
         if (userFoundByEmail != null) {
-            throw new AlreadyExistsException("email");
+            throw new AlreadyExistsException("email" + userFoundByEmail.getEmail());
         }
         if (user.getEmail() != null && !emailValidator.isValid(user.getEmail())) {
             throw new ValidationException("email");

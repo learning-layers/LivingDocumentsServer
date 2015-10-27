@@ -16,6 +16,7 @@ import de.hska.ld.etherpad.persistence.domain.UserEtherpadInfo;
 import de.hska.ld.etherpad.service.DocumentEtherpadInfoService;
 import de.hska.ld.etherpad.service.UserEtherpadInfoService;
 import de.hska.ld.etherpad.util.Etherpad;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
 import java.util.concurrent.Callable;
 
 @RestController
@@ -99,18 +101,20 @@ public class DocumentEtherpadController {
                 Attachment mainContent = document.getAttachmentList().get(0);
                 byte[] mainSource = mainContent.getSource();
                 try {
+                    String urlEncodedDocumentTitle = URLEncoder.encode(URLEncoder.encode(document.getTitle(), "UTF-8"), "UTF-8");
+                    String groupPadTitle = StringUtils.left(urlEncodedDocumentTitle, 50);
                     if (mainSource != null) {
                         String discussionText = new String(mainSource, "UTF-8");
                         if (!"".equals(discussionText)) {
-                            groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle());
+                            groupPadId = etherpadClient.createGroupPad(groupId, groupPadTitle);
                             //groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle(), discussionText);
                             etherpadClient.setGroupPadContent(groupPadId, discussionText);
                             //setHTML(padID, html)
                         } else {
-                            groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle());
+                            groupPadId = etherpadClient.createGroupPad(groupId, groupPadTitle);
                         }
                     } else {
-                        groupPadId = etherpadClient.createGroupPad(groupId, document.getTitle());
+                        groupPadId = etherpadClient.createGroupPad(groupId, groupPadTitle);
                     }
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
