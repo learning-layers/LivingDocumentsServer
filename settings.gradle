@@ -10,6 +10,5 @@ settings.createProjectDescriptor(rootProjectDescriptor, 'project-name', projectD
 
 include 'ld-etherpad'
 include 'ld-oidc'
-include 'ld-prerender'
-include 'ld-employid'
+//include 'ld-prerender'
 include 'ld-swagger'
