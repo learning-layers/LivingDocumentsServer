@@ -9,6 +9,7 @@ def rootProjectDescriptor = settings.rootProject
 settings.createProjectDescriptor(rootProjectDescriptor, 'project-name', projectDir) */
 
 include 'ld-etherpad'
+include 'ld-recommendation'
 include 'ld-oidc'
 //include 'ld-prerender'
 include 'ld-swagger'
