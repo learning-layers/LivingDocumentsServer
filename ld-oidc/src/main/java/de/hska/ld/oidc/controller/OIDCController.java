@@ -1,5 +1,6 @@
 package de.hska.ld.oidc.controller;
 
+import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
@@ -158,6 +159,14 @@ public class OIDCController {
         }*/
 
         // 3. Create the document in the database
+        if (document.getDescription() != null) {
+            Attachment attachment = new Attachment();
+            attachment.setName("maincontent.html");
+            attachment.setMimeType("text/html");
+            attachment.setSource(document.getDescription().getBytes());
+            document.getAttachmentList().add(0, attachment);
+            document.setDescription("");
+        }
         Document newDocument = documentService.save(document);
 
         // 4. Create the document in the SSS together with the link to the discussion
