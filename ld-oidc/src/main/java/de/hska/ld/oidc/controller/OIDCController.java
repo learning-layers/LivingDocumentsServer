@@ -159,15 +159,13 @@ public class OIDCController {
         }*/
 
         // 3. Create the document in the database
-        if (document.getDescription() != null) {
-            Attachment attachment = new Attachment();
-            attachment.setName("maincontent.html");
-            attachment.setMimeType("text/html");
-            attachment.setSource(document.getDescription().getBytes());
-            document.getAttachmentList().add(0, attachment);
-            document.setDescription("");
-        }
         Document newDocument = documentService.save(document);
+        if (document.getDescription() != null) {
+            Attachment mainAttachment = newDocument.getAttachmentList().get(0);
+            mainAttachment.setSource(document.getDescription().getBytes());
+            document.setDescription("");
+            documentService.save(newDocument);
+        }
 
         // 4. Create the document in the SSS together with the link to the discussion
         // 4.1 Authenticate with the SSS
