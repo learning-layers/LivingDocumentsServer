@@ -145,9 +145,31 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                     UserInfo oidcUserInfo = ((OIDCAuthenticationToken) source).getUserInfo();
 
                     if (currentUserInDb == null && oidcUserInfo != null) {
-                        // create a new user
-                        User user = new User();
-                        // check for colliding user names (via preferred user name)
+                        createNewUserFirstLogin(token, subId, issuer, oidcUserInfo);
+
+                    } else if (oidcUserInfo != null) {
+                        updateUserInformationFromOIDC(token, currentUserInDb, oidcUserInfo);
+
+                    } else {
+                        // oidc information is null
+                        throw new UnsupportedOperationException("No OIDC information found!");
+                    }
+                }
+            }
+
+            private void updateUserInformationFromOIDC(OIDCAuthenticationToken token, User currentUserInDb, UserInfo oidcUserInfo) {
+                // get the current authentication details of the user
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                enrichAuthoritiesWithStoredAuthorities(currentUserInDb, auth);
+
+                // check for profile updates since the last login
+                String oidcUpdatedTime = token.getUserInfo().getUpdatedTime();
+                // oidc time: "20150701_090039"
+                // oidc format: "yyyyMMdd_HHmmss"
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+                try {
+                    Date date = sdf.parse(oidcUpdatedTime);
+                    if (currentUserInDb.getLastupdatedAt().getTime() > date.getTime()) {
                         User userWithGivenPreferredUserName = userService.findByUsername(oidcUserInfo.getPreferredUsername());
                         int i = 0;
                         if (userWithGivenPreferredUserName != null) {
@@ -156,85 +178,73 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                                 userWithGivenPreferredUserName = userService.findByUsername(prefferedUsername);
                             }
                         } else {
-                            user.setUsername(oidcUserInfo.getPreferredUsername());
+                            currentUserInDb.setUsername(oidcUserInfo.getPreferredUsername());
                         }
 
-                        user.setFullName(oidcUserInfo.getName());
-                        user.setEmail(oidcUserInfo.getEmail());
-                        user.setEnabled(true);
-                        // apply roles
-                        List<Role> roleList = new ArrayList<Role>();
-                        Role userRole = roleService.findByName("ROLE_USER");
-                        if (userRole == null) {
-                            // create initial roles
-                            String newUserRoleName = "ROLE_USER";
-                            userRole = createNewUserRole(newUserRoleName);
-                            String newAdminRoleName = "ROLE_ADMIN";
-                            Role adminRole = createNewUserRole(newAdminRoleName);
-                            // For the first user add the admin role
-                            roleList.add(adminRole);
-                        } else {
-                            roleList.add(userRole);
-                        }
-                        user.setRoleList(roleList);
-                        // A password is required so we set a uuid generated one
-                        if ("development".equals(env.getProperty("lds.app.instance"))) {
-                            user.setPassword("pass");
-                        } else {
-                            user.setPassword(UUID.randomUUID().toString());
-                        }
-                        user.setSubId(subId);
-                        user.setIssuer(issuer);
-                        String oidcUpdatedTime = token.getUserInfo().getUpdatedTime();
-                        // oidc time: "20150701_090039"
-                        // oidc format: "yyyyMMdd_HHmmss"
-                        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-                        try {
-                            Date date = sdf.parse(oidcUpdatedTime);
-                            user.setLastupdatedAt(date);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                        userService.save(user);
-                        // update security context
-                        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                        enrichAuthoritiesWithStoredAuthorities(user, auth);
-                    } else if (oidcUserInfo != null) {
-                        // get the current authentication details of the user
-                        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                        enrichAuthoritiesWithStoredAuthorities(currentUserInDb, auth);
-
-                        // check for profile updates since the last login
-                        String oidcUpdatedTime = token.getUserInfo().getUpdatedTime();
-                        // oidc time: "20150701_090039"
-                        // oidc format: "yyyyMMdd_HHmmss"
-                        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-                        try {
-                            Date date = sdf.parse(oidcUpdatedTime);
-                            if (currentUserInDb.getLastupdatedAt().getTime() > date.getTime()) {
-                                User userWithGivenPreferredUserName = userService.findByUsername(oidcUserInfo.getPreferredUsername());
-                                int i = 0;
-                                if (userWithGivenPreferredUserName != null) {
-                                    while (userWithGivenPreferredUserName != null) {
-                                        String prefferedUsername = oidcUserInfo.getPreferredUsername() + "#" + i;
-                                        userWithGivenPreferredUserName = userService.findByUsername(prefferedUsername);
-                                    }
-                                } else {
-                                    currentUserInDb.setUsername(oidcUserInfo.getPreferredUsername());
-                                }
-
-                                currentUserInDb.setFullName(oidcUserInfo.getName());
-                                currentUserInDb.setEmail(oidcUserInfo.getEmail());
-                                currentUserInDb = userService.save(currentUserInDb);
-                            }
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        // oidc information is null
-                        throw new UnsupportedOperationException("No OIDC information found!");
+                        currentUserInDb.setFullName(oidcUserInfo.getName());
+                        currentUserInDb.setEmail(oidcUserInfo.getEmail());
+                        currentUserInDb = userService.save(currentUserInDb);
                     }
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
+            }
+
+            private void createNewUserFirstLogin(OIDCAuthenticationToken token, String subId, String issuer, UserInfo oidcUserInfo) {
+                // create a new user
+                User user = new User();
+                // check for colliding user names (via preferred user name)
+                User userWithGivenPreferredUserName = userService.findByUsername(oidcUserInfo.getPreferredUsername());
+                int i = 0;
+                if (userWithGivenPreferredUserName != null) {
+                    while (userWithGivenPreferredUserName != null) {
+                        String prefferedUsername = oidcUserInfo.getPreferredUsername() + "#" + i;
+                        userWithGivenPreferredUserName = userService.findByUsername(prefferedUsername);
+                    }
+                } else {
+                    user.setUsername(oidcUserInfo.getPreferredUsername());
+                }
+
+                user.setFullName(oidcUserInfo.getName());
+                user.setEmail(oidcUserInfo.getEmail());
+                user.setEnabled(true);
+                // apply roles
+                List<Role> roleList = new ArrayList<Role>();
+                Role userRole = roleService.findByName("ROLE_USER");
+                if (userRole == null) {
+                    // create initial roles
+                    String newUserRoleName = "ROLE_USER";
+                    userRole = createNewUserRole(newUserRoleName);
+                    String newAdminRoleName = "ROLE_ADMIN";
+                    Role adminRole = createNewUserRole(newAdminRoleName);
+                    // For the first user add the admin role
+                    roleList.add(adminRole);
+                } else {
+                    roleList.add(userRole);
+                }
+                user.setRoleList(roleList);
+                // A password is required so we set a uuid generated one
+                if ("development".equals(env.getProperty("lds.app.instance"))) {
+                    user.setPassword("pass");
+                } else {
+                    user.setPassword(UUID.randomUUID().toString());
+                }
+                user.setSubId(subId);
+                user.setIssuer(issuer);
+                String oidcUpdatedTime = token.getUserInfo().getUpdatedTime();
+                // oidc time: "20150701_090039"
+                // oidc format: "yyyyMMdd_HHmmss"
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+                try {
+                    Date date = sdf.parse(oidcUpdatedTime);
+                    user.setLastupdatedAt(date);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                userService.save(user);
+                // update security context
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                enrichAuthoritiesWithStoredAuthorities(user, auth);
             }
 
             @Override
