@@ -120,10 +120,6 @@ public class SSSClient {
         }
     }
 
-    public void getAllLDocs(String accessToken) {
-
-    }
-
     public SSSLivingdocsResponseDto createDocument(Document document, String discussionId, String accessToken, boolean isCheck) throws IOException, AuthenticationNotValidException {
         String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/";
 

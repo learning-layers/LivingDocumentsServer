@@ -68,4 +68,9 @@ public class CoreConfig {
     public AsyncExecutor asyncExecutor() {
         return new SpringAsyncExecutor();
     }
+
+    @Bean
+    public ApplicationContextProvider applicationContextProvder() {
+        return new ApplicationContextProvider();
+    }
 }
