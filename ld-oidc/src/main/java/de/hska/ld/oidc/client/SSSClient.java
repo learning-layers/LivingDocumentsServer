@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
+import de.hska.ld.core.logging.ExceptionLogger;
 import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
 import de.hska.ld.oidc.client.exception.NotYetKnownException;
 import de.hska.ld.oidc.dto.*;
@@ -44,6 +45,9 @@ public class SSSClient {
 
     @Autowired
     private Environment env;
+
+    @Autowired
+    private ExceptionLogger logger;
 
     public String getSssServerAddress() {
         return env.getProperty("sss.server.endpoint");
@@ -120,7 +124,7 @@ public class SSSClient {
 
     }
 
-    public SSSLivingdocsResponseDto createDocument(Document document, String discussionId, String accessToken) throws IOException, AuthenticationNotValidException {
+    public SSSLivingdocsResponseDto createDocument(Document document, String discussionId, String accessToken, boolean isCheck) throws IOException, AuthenticationNotValidException {
         String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/";
 
         HttpClient client = getHttpClientFor(url);
@@ -158,11 +162,13 @@ public class SSSClient {
                 result.append(line);
             }
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
-                throw new ValidationException("access token is invalid");
+                if (isCheck) {
+                    logger.log(new Exception("access token is invalid"));
+                } else {
+                    throw new ValidationException("access token is invalid");
+                }
             }
             return mapper.readValue(result.toString(), SSSLivingdocsResponseDto.class);
-        } catch (ValidationException ve) {
-            throw ve;
         } catch (Exception e) {
             return null;
         } finally {

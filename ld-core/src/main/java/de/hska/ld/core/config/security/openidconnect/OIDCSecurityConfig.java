@@ -146,10 +146,8 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
 
                     if (currentUserInDb == null && oidcUserInfo != null) {
                         createNewUserFirstLogin(token, subId, issuer, oidcUserInfo);
-
                     } else if (oidcUserInfo != null) {
                         updateUserInformationFromOIDC(token, currentUserInDb, oidcUserInfo);
-
                     } else {
                         // oidc information is null
                         throw new UnsupportedOperationException("No OIDC information found!");

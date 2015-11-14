@@ -2,19 +2,31 @@ package de.hska.ld.core.persistence.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.UUID;
 
 @Entity
-@Table(name = "log_entry")
+@Table(name = "ld_log_entry")
 public class LogEntry {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.TABLE)
-    @Column(name = "id")
-    private Long id;
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "uuid", columnDefinition = "BINARY(16)")
+    private UUID id;
+
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID i) {
+        id = i;
+    }
 
     private String action;
 
@@ -27,6 +39,7 @@ public class LogEntry {
     private User user;
 
     private Date date;
+    private String type;
 
     public Long[] getIds() {
         return ids;
@@ -69,14 +82,6 @@ public class LogEntry {
         this.date = date;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     @JsonProperty
     public String[] getRefs() {
         String[] refs = new String[references.length];
@@ -96,5 +101,13 @@ public class LogEntry {
                 ", references=" + Arrays.toString(references) +
                 ", ids=" + Arrays.toString(ids) +
                 '}';
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
     }
 }

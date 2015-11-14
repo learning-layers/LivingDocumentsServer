@@ -83,7 +83,7 @@ public class LDToSSSEventListener {
             }
             if (!isAlreadyKnownToSSS) {
                 // create the living document in the SSS
-                SSSLivingdocsResponseDto sssLivingdocsResponseDto2 = sssClient.createDocument(document, null, token.getAccessTokenValue());
+                SSSLivingdocsResponseDto sssLivingdocsResponseDto2 = sssClient.createDocument(document, null, token.getAccessTokenValue(), true);
                 sssLivingDocId = sssLivingdocsResponseDto2.getLivingDoc();
                 if (sssLivingDocId == null) {
                     throw new CreationFailedException(newDocumentId);
