@@ -2,6 +2,7 @@ package de.hska.ld.etherpad.client;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.hska.ld.core.logging.ExceptionLogger;
 import de.hska.ld.etherpad.dto.EtherpadAuthorDto;
 import de.hska.ld.etherpad.dto.EtherpadGroupDto;
 import de.hska.ld.etherpad.dto.EtherpadGroupPadDto;
@@ -36,6 +37,9 @@ public class EtherpadClient {
 
     @Autowired
     private Environment env;
+
+    @Autowired
+    private ExceptionLogger exceptionLogger;
 
     private String etherpadEndpoint = null;
     private String etherpadAPIKey = null;
@@ -398,6 +402,15 @@ public class EtherpadClient {
         HttpResponse response = client.execute(post);
         System.out.println("Response Code : "
                 + response.getStatusLine().getStatusCode());
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            try {
+                exceptionLogger.log(new Exception(response.getStatusLine().getReasonPhrase()));
+                System.out.println("Etherpad createGroupPad with content,status=" + response.getStatusLine().getStatusCode() + ">" + response.getStatusLine().getReasonPhrase());
+            } catch (Exception e) {
+                //
+            }
+        }
 
         BufferedReader rd = new BufferedReader(
                 new InputStreamReader(response.getEntity().getContent()));
