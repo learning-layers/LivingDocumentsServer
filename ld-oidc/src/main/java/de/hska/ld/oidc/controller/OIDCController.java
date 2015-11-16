@@ -163,7 +163,7 @@ public class OIDCController {
         if (document.getDescription() != null) {
             Attachment mainAttachment = newDocument.getAttachmentList().get(0);
             mainAttachment.setSource(document.getDescription().getBytes());
-            document.setDescription("");
+            //document.setDescription("");
             documentService.save(newDocument);
         }
 

@@ -56,7 +56,7 @@ public class Access {
     private User user;
 
     @ElementCollection(targetClass = Permission.class)
-    @CollectionTable(name = "ld_permission", joinColumns = @JoinColumn(name = "id"))
+    @CollectionTable(name = "permission", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "permission", nullable = false)
     @Enumerated(EnumType.STRING)
     private List<Permission> permissionList;
