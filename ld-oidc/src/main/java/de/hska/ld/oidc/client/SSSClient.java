@@ -1,3 +1,25 @@
+/*
+ *  Code contributed to the Learning Layers project
+ *  http://www.learning-layers.eu
+ *  Development is partly funded by the FP7 Programme of the European
+ *  Commission under Grant Agreement FP7-ICT-318209.
+ *  Copyright (c) 2015, Karlsruhe University of Applied Sciences.
+ *  For a list of contributors see the AUTHORS file at the top-level directory
+ *  of this distribution.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package de.hska.ld.oidc.client;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -128,7 +150,7 @@ public class SSSClient {
         addHeaderInformation(post, accessToken);
 
         SSSLivingdocsRequestDto sssLivingdocsRequestDto = new SSSLivingdocsRequestDto();
-        String externalServerAddress = env.getProperty("sss.document.name.prefix"); //env.getProperty("module.core.oidc.server.endpoint.external.url");
+        String externalServerAddress = env.getProperty("sss.document.name.prefix");
         sssLivingdocsRequestDto.setUri(externalServerAddress + document.getId());
         sssLivingdocsRequestDto.setDescription(document.getDescription());
         if (discussionId != null) {
@@ -443,52 +465,10 @@ public class SSSClient {
 
     public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, NotYetKnownException, AuthenticationNotValidException {
         String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
-
-        HttpClient client = getHttpClientFor(url);
-        HttpPost post = new HttpPost(url);
-        addHeaderInformation(post, accessToken);
-
+        PostClientRequest<SSSLivingDocResponseDto> postClientRequest = new PostClientRequest<>(url, "getLDocById");
         StringEntity stringEntity = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
-        post.setEntity(stringEntity);
-
-        HttpResponse response = client.execute(post);
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-
-        if (response.getStatusLine().getStatusCode() == 404) {
-            return null;
-        }
-
-        if (response.getStatusLine().getStatusCode() != 200 && response.getStatusLine().getStatusCode() != 500) {
-            throw new AuthenticationNotValidException();
-        }
-
-        BufferedReader rd = null;
-        try {
-            rd = new BufferedReader(
-                    new InputStreamReader(response.getEntity().getContent()));
-
-            StringBuilder result = new StringBuilder();
-            String line = "";
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
-            }
-            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
-                throw new ValidationException("access token is invalid");
-            }
-            if (result.toString().contains("\"message\": \"sqlNoResultFound\"")) {
-                return null;
-            }
-            return mapper.readValue(result.toString(), SSSLivingDocResponseDto.class);
-        } catch (ValidationException ve) {
-            throw ve;
-        } catch (Exception e) {
-            return null;
-        } finally {
-            if (rd != null) {
-                rd.close();
-            }
-        }
+        postClientRequest.execute(stringEntity, accessToken);
+        return (SSSLivingDocResponseDto) postClientRequest.getParsedBody();
     }
 
     private HttpClient getHttpClientFor(String url) {
