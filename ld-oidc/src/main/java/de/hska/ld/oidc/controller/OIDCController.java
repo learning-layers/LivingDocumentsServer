@@ -184,7 +184,7 @@ public class OIDCController {
 
         // 4.2 Create the according SSSLivingdocs entity
         try {
-            SSSLivingdocsResponseDto sssLivingdocsResponseDto = sssClient.createDocument(document, discussionId, token.getAccessTokenValue(), false);
+            SSSLivingdocsResponseDto sssLivingdocsResponseDto = sssClient.createDocument(document, discussionId, token.getAccessTokenValue());
         } catch (AuthenticationNotValidException eAuth) {
             throw new UserNotAuthorizedException();
         }

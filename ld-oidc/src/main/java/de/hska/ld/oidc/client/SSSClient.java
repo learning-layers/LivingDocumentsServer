@@ -120,7 +120,7 @@ public class SSSClient {
         }
     }
 
-    public SSSLivingdocsResponseDto createDocument(Document document, String discussionId, String accessToken, boolean isCheck) throws IOException, AuthenticationNotValidException {
+    public SSSLivingdocsResponseDto createDocument(Document document, String discussionId, String accessToken) throws IOException, AuthenticationNotValidException {
         String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/";
 
         HttpClient client = getHttpClientFor(url);
@@ -158,11 +158,7 @@ public class SSSClient {
                 result.append(line);
             }
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
-                if (isCheck) {
-                    logger.log(new Exception("access token is invalid"));
-                } else {
-                    throw new ValidationException("access token is invalid");
-                }
+                throw new ValidationException("access token is invalid");
             }
             return mapper.readValue(result.toString(), SSSLivingdocsResponseDto.class);
         } catch (Exception e) {
@@ -460,10 +456,10 @@ public class SSSClient {
                 + response.getStatusLine().getStatusCode());
 
         if (response.getStatusLine().getStatusCode() == 404) {
-            throw new NotYetKnownException();
+            return null;
         }
 
-        if (response.getStatusLine().getStatusCode() != 200) {
+        if (response.getStatusLine().getStatusCode() != 200 && response.getStatusLine().getStatusCode() != 500) {
             throw new AuthenticationNotValidException();
         }
 
@@ -479,6 +475,9 @@ public class SSSClient {
             }
             if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
                 throw new ValidationException("access token is invalid");
+            }
+            if (result.toString().contains("\"message\": \"sqlNoResultFound\"")) {
+                return null;
             }
             return mapper.readValue(result.toString(), SSSLivingDocResponseDto.class);
         } catch (ValidationException ve) {
