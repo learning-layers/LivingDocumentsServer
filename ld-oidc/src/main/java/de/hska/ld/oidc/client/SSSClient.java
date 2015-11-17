@@ -28,7 +28,6 @@ import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
-import de.hska.ld.oidc.client.exception.NotYetKnownException;
 import de.hska.ld.oidc.dto.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -459,12 +458,21 @@ public class SSSClient {
         }
     }
 
-    public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, NotYetKnownException, AuthenticationNotValidException {
+    public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, AuthenticationNotValidException {
         String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
         PostClientRequest<SSSLivingDocResponseDto> postClientRequest = new PostClientRequest<>(url, "getLDocById");
         StringEntity stringEntity = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
         postClientRequest.execute(stringEntity, accessToken);
-        return (SSSLivingDocResponseDto) postClientRequest.getParsedBody();
+        SSSLivingDocResponseDto sssLivingDocResponseDto = (SSSLivingDocResponseDto) postClientRequest.getParsedBody();
+        if (sssLivingDocResponseDto == null) {
+            String url2 = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode("http://178.62.62.23:9000/" + documentId, "UTF-8"), "UTF-8");
+            PostClientRequest<SSSLivingDocResponseDto> postClientRequest2 = new PostClientRequest<>(url2, "getLDocById");
+            StringEntity stringEntity2 = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
+            postClientRequest.execute(stringEntity2, accessToken);
+            return (SSSLivingDocResponseDto) postClientRequest2.getParsedBody();
+        } else {
+            return sssLivingDocResponseDto;
+        }
     }
 
     private HttpClient getHttpClientFor(String url) {

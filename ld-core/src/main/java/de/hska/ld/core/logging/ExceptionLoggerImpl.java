@@ -26,10 +26,10 @@ import de.hska.ld.core.persistence.domain.ExceptionLogEntry;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import java.util.UUID;
 
 @Transactional
@@ -40,46 +40,61 @@ public class ExceptionLoggerImpl implements ExceptionLogger {
     private EntityManager entityManager;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public UUID log(Throwable ex) {
+        EntityTransaction tx = entityManager.getTransaction();
         ExceptionLogEntry entry = new ExceptionLogEntry();
         entry.setUser(Core.currentUser());
         entry.setDescription(ex.getMessage());
-
         entry.setType("Exception");
-
-        entityManager.persist(entry);
-
+        try {
+            tx.begin();
+            entityManager.persist(entry);
+            entityManager.flush();
+            tx.commit();
+        } catch (Exception tex) {
+            tx.rollback();
+            throw tex;
+        }
         return entry.getId();
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public UUID log(String action, Throwable ex) {
+        EntityTransaction tx = entityManager.getTransaction();
         ExceptionLogEntry entry = new ExceptionLogEntry();
         entry.setUser(Core.currentUser());
         entry.setDescription(ex.getMessage());
         entry.setAction(action);
-
         entry.setType("Exception");
-
-        entityManager.persist(entry);
-
+        try {
+            tx.begin();
+            entityManager.persist(entry);
+            entityManager.flush();
+            tx.commit();
+        } catch (Exception tex) {
+            tx.rollback();
+            throw tex;
+        }
         return entry.getId();
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public UUID log(String action, String message) {
+        EntityTransaction tx = entityManager.getTransaction();
         ExceptionLogEntry entry = new ExceptionLogEntry();
         entry.setUser(Core.currentUser());
         entry.setDescription(message);
         entry.setAction(action);
-
         entry.setType("Exception");
-
-        entityManager.persist(entry);
-
+        try {
+            tx.begin();
+            entityManager.persist(entry);
+            entityManager.flush();
+            tx.commit();
+        } catch (Exception ex) {
+            tx.rollback();
+            throw ex;
+        }
         return entry.getId();
     }
 
