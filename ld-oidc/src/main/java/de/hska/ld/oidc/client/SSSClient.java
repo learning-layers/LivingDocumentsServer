@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
-import de.hska.ld.core.logging.ExceptionLogger;
 import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
 import de.hska.ld.oidc.client.exception.NotYetKnownException;
 import de.hska.ld.oidc.dto.*;
@@ -67,9 +66,6 @@ public class SSSClient {
 
     @Autowired
     private Environment env;
-
-    @Autowired
-    private ExceptionLogger logger;
 
     public String getSssServerAddress() {
         return env.getProperty("sss.server.endpoint");
