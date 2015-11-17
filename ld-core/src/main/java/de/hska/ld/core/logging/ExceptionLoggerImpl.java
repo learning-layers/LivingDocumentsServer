@@ -41,21 +41,11 @@ public class ExceptionLoggerImpl implements ExceptionLogger {
 
     @Override
     public UUID log(Throwable ex) {
-        EntityTransaction tx = entityManager.getTransaction();
         ExceptionLogEntry entry = new ExceptionLogEntry();
         entry.setUser(Core.currentUser());
         entry.setDescription(ex.getMessage());
         entry.setType("Exception");
-        try {
-            tx.begin();
-            entityManager.persist(entry);
-            entityManager.flush();
-            tx.commit();
-        } catch (Exception tex) {
-            tx.rollback();
-            throw tex;
-        }
-        return entry.getId();
+        return save(entry);
     }
 
     @Override
@@ -66,16 +56,7 @@ public class ExceptionLoggerImpl implements ExceptionLogger {
         entry.setDescription(ex.getMessage());
         entry.setAction(action);
         entry.setType("Exception");
-        try {
-            tx.begin();
-            entityManager.persist(entry);
-            entityManager.flush();
-            tx.commit();
-        } catch (Exception tex) {
-            tx.rollback();
-            throw tex;
-        }
-        return entry.getId();
+        return save(entry);
     }
 
     @Override
@@ -86,6 +67,11 @@ public class ExceptionLoggerImpl implements ExceptionLogger {
         entry.setDescription(message);
         entry.setAction(action);
         entry.setType("Exception");
+        return save(entry);
+    }
+
+    private UUID save(ExceptionLogEntry entry) {
+        EntityTransaction tx = entityManager.getTransaction();
         try {
             tx.begin();
             entityManager.persist(entry);
