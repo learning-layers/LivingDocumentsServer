@@ -50,7 +50,6 @@ public class ExceptionLoggerImpl implements ExceptionLogger {
 
     @Override
     public UUID log(String action, Throwable ex) {
-        EntityTransaction tx = entityManager.getTransaction();
         ExceptionLogEntry entry = new ExceptionLogEntry();
         entry.setUser(Core.currentUser());
         entry.setDescription(ex.getMessage());
@@ -61,7 +60,6 @@ public class ExceptionLoggerImpl implements ExceptionLogger {
 
     @Override
     public UUID log(String action, String message) {
-        EntityTransaction tx = entityManager.getTransaction();
         ExceptionLogEntry entry = new ExceptionLogEntry();
         entry.setUser(Core.currentUser());
         entry.setDescription(message);
