@@ -67,9 +67,13 @@ public class ClientRequest<T> {
         return HttpStatus.valueOf(this.response.getStatusLine().getStatusCode());
     }
 
+    protected String getLoggingPrefix() {
+        return "ClientRequest>";
+    }
+
     protected void processResponse() {
         if (this.getResponseStatusCode() != HttpStatus.OK) {
-            this.exceptionLogger.log(this.action, "HTTPStatus=" + this.getResponseStatusCode().toString(), "Client request failed!");
+            this.exceptionLogger.log(this.getLoggingPrefix() + this.action, "HTTPStatus=" + this.getResponseStatusCode().toString(), "Client request failed!");
         }
         BufferedReader rd = null;
         try {
@@ -88,7 +92,7 @@ public class ClientRequest<T> {
             };
             this.parsedBody = mapper.readValue(result.toString(), typeReference);
         } catch (IOException e) {
-            this.exceptionLogger.log(this.action, e, "Parsing client request failed!");
+            this.exceptionLogger.log(this.getLoggingPrefix() + this.action, e, "Parsing client request failed!");
         } finally {
             if (rd != null) {
                 try {

@@ -28,6 +28,7 @@ import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.logging.ExceptionLogger;
+import de.hska.ld.core.persistence.domain.ExceptionLogEntry;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.oidc.client.SSSClient;
@@ -104,10 +105,10 @@ public class LDToSSSEventListener {
                 if (documentFoundInSSSLDoc != null && documentFoundInSSSLDoc.getId() != null) {
                     isAlreadyKnownToSSS = true;
                 } else if ("READ".equals(cmd)) {
-                    exceptionLogger.log("createAndShareLDocWithSSSUsers (READ)", "Could not find the document in the SSS!");
+                    exceptionLogger.log("createAndShareLDocWithSSSUsers (READ)", "Could not find the document in the SSS!", ExceptionLogEntry.LogLevel.FATAL);
                 }
             } else if ("READ".equals(cmd)) {
-                exceptionLogger.log("createAndShareLDocWithSSSUsers (READ)", "Could not find the document in the SSS!");
+                exceptionLogger.log("createAndShareLDocWithSSSUsers (READ)", "Could not find the document in the SSS!", ExceptionLogEntry.LogLevel.FATAL);
             }
             if (!isAlreadyKnownToSSS) {
                 // create the living document in the SSS

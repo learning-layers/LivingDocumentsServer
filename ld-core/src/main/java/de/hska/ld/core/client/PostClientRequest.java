@@ -22,18 +22,11 @@
 
 package de.hska.ld.core.client;
 
-import de.hska.ld.core.logging.ExceptionLogger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class PostClientRequest<T> extends ClientRequest {
-
-    @Autowired
-    private ExceptionLogger logger;
-
-    HttpPost post;
 
     public PostClientRequest(String url, String action) {
         super(url, action);
@@ -44,20 +37,25 @@ public class PostClientRequest<T> extends ClientRequest {
     }
 
     public void execute(HttpEntity entity, String accessToken) {
-        this.post = new HttpPost(this.url);
+        HttpPost post = new HttpPost(this.url);
         if (accessToken != null) {
             addHeaderInformation(post, accessToken);
         }
         if (entity != null) {
-            this.post.setEntity(entity);
+            post.setEntity(entity);
         }
         try {
             HttpResponse response = this.client.execute(post);
             this.processResponse();
             this.response = response;
         } catch (Exception e) {
-            this.exceptionLogger.log(this.action, e);
+            this.exceptionLogger.log(this.getLoggingPrefix() + this.action, e);
         }
+    }
+
+    @Override
+    protected String getLoggingPrefix() {
+        return "PostClientRequest>";
     }
 
     private HttpPost addHeaderInformation(HttpPost post, String accessToken) {
