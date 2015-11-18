@@ -23,7 +23,6 @@
 package de.hska.ld.core.client;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 
 import java.io.IOException;
@@ -47,9 +46,8 @@ public class PostClientRequest<T> extends ClientRequest {
             post.setEntity(entity);
         }
         try {
-            HttpResponse response = this.client.execute(post);
+            this.response = this.client.execute(post);
             this.processResponse();
-            this.response = response;
         } catch (IOException e) {
             this.exceptionLogger.log(this.getLoggingPrefix() + this.action, e);
         }
