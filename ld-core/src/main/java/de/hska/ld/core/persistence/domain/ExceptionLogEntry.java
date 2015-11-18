@@ -39,12 +39,14 @@ public class ExceptionLogEntry {
 
     private String action;
 
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     LogLevel logLevel;
 
     private String type;
 
+    @Column(name = "stackTraceAsString", columnDefinition = "TEXT")
     private String stackTraceAsString;
 
     private String reason;
