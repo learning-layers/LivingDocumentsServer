@@ -53,7 +53,6 @@ public class PostClientRequest<T> extends ClientRequest {
         }
     }
 
-    @Override
     protected String getLoggingPrefix() {
         return "PostClientRequest>";
     }

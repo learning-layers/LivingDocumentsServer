@@ -46,7 +46,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-public class ClientRequest<T> {
+public abstract class ClientRequest<T> {
     protected ExceptionLogger exceptionLogger;
     protected HttpClient client;
     protected HttpResponse response;
@@ -67,9 +67,7 @@ public class ClientRequest<T> {
         return HttpStatus.valueOf(this.response.getStatusLine().getStatusCode());
     }
 
-    protected String getLoggingPrefix() {
-        return "ClientRequest>";
-    }
+    protected abstract String getLoggingPrefix();
 
     protected void processResponse() {
         if (this.getResponseStatusCode() != HttpStatus.OK) {
