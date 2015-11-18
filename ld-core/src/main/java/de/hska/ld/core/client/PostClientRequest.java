@@ -20,7 +20,7 @@
  *  limitations under the License.
  */
 
-package de.hska.ld.oidc.client;
+package de.hska.ld.core.client;
 
 import de.hska.ld.core.logging.ExceptionLogger;
 import org.apache.http.HttpEntity;

@@ -25,6 +25,7 @@ package de.hska.ld.oidc.client;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.core.client.PostClientRequest;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;

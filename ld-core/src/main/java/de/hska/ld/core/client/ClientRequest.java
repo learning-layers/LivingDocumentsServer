@@ -20,7 +20,7 @@
  *  limitations under the License.
  */
 
-package de.hska.ld.oidc.client;
+package de.hska.ld.core.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
