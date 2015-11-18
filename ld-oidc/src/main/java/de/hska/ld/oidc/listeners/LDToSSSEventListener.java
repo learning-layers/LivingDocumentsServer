@@ -84,7 +84,6 @@ public class LDToSSSEventListener {
     }
 
     private Document createAndShareLDocWithSSSUsers(Document document, String cmd) throws IOException, CreationFailedException {
-        exceptionLogger.log("createAndShareLDocWithSSSUsers (" + cmd + ")", "Trace");
         // Create the document as well in the SSS
         List<Access> accessList = document.getAccessList();
         List<String> emailAddressesThatHaveAccess = new ArrayList<>();
@@ -94,7 +93,6 @@ public class LDToSSSEventListener {
         // check if the living document is already known to the SSS
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-        SSSLivingdoc sssLivingdoc = null;
         boolean isAlreadyKnownToSSS = false;
         String sssLivingDocId = null;
         Long newDocumentId = document.getId();
