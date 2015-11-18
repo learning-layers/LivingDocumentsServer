@@ -69,9 +69,10 @@ public abstract class ClientRequest<T> {
 
     protected abstract String getLoggingPrefix();
 
-    protected void processResponse() {
+    protected void processResponse() throws RequestStatusNotOKException {
         if (this.getResponseStatusCode() != HttpStatus.OK) {
             this.exceptionLogger.log(this.getLoggingPrefix() + this.action, "HTTPStatus=" + this.getResponseStatusCode().toString(), "Client request failed!");
+            throw new RequestStatusNotOKException(this.getResponseStatusCode(), this.response.getStatusLine().getReasonPhrase());
         }
         BufferedReader rd = null;
         try {

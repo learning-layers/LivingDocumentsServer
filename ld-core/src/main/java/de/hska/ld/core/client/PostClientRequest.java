@@ -26,17 +26,19 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 
+import java.io.IOException;
+
 public class PostClientRequest<T> extends ClientRequest {
 
     public PostClientRequest(String url, String action) {
         super(url, action);
     }
 
-    public void execute(HttpEntity entity) {
+    public void execute(HttpEntity entity) throws RequestStatusNotOKException {
         execute(entity, null);
     }
 
-    public void execute(HttpEntity entity, String accessToken) {
+    public void execute(HttpEntity entity, String accessToken) throws RequestStatusNotOKException {
         HttpPost post = new HttpPost(this.url);
         if (accessToken != null) {
             addHeaderInformation(post, accessToken);
@@ -48,7 +50,7 @@ public class PostClientRequest<T> extends ClientRequest {
             HttpResponse response = this.client.execute(post);
             this.processResponse();
             this.response = response;
-        } catch (Exception e) {
+        } catch (IOException e) {
             this.exceptionLogger.log(this.getLoggingPrefix() + this.action, e);
         }
     }
