@@ -56,7 +56,7 @@ public class PostClientRequest<T> extends ClientRequest {
             this.processResponse();
             this.response = response;
         } catch (Exception e) {
-            this.exceptionLogger.log(e);
+            this.exceptionLogger.log(this.action, e);
         }
     }
 

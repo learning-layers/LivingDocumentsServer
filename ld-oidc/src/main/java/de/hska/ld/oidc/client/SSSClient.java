@@ -460,13 +460,13 @@ public class SSSClient {
 
     public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, AuthenticationNotValidException {
         String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
-        PostClientRequest<SSSLivingDocResponseDto> postClientRequest = new PostClientRequest<>(url, "getLDocById");
+        PostClientRequest<SSSLivingDocResponseDto> postClientRequest = new PostClientRequest<>(url, "getLDocById1");
         StringEntity stringEntity = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
         postClientRequest.execute(stringEntity, accessToken);
         SSSLivingDocResponseDto sssLivingDocResponseDto = (SSSLivingDocResponseDto) postClientRequest.getParsedBody();
         if (sssLivingDocResponseDto == null) {
             String url2 = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode("http://178.62.62.23:9000/" + documentId, "UTF-8"), "UTF-8");
-            PostClientRequest<SSSLivingDocResponseDto> postClientRequest2 = new PostClientRequest<>(url2, "getLDocById");
+            PostClientRequest<SSSLivingDocResponseDto> postClientRequest2 = new PostClientRequest<>(url2, "getLDocById2");
             StringEntity stringEntity2 = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
             postClientRequest.execute(stringEntity2, accessToken);
             return (SSSLivingDocResponseDto) postClientRequest2.getParsedBody();

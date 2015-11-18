@@ -40,15 +40,6 @@ public class ExceptionLoggerImpl implements ExceptionLogger {
     private EntityManager entityManager;
 
     @Override
-    public UUID log(Throwable ex) {
-        ExceptionLogEntry entry = new ExceptionLogEntry();
-        entry.setUser(Core.currentUser());
-        entry.setDescription(ex.getMessage());
-        entry.setType("Exception");
-        return save(entry);
-    }
-
-    @Override
     public UUID log(String action, Throwable ex) {
         ExceptionLogEntry entry = new ExceptionLogEntry();
         entry.setUser(Core.currentUser());

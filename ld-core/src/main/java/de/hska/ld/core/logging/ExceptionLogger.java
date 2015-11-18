@@ -26,8 +26,6 @@ import java.util.UUID;
 
 public interface ExceptionLogger {
 
-    UUID log(Throwable ex);
-
     UUID log(String action, Throwable ex);
 
     UUID log(String action, String message);

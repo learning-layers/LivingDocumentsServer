@@ -427,7 +427,7 @@ public class EtherpadClient {
 
         if (response.getStatusLine().getStatusCode() != 200) {
             try {
-                exceptionLogger.log(new Exception(response.getStatusLine().getReasonPhrase()));
+                exceptionLogger.log("Couldn't create Etherpad pad!", new Exception(response.getStatusLine().getReasonPhrase()));
                 System.out.println("Etherpad createGroupPad with content,status=" + response.getStatusLine().getStatusCode() + ">" + response.getStatusLine().getReasonPhrase());
             } catch (Exception e) {
                 //
