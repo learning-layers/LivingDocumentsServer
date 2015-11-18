@@ -23,6 +23,7 @@
 package de.hska.ld.core.logging;
 
 import de.hska.ld.core.persistence.domain.ExceptionLogEntry;
+import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,22 +42,82 @@ public class ExceptionLoggerImpl implements ExceptionLogger {
 
     @Override
     public UUID log(String action, Throwable ex) {
-        ExceptionLogEntry entry = new ExceptionLogEntry();
-        entry.setUser(Core.currentUser());
-        entry.setDescription(ex.getMessage());
-        entry.setAction(action);
-        entry.setType("Exception");
+        return log(action, ex, "");
+    }
+
+    @Override
+    public UUID log(String action, Throwable ex, String reason) {
+        String stackTraceAsString = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(ex);
+        ExceptionLogEntry entry = createLogEntry(action, ex.getMessage(), stackTraceAsString, ExceptionLogEntry.LogLevel.DEBUG, reason);
+        return save(entry);
+    }
+
+    @Override
+    public UUID log(String action, Throwable ex, ExceptionLogEntry.LogLevel logLevel) {
+        return log(action, ex, logLevel, "");
+    }
+
+    @Override
+    public UUID log(String action, Throwable ex, ExceptionLogEntry.LogLevel logLevel, String reason) {
+        String stackTraceAsString = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(ex);
+        ExceptionLogEntry entry = createLogEntry(action, ex.getMessage(), stackTraceAsString, logLevel, reason);
         return save(entry);
     }
 
     @Override
     public UUID log(String action, String message) {
+        return log(action, message, "");
+    }
+
+    @Override
+    public UUID log(String action, String message, String reason) {
+        ExceptionLogEntry entry = createLogEntry(action, message, ExceptionLogEntry.LogLevel.DEBUG, reason);
+        return save(entry);
+    }
+
+    @Override
+    public UUID log(String action, String message, ExceptionLogEntry.LogLevel logLevel) {
+        return log(action, message, logLevel, "");
+    }
+
+    @Override
+    public UUID log(String action, String message, ExceptionLogEntry.LogLevel logLevel, String reason) {
+        ExceptionLogEntry entry = createLogEntry(action, message, logLevel, reason);
+        return save(entry);
+    }
+
+    private ExceptionLogEntry createLogEntry(String action, String message, ExceptionLogEntry.LogLevel logLevel) {
+        return createLogEntry(action, message, logLevel, null);
+    }
+
+    private ExceptionLogEntry createLogEntry(String action, String message, ExceptionLogEntry.LogLevel logLevel, String reason) {
+        return createLogEntry(action, message, null, logLevel, reason);
+    }
+
+    private ExceptionLogEntry createLogEntry(String action, String message, String stackTraceAsString, ExceptionLogEntry.LogLevel logLevel) {
+        return createLogEntry(action, message, null, logLevel, null);
+    }
+
+    private ExceptionLogEntry createLogEntry(String action, String message, String stackTraceAsString, ExceptionLogEntry.LogLevel logLevel, String reason) {
         ExceptionLogEntry entry = new ExceptionLogEntry();
-        entry.setUser(Core.currentUser());
+        if (stackTraceAsString != null) {
+            entry.setStackTraceAsString(stackTraceAsString);
+        }
+        if (!"".equals(reason)) {
+            entry.setReason(reason);
+        }
+        User user = null;
+        try {
+            user = Core.currentUser();
+        } catch (Exception e) {
+            //
+        }
+        entry.setLogLevel(logLevel);
+        entry.setUser(user);
         entry.setDescription(message);
         entry.setAction(action);
         entry.setType("Exception");
-        return save(entry);
+        return entry;
     }
 
     private UUID save(ExceptionLogEntry entry) {

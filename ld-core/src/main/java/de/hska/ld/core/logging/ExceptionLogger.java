@@ -22,12 +22,26 @@
 
 package de.hska.ld.core.logging;
 
+import de.hska.ld.core.persistence.domain.ExceptionLogEntry;
+
 import java.util.UUID;
 
 public interface ExceptionLogger {
 
     UUID log(String action, Throwable ex);
 
+    UUID log(String action, Throwable ex, String reason);
+
+    UUID log(String action, Throwable ex, ExceptionLogEntry.LogLevel logLevel);
+
+    UUID log(String action, Throwable ex, ExceptionLogEntry.LogLevel logLevel, String reason);
+
     UUID log(String action, String message);
+
+    UUID log(String action, String message, String reason);
+
+    UUID log(String action, String message, ExceptionLogEntry.LogLevel logLevel);
+
+    UUID log(String action, String message, ExceptionLogEntry.LogLevel logLevel, String reason);
 
 }
