@@ -27,7 +27,7 @@ import org.apache.http.client.methods.HttpPost;
 
 import java.io.IOException;
 
-public class PostClientRequest<T> extends ClientRequest {
+public class PostClientRequest extends ClientRequest {
 
     public PostClientRequest(String url, String action) {
         super(url, action);

@@ -25,6 +25,7 @@ package de.hska.ld.core.persistence.domain;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -36,6 +37,10 @@ public class ExceptionLogEntry {
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(name = "uuid", columnDefinition = "BINARY(16)")
     private UUID id;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at", nullable = false)
+    private Date createdAt;
 
     private String action;
 
@@ -54,6 +59,11 @@ public class ExceptionLogEntry {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @PrePersist
+    void prePersist() {
+        this.createdAt = new Date();
+    }
 
     public UUID getId() {
         return id;
@@ -117,6 +127,14 @@ public class ExceptionLogEntry {
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     public enum LogLevel {

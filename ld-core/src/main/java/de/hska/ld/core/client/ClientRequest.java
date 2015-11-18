@@ -22,7 +22,6 @@
 
 package de.hska.ld.core.client;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.config.ApplicationContextProvider;
 import de.hska.ld.core.exception.ValidationException;
@@ -47,13 +46,14 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-public abstract class ClientRequest<T> {
+public abstract class ClientRequest {
     protected ExceptionLogger exceptionLogger;
     protected HttpClient client;
     protected HttpResponse response;
     protected String url;
     protected String action;
-    protected T parsedBody;
+    protected String unparsedBody;
+    protected Object parsedBody;
     private ObjectMapper mapper;
     private List<HttpStatus> expectedHttpStatuscodes;
 
@@ -92,14 +92,13 @@ public abstract class ClientRequest<T> {
             while ((line = rd.readLine()) != null) {
                 result.append(line);
             }
-            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+            String resultString = result.toString();
+            if (resultString.contains("\"error_description\":\"Invalid access token:")) {
                 throw new ValidationException("access token is invalid");
             }
-            TypeReference typeReference = new TypeReference<T>() {
-            };
-            this.parsedBody = mapper.readValue(result.toString(), typeReference);
+            this.unparsedBody = resultString;
         } catch (IOException e) {
-            this.exceptionLogger.log(this.getLoggingPrefix() + this.action, e, "Parsing client request failed!");
+            this.exceptionLogger.log(this.getLoggingPrefix() + this.action, e, "Parsing client request failed! (1)");
         } finally {
             if (rd != null) {
                 try {
@@ -111,8 +110,20 @@ public abstract class ClientRequest<T> {
         }
     }
 
-    public <T> T getParsedBody() {
-        return (T) this.parsedBody;
+    public <T> T getParsedBody(Class<T> type) {
+        if (unparsedBody != null) {
+            try {
+                this.parsedBody = mapper.readValue(this.unparsedBody, type);
+                this.unparsedBody = null;
+            } catch (IOException e) {
+                this.exceptionLogger.log(this.getLoggingPrefix() + this.action, e, "Parsing client request failed! (2)");
+            }
+        }
+        if (this.parsedBody != null) {
+            return type.cast(this.parsedBody);
+        } else {
+            return null;
+        }
     }
 
     private HttpClient getHttpClientFor(String url) {

@@ -465,24 +465,24 @@ public class SSSClient {
 
     public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, AuthenticationNotValidException {
         String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
-        PostClientRequest<SSSLivingDocResponseDto> postClientRequest = new PostClientRequest<>(url, "getLDocById1");
+        PostClientRequest postClientRequest = new PostClientRequest(url, "getLDocById1");
         StringEntity stringEntity = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
         try {
             postClientRequest.execute(stringEntity, accessToken);
         } catch (Exception e) {
             exceptionLogger.log("getLDocById1 Statuscode", e);
         }
-        SSSLivingDocResponseDto sssLivingDocResponseDto = (SSSLivingDocResponseDto) postClientRequest.getParsedBody();
+        SSSLivingDocResponseDto sssLivingDocResponseDto = postClientRequest.getParsedBody(SSSLivingDocResponseDto.class);
         if (sssLivingDocResponseDto == null) {
             String url2 = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode("http://178.62.62.23:9000/" + documentId, "UTF-8"), "UTF-8");
-            PostClientRequest<SSSLivingDocResponseDto> postClientRequest2 = new PostClientRequest<>(url2, "getLDocById2");
+            PostClientRequest postClientRequest2 = new PostClientRequest(url2, "getLDocById2");
             StringEntity stringEntity2 = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
             try {
                 postClientRequest.execute(stringEntity2, accessToken);
             } catch (Exception e) {
                 exceptionLogger.log("getLDocById2 Statuscode", e);
             }
-            return (SSSLivingDocResponseDto) postClientRequest2.getParsedBody();
+            return postClientRequest2.getParsedBody(SSSLivingDocResponseDto.class);
         } else {
             return sssLivingDocResponseDto;
         }
