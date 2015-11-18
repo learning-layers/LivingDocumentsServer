@@ -45,6 +45,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 public abstract class ClientRequest<T> {
     protected ExceptionLogger exceptionLogger;
@@ -54,6 +55,7 @@ public abstract class ClientRequest<T> {
     protected String action;
     protected T parsedBody;
     private ObjectMapper mapper;
+    private List<HttpStatus> expectedHttpStatuscodes;
 
     public ClientRequest(String url, String action) {
         this.exceptionLogger = ApplicationContextProvider.getApplicationContextStatic().getBean("exceptionLogger", ExceptionLogger.class);
@@ -69,10 +71,16 @@ public abstract class ClientRequest<T> {
 
     protected abstract String getLoggingPrefix();
 
+    public void setExpectedHttpStatuscodes(List<HttpStatus> expectedHttpStatuscodes) {
+        this.expectedHttpStatuscodes = expectedHttpStatuscodes;
+    }
+
     protected void processResponse() throws RequestStatusNotOKException {
         if (this.getResponseStatusCode() != HttpStatus.OK) {
-            this.exceptionLogger.log(this.getLoggingPrefix() + this.action, "HTTPStatus=" + this.getResponseStatusCode().toString(), "Client request failed!");
-            throw new RequestStatusNotOKException(this.getResponseStatusCode(), this.response.getStatusLine().getReasonPhrase());
+            if (expectedHttpStatuscodes != null && !expectedHttpStatuscodes.contains(this.getResponseStatusCode())) {
+                this.exceptionLogger.log(this.getLoggingPrefix() + this.action, "HTTPStatus=" + this.getResponseStatusCode().toString(), "Client request failed!");
+                throw new RequestStatusNotOKException(this.getResponseStatusCode(), this.response.getStatusLine().getReasonPhrase());
+            }
         }
         BufferedReader rd = null;
         try {
@@ -127,7 +135,6 @@ public abstract class ClientRequest<T> {
         try {
             sslContext = SSLContexts.custom()
                     .loadTrustMaterial(null, new TrustStrategy() {
-
                         @Override
                         public boolean isTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
                             return true;
