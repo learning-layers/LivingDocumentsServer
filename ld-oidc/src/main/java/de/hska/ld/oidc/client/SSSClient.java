@@ -474,6 +474,8 @@ public class SSSClient {
         }
         SSSLivingDocResponseDto sssLivingDocResponseDto = postClientRequest.getParsedBody(SSSLivingDocResponseDto.class);
         if (sssLivingDocResponseDto == null) {
+            // TODO HACK this is a workaround because the configuration in the production system was set wrong and the
+            // ids can't be changed in a quick way
             String url2 = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode("http://178.62.62.23:9000/" + documentId, "UTF-8"), "UTF-8");
             PostClientRequest postClientRequest2 = new PostClientRequest(url2, "getLDocById2");
             StringEntity stringEntity2 = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
@@ -505,44 +507,28 @@ public class SSSClient {
 
     public SSSLivingDocResponseDto getLDocEmailsById(Long documentId, String accessToken) throws IOException, AuthenticationNotValidException {
         String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
-
-        HttpClient client = getHttpClientFor(url);
-        HttpPost post = new HttpPost(url);
-        addHeaderInformation(post, accessToken);
-
         StringEntity stringEntity = new StringEntity("{\"setUsers\": true}", ContentType.create("application/json", "UTF-8"));
-        post.setEntity(stringEntity);
-
-        HttpResponse response = client.execute(post);
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new AuthenticationNotValidException();
-        }
-
-        BufferedReader rd = null;
+        PostClientRequest postClientRequest = new PostClientRequest(url, "getLDocEmailsById1");
         try {
-            rd = new BufferedReader(
-                    new InputStreamReader(response.getEntity().getContent()));
-
-            StringBuilder result = new StringBuilder();
-            String line = "";
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
-            }
-            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
-                throw new ValidationException("access token is invalid");
-            }
-            return mapper.readValue(result.toString(), SSSLivingDocResponseDto.class);
-        } catch (ValidationException ve) {
-            throw ve;
+            postClientRequest.execute(stringEntity, accessToken);
         } catch (Exception e) {
-            return null;
-        } finally {
-            if (rd != null) {
-                rd.close();
+            exceptionLogger.log("getLDocEmailsById1 Statuscode", e);
+        }
+        SSSLivingDocResponseDto sssLivingDocResponseDto = postClientRequest.getParsedBody(SSSLivingDocResponseDto.class);
+        if (sssLivingDocResponseDto == null) {
+            // TODO HACK this is a workaround because the configuration in the production system was set wrong and the
+            // ids can't be changed in a quick way
+            String url2 = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode("http://178.62.62.23:9000/" + documentId, "UTF-8"), "UTF-8");
+            PostClientRequest postClientRequest2 = new PostClientRequest(url2, "getLDocEmailsById2");
+            StringEntity stringEntity2 = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
+            try {
+                postClientRequest.execute(stringEntity2, accessToken);
+            } catch (Exception e) {
+                exceptionLogger.log("getLDocEmailsById2 Statuscode", e);
             }
+            return postClientRequest2.getParsedBody(SSSLivingDocResponseDto.class);
+        } else {
+            return sssLivingDocResponseDto;
         }
     }
 
