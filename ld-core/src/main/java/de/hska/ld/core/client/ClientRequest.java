@@ -26,8 +26,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.config.ApplicationContextProvider;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.logging.ExceptionLogger;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -36,9 +38,7 @@ import org.apache.http.ssl.TrustStrategy;
 import org.springframework.http.HttpStatus;
 
 import javax.net.ssl.SSLContext;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -76,9 +76,25 @@ public abstract class ClientRequest {
     }
 
     protected void processResponse() throws RequestStatusNotOKException {
+        processResponse(null);
+    }
+
+    protected void processResponse(StringEntity entity) throws RequestStatusNotOKException {
         if (this.getResponseStatusCode() != HttpStatus.OK) {
             if (expectedHttpStatuscodes == null || !expectedHttpStatuscodes.contains(this.getResponseStatusCode())) {
-                this.exceptionLogger.log(this.getLoggingPrefix() + this.action, "HTTPStatus=" + this.getResponseStatusCode().toString(), "Client request failed!");
+                if (entity != null) {
+                    try {
+                        InputStream inputStream = entity.getContent();
+                        StringWriter writer = new StringWriter();
+                        IOUtils.copy(inputStream, writer, "UTF-8");
+                        String entityString = writer.toString();
+                        this.exceptionLogger.log(this.getLoggingPrefix() + this.action, "HTTPStatus=" + this.getResponseStatusCode().toString() + ", url=" + this.url + ", entityString=" + entityString, "Client request failed!");
+                    } catch (Exception e) {
+                        this.exceptionLogger.log(this.getLoggingPrefix() + this.action, "HTTPStatus=" + this.getResponseStatusCode().toString() + ", url=" + this.url, "Client request failed!");
+                    }
+                } else {
+                    this.exceptionLogger.log(this.getLoggingPrefix() + this.action, "HTTPStatus=" + this.getResponseStatusCode().toString() + ", url=" + this.url, "Client request failed!");
+                }
                 throw new RequestStatusNotOKException(this.getResponseStatusCode(), this.response.getStatusLine().getReasonPhrase());
             }
         }
