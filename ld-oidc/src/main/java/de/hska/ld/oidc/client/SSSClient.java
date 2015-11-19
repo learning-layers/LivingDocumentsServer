@@ -522,7 +522,7 @@ public class SSSClient {
             PostClientRequest postClientRequest2 = new PostClientRequest(url2, "getLDocEmailsById2");
             StringEntity stringEntity2 = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
             try {
-                postClientRequest.execute(stringEntity2, accessToken);
+                postClientRequest2.execute(stringEntity2, accessToken);
             } catch (Exception e) {
                 exceptionLogger.log("getLDocEmailsById2 Statuscode", e);
             }
