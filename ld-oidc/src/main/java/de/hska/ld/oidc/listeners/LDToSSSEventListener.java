@@ -44,9 +44,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,8 +66,10 @@ public class LDToSSSEventListener {
     @Autowired
     private ExceptionLogger exceptionLogger;
 
+    @Autowired
+    private EntityManager entityManager;
+
     @EventListener
-    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false)
     public void handleDocumentReadEvent(DocumentReadEvent event) throws IOException, CreationFailedException {
         Document document = (Document) event.getSource();
         System.out.println("LDToSSSEventListener: Reading document=" + document.getId() + ", title=" + document.getTitle());
@@ -139,9 +141,18 @@ public class LDToSSSEventListener {
                 }
                 String userIds = sb.toString();
                 if (!"".equals(userIds)) {
-                    Document resultDocument = documentService.addAccess(document.getId(), userIds, "READ;WRITE");
-                    resultDocument.getAttachmentList().size();
-                    return resultDocument;
+                    EntityTransaction tx = entityManager.getTransaction();
+                    try {
+                        tx.begin();
+                        document = documentService.addAccessWithoutTransactional(document.getId(), userIds, "READ;WRITE");
+                        document.getAttachmentList().size();
+                        entityManager.persist(document);
+                        entityManager.flush();
+                        tx.commit();
+                    } catch (Exception ex) {
+                        tx.rollback();
+                        throw ex;
+                    }
                 }
             }
         } catch (AuthenticationNotValidException eAuth) {
