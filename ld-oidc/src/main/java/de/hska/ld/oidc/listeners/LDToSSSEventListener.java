@@ -144,9 +144,9 @@ public class LDToSSSEventListener {
                     EntityTransaction tx = entityManager.getTransaction();
                     try {
                         tx.begin();
-                        document = documentService.addAccessWithoutTransactional(document.getId(), userIds, "READ;WRITE");
-                        document.getAttachmentList().size();
-                        entityManager.persist(document);
+                        Document dbDocument = documentService.findById(document.getId());
+                        dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
+                        dbDocument.getAttachmentList().size();
                         entityManager.flush();
                         tx.commit();
                     } catch (Exception ex) {

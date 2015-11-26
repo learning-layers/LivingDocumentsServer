@@ -255,7 +255,7 @@ public class DocumentController {
      */
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
-    @Transactional(readOnly = true, noRollbackFor = UserNotAuthorizedException.class)
+    @Transactional(readOnly = false, noRollbackFor = UserNotAuthorizedException.class)
     public ResponseEntity<Document> readDocument(@PathVariable Long documentId) {
         Document document = documentService.findById(documentId);
         if (document != null) {

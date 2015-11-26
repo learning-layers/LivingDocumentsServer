@@ -497,6 +497,8 @@ public class DocumentServiceImpl extends AbstractContentService<Document> implem
         return addAccessWithoutTransactional(documentId, combinedUserIdString, combinedPermissionString);
     }
 
+    @Override
+    @Transactional
     public Document addAccessWithoutTransactional(Long documentId, String combinedUserIdString, String combinedPermissionString) {
         Document document = findById(documentId);
         List<User> userList;
