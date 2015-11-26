@@ -1,8 +1,31 @@
+/*
+ *  Code contributed to the Learning Layers project
+ *  http://www.learning-layers.eu
+ *  Development is partly funded by the FP7 Programme of the European
+ *  Commission under Grant Agreement FP7-ICT-318209.
+ *  Copyright (c) 2015, Karlsruhe University of Applied Sciences.
+ *  For a list of contributors see the AUTHORS file at the top-level directory
+ *  of this distribution.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package de.hska.ld.oidc.controller;
 
 import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.Role;
@@ -13,6 +36,7 @@ import de.hska.ld.core.util.Core;
 import de.hska.ld.oidc.client.OIDCIdentityProviderClient;
 import de.hska.ld.oidc.client.SSSClient;
 import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
+import de.hska.ld.oidc.dto.OIDCSubInfoDto;
 import de.hska.ld.oidc.dto.OIDCUserinfoDto;
 import de.hska.ld.oidc.dto.SSSAuthDto;
 import de.hska.ld.oidc.dto.SSSLivingdocsResponseDto;
@@ -21,6 +45,8 @@ import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -31,6 +57,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -58,6 +86,9 @@ public class OIDCController {
 
     @Autowired
     private Environment env;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
     public User authenticate(HttpServletRequest request,
@@ -142,6 +173,101 @@ public class OIDCController {
         return user;
     }
 
+    @RequestMapping(method = RequestMethod.POST, value = "/document/{documentId}/share/issuerandsub")
+    @Transactional(readOnly = false)
+    public ResponseEntity shareDocumentViaIssuerAndSub(HttpServletRequest request,
+                                                       @RequestBody List<OIDCSubInfoDto> issuerSubList,
+                                                       @PathVariable Long documentId,
+                                                       @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer,
+                                                       @RequestHeader(required = false) String Authorization) throws IOException, ServletException {
+
+        _authenticate(request, issuer, Authorization);
+
+        Document document = documentService.findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        }
+
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (OIDCSubInfoDto isserSubDto : issuerSubList) {
+            User user = userService.findBySubIdAndIssuer(isserSubDto.getSub(), isserSubDto.getIssuer());
+            if (user != null && user.getId() != null && document.getCreator() != null &&
+                    document.getCreator().getId() != null && !user.getId().equals(document.getCreator().getId())) {
+                if (first) {
+                    sb.append(user.getId());
+                    first = false;
+                } else {
+                    sb.append(";").append(user.getId());
+                }
+            }
+        }
+        String userIds = sb.toString();
+        if (!"".equals(userIds)) {
+            EntityTransaction tx = entityManager.getTransaction();
+            try {
+                tx.begin();
+                Document dbDocument = documentService.findById(document.getId());
+                dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
+                dbDocument.getAttachmentList().size();
+                entityManager.flush();
+                tx.commit();
+            } catch (Exception ex) {
+                tx.rollback();
+                throw ex;
+            }
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/document/{documentId}/share/email")
+    @Transactional(readOnly = false)
+    public ResponseEntity shareDocumentViaEmailAdress(HttpServletRequest request,
+                                                      @RequestBody List<String> userEmailList,
+                                                      @PathVariable Long documentId,
+                                                      @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer,
+                                                      @RequestHeader(required = false) String Authorization) throws IOException, ServletException {
+
+        _authenticate(request, issuer, Authorization);
+
+        Document document = documentService.findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        }
+
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (String userEmail : userEmailList) {
+            User user = userService.findByEmail(userEmail);
+            if (user != null && user.getId() != null && document.getCreator() != null &&
+                    document.getCreator().getId() != null && !user.getId().equals(document.getCreator().getId())) {
+                if (first) {
+                    sb.append(user.getId());
+                    first = false;
+                } else {
+                    sb.append(";").append(user.getId());
+                }
+            }
+        }
+        String userIds = sb.toString();
+        if (!"".equals(userIds)) {
+            EntityTransaction tx = entityManager.getTransaction();
+            try {
+                tx.begin();
+                Document dbDocument = documentService.findById(document.getId());
+                dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
+                dbDocument.getAttachmentList().size();
+                entityManager.flush();
+                tx.commit();
+            } catch (Exception ex) {
+                tx.rollback();
+                throw ex;
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @RequestMapping(method = RequestMethod.POST, value = "/document")
     @Transactional(readOnly = false, rollbackFor = RuntimeException.class)
     public Document createDocument(HttpServletRequest request,
@@ -149,14 +275,8 @@ public class OIDCController {
                                    @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer,
                                    @RequestHeader(required = false) String Authorization,
                                    @RequestParam(required = false) String discussionId) throws IOException, ServletException {
-        //if (Authorization != null) {
-            _authenticate(request, issuer, Authorization);
-        /*} else {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (!auth.isAuthenticated()) {
-                throw new UnauthorizedClientException("not authenticated");
-            }
-        }*/
+
+        _authenticate(request, issuer, Authorization);
 
         // 3. Create the document in the database
         Document newDocument = documentService.save(document);
