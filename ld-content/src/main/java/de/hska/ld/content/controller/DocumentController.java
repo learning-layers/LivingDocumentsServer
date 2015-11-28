@@ -31,6 +31,7 @@ import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.SubscriptionService;
+import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
@@ -69,6 +70,9 @@ public class DocumentController {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private TagService tagService;
 
     @Autowired
     private CommentService commentService;
@@ -386,7 +390,12 @@ public class DocumentController {
     @Transactional(readOnly = true)
     public Callable addTag(@PathVariable Long documentId, @PathVariable Long tagId) {
         return () -> {
-            documentService.addTag(documentId, tagId);
+            Document document = documentService.findById(documentId);
+            if (document != null) {
+                documentService.addTag(documentId, tagId);
+                Tag tag = tagService.findById(tagId);
+                documentEventsPublisher.sendAddTagEvent(document, tag);
+            }
             return new ResponseEntity<>(HttpStatus.OK);
         };
     }

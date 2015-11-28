@@ -264,4 +264,8 @@ public class SSSClient {
         get.setHeader("Authorization", "Bearer " + accessToken);
         return get;
     }
+
+    public void addTagToDocument(Long documentId, Long tagId, String accessToken) {
+
+    }
 }

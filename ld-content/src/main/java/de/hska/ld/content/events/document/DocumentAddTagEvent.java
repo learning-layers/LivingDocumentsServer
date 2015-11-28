@@ -22,32 +22,27 @@
 
 package de.hska.ld.content.events.document;
 
-import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
 
-@Component
-public class DocumentEventsPublisher {
-    @Autowired
-    private ApplicationEventPublisher publisher;
+public class DocumentAddTagEvent extends DocumentResultEvent {
 
-    public DocumentCreationEvent sendDocumentCreationEvent(Document document) {
-        DocumentCreationEvent event = new DocumentCreationEvent(document);
-        this.publisher.publishEvent(event);
-        return event;
+    private Tag tag;
+
+    /**
+     * Create a new ApplicationEvent.
+     *
+     * @param source the object on which the event initially occurred (never {@code null})
+     */
+    public DocumentAddTagEvent(Object source, Tag tag) {
+        super(source);
+        this.tag = tag;
     }
 
-    public DocumentReadEvent sendDocumentReadEvent(Document document) {
-        DocumentReadEvent event = new DocumentReadEvent(document);
-        this.publisher.publishEvent(event);
-        return event;
+    public Tag getTag() {
+        return tag;
     }
 
-    public DocumentAddTagEvent sendAddTagEvent(Document document, Tag tag) {
-        DocumentAddTagEvent event = new DocumentAddTagEvent(document, tag);
-        this.publisher.publishEvent(event);
-        return event;
+    public void setTag(Tag tag) {
+        this.tag = tag;
     }
 }

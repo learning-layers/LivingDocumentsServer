@@ -22,14 +22,17 @@
 
 package de.hska.ld.recommendation.listeners;
 
+import de.hska.ld.content.events.document.DocumentAddTagEvent;
 import de.hska.ld.content.events.document.DocumentReadEvent;
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.recommendation.client.SSSClient;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
 import de.hska.ld.recommendation.service.DocumentRecommInfoService;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -45,7 +48,7 @@ public class LDToSSSEventListener {
     @Autowired
     private DocumentRecommInfoService documentRecommInfoService;
 
-    //@Async
+    @Async
     @EventListener
     public void handleDocumentReadEvent(DocumentReadEvent event) throws IOException {
         Document document = (Document) event.getSource();
@@ -56,6 +59,19 @@ public class LDToSSSEventListener {
             OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
             sssClient.performInitialSSSTagLoad(document.getId(), token.getAccessTokenValue());
         }
+        event.setResultDocument(document);
+    }
+
+    @Async
+    @EventListener
+    public void handleDocumentAddTagEvent(DocumentAddTagEvent event) throws IOException {
+        Document document = (Document) event.getSource();
+        Tag tag = event.getTag();
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+
+        sssClient.addTagToDocument(document.getId(), tag.getId(), token.getAccessTokenValue());
         event.setResultDocument(document);
     }
 }
