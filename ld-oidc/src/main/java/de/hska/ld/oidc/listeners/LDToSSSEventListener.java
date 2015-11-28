@@ -51,7 +51,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Component("ld-oidc-LDToSSSEventListener")
 public class LDToSSSEventListener {
 
     @Autowired

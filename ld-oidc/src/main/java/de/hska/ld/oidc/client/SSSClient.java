@@ -59,7 +59,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-@Component
+@Component("ld-oidc-sssclient")
 public class SSSClient {
 
     @Autowired
