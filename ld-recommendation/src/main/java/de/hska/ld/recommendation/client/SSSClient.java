@@ -25,7 +25,9 @@ package de.hska.ld.recommendation.client;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.content.service.TagService;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.util.Core;
@@ -68,7 +70,7 @@ import java.util.List;
 public class SSSClient {
 
     @Autowired
-    private DocumentService documenService;
+    private DocumentService documentService;
 
     @Autowired
     private DocumentRecommInfoService documentRecommInfoService;
@@ -82,9 +84,12 @@ public class SSSClient {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private TagService tagService;
+
     public void performInitialSSSTagLoad(Long documentId, String accessToken) throws IOException {
         String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
-        Document document = documenService.findById(documentId);
+        Document document = documentService.findById(documentId);
         List<String> tagStringList = new ArrayList<String>();
         document.getTagList().forEach(t -> {
             tagStringList.add(t.getName());
@@ -136,7 +141,7 @@ public class SSSClient {
                     throw new Exception("Updating recommendations didn't work!");
                 } else {
                     EntityTransaction tx = entityManager.getTransaction();
-                    document = documenService.findById(document.getId());
+                    document = documentService.findById(document.getId());
                     DocumentRecommInfo documentRecommInfo = new DocumentRecommInfo();
                     documentRecommInfo.setDocument(document);
                     documentRecommInfo.setInitialImportToSSSDone(true);
@@ -265,7 +270,84 @@ public class SSSClient {
         return get;
     }
 
-    public void addTagToDocument(Long documentId, Long tagId, String accessToken) {
+    public void addTagToDocument(Long documentId, Long tagId, String accessToken) throws IOException {
+        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        Document document = documentService.findById(documentId);
+        List<String> tagStringList = new ArrayList<String>();
 
+        Tag tag = tagService.findById(tagId);
+        if (tag != null) {
+            tagStringList.add(tag.getName());
+            String userPrefix = env.getProperty("sss.user.name.prefix");
+            String documentPrefix = env.getProperty("sss.document.name.prefix");
+
+            RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
+            recommUpdateDto.setRealm("dieter1");
+            recommUpdateDto.setForUser(userPrefix + Core.currentUser().getId());
+            recommUpdateDto.setEntity(documentPrefix + document.getId());
+            recommUpdateDto.setTags(tagStringList);
+
+            HttpClient client = getHttpClientFor(url);
+            HttpPut put = new HttpPut(url);
+            addHeaderInformation(put, accessToken);
+
+            String recommUpdateDtoString = mapper.writeValueAsString(recommUpdateDto);
+            StringEntity stringEntity = new StringEntity(recommUpdateDtoString, ContentType.create("application/json", "UTF-8"));
+            put.setEntity(stringEntity);
+            BufferedReader rd = null;
+
+            HttpResponse response = client.execute(put);
+            System.out.println("Response Code : "
+                    + response.getStatusLine().getStatusCode());
+
+            if (response.getStatusLine().getStatusCode() != 200) {
+                if (response.getStatusLine().getStatusCode() == 403) {
+                    throw new UserNotAuthorizedException();
+                }
+            }
+
+            try {
+                rd = new BufferedReader(
+                        new InputStreamReader(response.getEntity().getContent()));
+
+                StringBuilder result = new StringBuilder();
+                String line = "";
+                while ((line = rd.readLine()) != null) {
+                    result.append(line);
+                }
+                if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                    throw new ValidationException("access token is invalid");
+                }
+                mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                RecommUpdateResponseDto recommUpdateResponseDto = mapper.readValue(result.toString(), RecommUpdateResponseDto.class);
+                if (!recommUpdateResponseDto.isWorked()) {
+                    throw new Exception("Updating recommendations didn't work!");
+                } else {
+                    EntityTransaction tx = entityManager.getTransaction();
+                    document = documentService.findById(document.getId());
+                    DocumentRecommInfo documentRecommInfo = new DocumentRecommInfo();
+                    documentRecommInfo.setDocument(document);
+                    documentRecommInfo.setInitialImportToSSSDone(true);
+                    try {
+                        tx.begin();
+                        entityManager.persist(documentRecommInfo);
+                        entityManager.flush();
+                        tx.commit();
+                    } catch (Exception ex) {
+                        tx.rollback();
+                        throw ex;
+                    }
+                }
+                return;
+            } catch (ValidationException ve) {
+                throw ve;
+            } catch (Exception e) {
+                return;
+            } finally {
+                if (rd != null) {
+                    rd.close();
+                }
+            }
+        }
     }
 }
