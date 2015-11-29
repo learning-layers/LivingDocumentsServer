@@ -22,34 +22,38 @@
 
 package de.hska.ld.recommendation.dto;
 
+import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.core.persistence.domain.User;
+
 import java.util.List;
 
-public class SSSUserDto {
-    String id;
-    String type;
-    List<String> tags;
+public class LDRecommendationDto {
+    Long documentId;
 
-    public String getId() {
-        return id;
+    List<User> userList;
+    List<Document> documentList;
+
+    public List<User> getUserList() {
+        return userList;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setUserList(List<User> userList) {
+        this.userList = userList;
     }
 
-    public String getType() {
-        return type;
+    public List<Document> getDocumentList() {
+        return documentList;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setDocumentList(List<Document> documentList) {
+        this.documentList = documentList;
     }
 
-    public List<String> getTags() {
-        return tags;
+    public Long getDocumentId() {
+        return documentId;
     }
 
-    public void setTags(List<String> tags) {
-        this.tags = tags;
+    public void setDocumentId(Long documentId) {
+        this.documentId = documentId;
     }
 }

@@ -24,6 +24,8 @@ package de.hska.ld.recommendation.service.impl;
 
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
 import de.hska.ld.recommendation.persistence.repository.DocumentRecommInfoRepository;
 import de.hska.ld.recommendation.service.DocumentRecommInfoService;
@@ -31,11 +33,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class DocumentRecommInfoServiceImpl implements DocumentRecommInfoService {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private DocumentRecommInfoRepository repository;
@@ -52,6 +60,34 @@ public class DocumentRecommInfoServiceImpl implements DocumentRecommInfoService 
         documentRecommInfo.setDocument(document);
         documentRecommInfo.setInitialImportToSSSDone(true);
         repository.save(documentRecommInfo);
+    }
+
+    @Override
+    public List<User> fetchUserRecommendationDatasets(List<Long> userIdList) {
+        List<User> userList = new ArrayList<>();
+        int count = 10;
+        for (Long userId : userIdList) {
+            if (count > 0) {
+                User user = userService.findById(userId);
+                userList.add(user);
+                count--;
+            }
+        }
+        return userList;
+    }
+
+    @Override
+    public List<Document> fetchDocumentRecommendationDatasets(List<Long> documentIdList) {
+        List<Document> documentList = new ArrayList<>();
+        int count = 10;
+        for (Long documentId : documentIdList) {
+            if (count > 0) {
+                Document document = documentService.findById(documentId);
+                documentList.add(document);
+                count--;
+            }
+        }
+        return documentList;
     }
 
     public DocumentRecommInfoRepository getRepository() {

@@ -28,12 +28,14 @@ import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
+import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.recommendation.dto.RecommUpdateDto;
 import de.hska.ld.recommendation.dto.RecommUpdateResponseDto;
 import de.hska.ld.recommendation.dto.SSSAuthDto;
+import de.hska.ld.recommendation.dto.SSSRecommResponseDto;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
 import de.hska.ld.recommendation.service.DocumentRecommInfoService;
 import org.apache.http.HttpResponse;
@@ -339,11 +341,11 @@ public class SSSClient {
         }
     }
 
-    public void retrieveRecommendations(Long documentId, String accessToken) throws IOException {
+    public SSSRecommResponseDto retrieveRecommendations(Long documentId, String accessToken) throws IOException {
         String documentPrefix = env.getProperty("sss.document.name.prefix");
         String documentUrl = documentPrefix + documentId;
         String utf8DocumentUrl = URLEncoder.encode(URLEncoder.encode(documentUrl, "UTF-8"), "UTF-8");
-        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/recommUsersIgnoreAccessRights/realm/dieter1/entity/" + utf8DocumentUrl;
+        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/users/ignoreaccessrights/realm/dieter1/entity/" + utf8DocumentUrl;
         HttpClient client = getHttpClientFor(url);
         HttpGet get = new HttpGet(url);
         addHeaderInformation(get, accessToken);
@@ -357,6 +359,9 @@ public class SSSClient {
         if (response.getStatusLine().getStatusCode() != 200) {
             if (response.getStatusLine().getStatusCode() == 403) {
                 throw new UserNotAuthorizedException();
+            }
+            if (response.getStatusLine().getStatusCode() == 404) {
+                throw new NotFoundException("documentUri");
             }
         }
 
@@ -373,12 +378,12 @@ public class SSSClient {
                 throw new ValidationException("access token is invalid");
             }
             mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            RecommUpdateResponseDto recommUpdateResponseDto = mapper.readValue(result.toString(), RecommUpdateResponseDto.class);
-            return;
+            SSSRecommResponseDto sssRecommResponseDto = mapper.readValue(result.toString(), SSSRecommResponseDto.class);
+            return sssRecommResponseDto;
         } catch (ValidationException ve) {
             throw ve;
         } catch (Exception e) {
-            return;
+            return null;
         } finally {
             if (rd != null) {
                 rd.close();
