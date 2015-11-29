@@ -26,6 +26,8 @@ import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
+import de.hska.ld.recommendation.dto.LDRecommendationDocumentDto;
+import de.hska.ld.recommendation.dto.LDRecommendationUserDto;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
 import de.hska.ld.recommendation.persistence.repository.DocumentRecommInfoRepository;
 import de.hska.ld.recommendation.service.DocumentRecommInfoService;
@@ -33,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -63,31 +64,29 @@ public class DocumentRecommInfoServiceImpl implements DocumentRecommInfoService 
     }
 
     @Override
-    public List<User> fetchUserRecommendationDatasets(List<Long> userIdList) {
-        List<User> userList = new ArrayList<>();
+    public List<LDRecommendationUserDto> fetchUserRecommendationDatasets(List<LDRecommendationUserDto> userIdList) {
         int count = 10;
-        for (Long userId : userIdList) {
+        for (LDRecommendationUserDto userId : userIdList) {
             if (count > 0) {
-                User user = userService.findById(userId);
-                userList.add(user);
+                User user = userService.findById(userId.getUserId());
+                userId.setUser(user);
                 count--;
             }
         }
-        return userList;
+        return userIdList;
     }
 
     @Override
-    public List<Document> fetchDocumentRecommendationDatasets(List<Long> documentIdList) {
-        List<Document> documentList = new ArrayList<>();
+    public List<LDRecommendationDocumentDto> fetchDocumentRecommendationDatasets(List<LDRecommendationDocumentDto> documentIdList) {
         int count = 10;
-        for (Long documentId : documentIdList) {
+        for (LDRecommendationDocumentDto documentId : documentIdList) {
             if (count > 0) {
-                Document document = documentService.findById(documentId);
-                documentList.add(document);
+                Document document = documentService.findById(documentId.getDocumentId());
+                documentId.setDocument(document);
                 count--;
             }
         }
-        return documentList;
+        return documentIdList;
     }
 
     public DocumentRecommInfoRepository getRepository() {

@@ -22,13 +22,9 @@
 
 package de.hska.ld.recommendation.controller;
 
-import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.recommendation.client.SSSClient;
-import de.hska.ld.recommendation.dto.LDRecommendationDto;
-import de.hska.ld.recommendation.dto.SSSRecommResponseDto;
-import de.hska.ld.recommendation.dto.SSSUserRecommendationDto;
+import de.hska.ld.recommendation.dto.*;
 import de.hska.ld.recommendation.service.DocumentRecommInfoService;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,15 +53,6 @@ public class RecommendationController {
     private DocumentRecommInfoService documentRecommInfoService;
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/users")
-    public ResponseEntity<Document> getExpertRecommendations(@PathVariable Long documentId) throws IOException {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-        sssClient.retrieveRecommendations(documentId, token.getAccessTokenValue());
-        return null;
-    }
-
-    @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}")
     public ResponseEntity<LDRecommendationDto> getRecommendations(@PathVariable Long documentId) throws IOException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -75,8 +62,8 @@ public class RecommendationController {
             return new ResponseEntity<LDRecommendationDto>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         List<SSSUserRecommendationDto> sssUserRecommendationDtoList = sssRecommResponseDto.getUsers();
-        List<Long> userIdList = new ArrayList<>();
-        List<Long> documentIdList = new ArrayList<>();
+        List<LDRecommendationUserDto> userIdList = new ArrayList<>();
+        List<LDRecommendationDocumentDto> documentIdList = new ArrayList<>();
         sssUserRecommendationDtoList.forEach(ur -> {
             String userUri = ur.getUser().getId();
             // 1. Determine if the result is a user or a document
@@ -84,8 +71,12 @@ public class RecommendationController {
                 // 1.1 it is a user instance
                 String[] splittedUserId = userUri.split("/user/");
                 String userId = splittedUserId[splittedUserId.length - 1];
+                Double likelihood = ur.getLikelihood();
                 try {
-                    userIdList.add(Long.parseLong(userId));
+                    LDRecommendationUserDto ldRecommendationUserDto = new LDRecommendationUserDto();
+                    ldRecommendationUserDto.setUserId(Long.parseLong(userId));
+                    ldRecommendationUserDto.setLikelihood(likelihood);
+                    userIdList.add(ldRecommendationUserDto);
                 } catch (Exception e) {
                     //
                 }
@@ -93,24 +84,29 @@ public class RecommendationController {
                 // 1.2 it is a document instance
                 String[] splittedDocumentId = userUri.split("/document/");
                 String documentIdRecommended = splittedDocumentId[splittedDocumentId.length - 1];
+                Double likelihood = ur.getLikelihood();
                 try {
-                    documentIdList.add(Long.parseLong(documentIdRecommended));
+                    LDRecommendationDocumentDto ldRecommendationDocumentDto = new LDRecommendationDocumentDto();
+                    ldRecommendationDocumentDto.setDocumentId(Long.parseLong(documentIdRecommended));
+                    ldRecommendationDocumentDto.setLikelihood(likelihood);
+                    documentIdList.add(ldRecommendationDocumentDto);
                 } catch (Exception e) {
                     //
                 }
             }
-            // TODO 2. Add the likelihood to the result object
-            //Double likelihood = ur.getLikelihood();
         });
 
         // fetch the related data sets from the living documents db
-        List<User> userList = documentRecommInfoService.fetchUserRecommendationDatasets(userIdList);
-        List<Document> documentList = documentRecommInfoService.fetchDocumentRecommendationDatasets(documentIdList);
+        List<LDRecommendationUserDto> userList = documentRecommInfoService.fetchUserRecommendationDatasets(userIdList);
+        List<LDRecommendationDocumentDto> documentList = documentRecommInfoService.fetchDocumentRecommendationDatasets(documentIdList);
 
         LDRecommendationDto ldRecommendationDto = new LDRecommendationDto();
         ldRecommendationDto.setUserList(userList);
         ldRecommendationDto.setDocumentList(documentList);
         ldRecommendationDto.setDocumentId(documentId);
+
+        // TODO filter out persons and documents that have a likelihood of 0 and have not influenced the document
+        // TODO filter out current user and current document values
 
         return new ResponseEntity<LDRecommendationDto>(ldRecommendationDto, HttpStatus.OK);
     }

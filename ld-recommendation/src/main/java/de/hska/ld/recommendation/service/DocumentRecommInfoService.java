@@ -23,7 +23,8 @@
 package de.hska.ld.recommendation.service;
 
 import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.recommendation.dto.LDRecommendationDocumentDto;
+import de.hska.ld.recommendation.dto.LDRecommendationUserDto;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public interface DocumentRecommInfoService {
 
     void addDocumentRecommInfo(Long documentId);
 
-    List<User> fetchUserRecommendationDatasets(List<Long> userIdList);
+    List<LDRecommendationUserDto> fetchUserRecommendationDatasets(List<LDRecommendationUserDto> userIdList);
 
-    List<Document> fetchDocumentRecommendationDatasets(List<Long> userIdList);
+    List<LDRecommendationDocumentDto> fetchDocumentRecommendationDatasets(List<LDRecommendationDocumentDto> userIdList);
 }

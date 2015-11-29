@@ -22,35 +22,25 @@
 
 package de.hska.ld.recommendation.dto;
 
-import java.util.List;
+import de.hska.ld.core.persistence.domain.User;
 
-public class LDRecommendationDto {
-    Long documentId;
+public class LDRecommendationUserDto extends LDRecommendationDataDto {
+    Long userId;
+    User user;
 
-    List<LDRecommendationUserDto> userList;
-    List<LDRecommendationDocumentDto> documentList;
-
-    public List<LDRecommendationUserDto> getUserList() {
-        return userList;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUserList(List<LDRecommendationUserDto> userList) {
-        this.userList = userList;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    public List<LDRecommendationDocumentDto> getDocumentList() {
-        return documentList;
+    public User getUser() {
+        return user;
     }
 
-    public void setDocumentList(List<LDRecommendationDocumentDto> documentList) {
-        this.documentList = documentList;
-    }
-
-    public Long getDocumentId() {
-        return documentId;
-    }
-
-    public void setDocumentId(Long documentId) {
-        this.documentId = documentId;
+    public void setUser(User user) {
+        this.user = user;
     }
 }

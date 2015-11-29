@@ -22,35 +22,14 @@
 
 package de.hska.ld.recommendation.dto;
 
-import java.util.List;
+public class LDRecommendationDataDto {
+    Double likelihood;
 
-public class LDRecommendationDto {
-    Long documentId;
-
-    List<LDRecommendationUserDto> userList;
-    List<LDRecommendationDocumentDto> documentList;
-
-    public List<LDRecommendationUserDto> getUserList() {
-        return userList;
+    public Double getLikelihood() {
+        return likelihood;
     }
 
-    public void setUserList(List<LDRecommendationUserDto> userList) {
-        this.userList = userList;
-    }
-
-    public List<LDRecommendationDocumentDto> getDocumentList() {
-        return documentList;
-    }
-
-    public void setDocumentList(List<LDRecommendationDocumentDto> documentList) {
-        this.documentList = documentList;
-    }
-
-    public Long getDocumentId() {
-        return documentId;
-    }
-
-    public void setDocumentId(Long documentId) {
-        this.documentId = documentId;
+    public void setLikelihood(Double likelihood) {
+        this.likelihood = likelihood;
     }
 }
