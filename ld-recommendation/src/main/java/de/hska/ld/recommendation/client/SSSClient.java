@@ -155,6 +155,8 @@ public class SSSClient {
                     rd.close();
                 }
             }
+        } else {
+            documentRecommInfoService.addDocumentRecommInfo(documentId);
         }
     }
 
