@@ -277,7 +277,11 @@ public class SSSClient {
 
             RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
             recommUpdateDto.setRealm("dieter1");
-            recommUpdateDto.setForUser(userPrefix + Core.currentUser().getId());
+            Long creatorId = tag.getCreator().getId();
+            if (creatorId == null) {
+                creatorId = Core.currentUser().getId();
+            }
+            recommUpdateDto.setForUser(userPrefix + creatorId);
             recommUpdateDto.setEntity(documentPrefix + document.getId());
             recommUpdateDto.setTags(tagStringList);
 
