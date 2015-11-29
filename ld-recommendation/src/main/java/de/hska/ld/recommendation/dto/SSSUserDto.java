@@ -20,13 +20,12 @@
  *  limitations under the License.
  */
 
-package de.hska.ld.recommendation.service;
+package de.hska.ld.recommendation.dto;
 
-import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
+import java.util.List;
 
-public interface DocumentRecommInfoService {
-    DocumentRecommInfo findByDocument(Document document);
-
-    void addDocumentRecommInfo(Long documentId);
+public class SSSUserDto {
+    String id;
+    String type;
+    List<String> tags;
 }

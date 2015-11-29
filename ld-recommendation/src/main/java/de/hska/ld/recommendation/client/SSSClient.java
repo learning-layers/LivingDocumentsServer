@@ -58,6 +58,7 @@ import javax.persistence.EntityTransaction;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -140,20 +141,7 @@ public class SSSClient {
                 if (!recommUpdateResponseDto.isWorked()) {
                     throw new Exception("Updating recommendations didn't work!");
                 } else {
-                    EntityTransaction tx = entityManager.getTransaction();
-                    document = documentService.findById(document.getId());
-                    DocumentRecommInfo documentRecommInfo = new DocumentRecommInfo();
-                    documentRecommInfo.setDocument(document);
-                    documentRecommInfo.setInitialImportToSSSDone(true);
-                    try {
-                        tx.begin();
-                        entityManager.persist(documentRecommInfo);
-                        entityManager.flush();
-                        tx.commit();
-                    } catch (Exception ex) {
-                        tx.rollback();
-                        throw ex;
-                    }
+                    documentRecommInfoService.addDocumentRecommInfo(documentId);
                 }
                 return;
             } catch (ValidationException ve) {
@@ -347,6 +335,53 @@ public class SSSClient {
                 if (rd != null) {
                     rd.close();
                 }
+            }
+        }
+    }
+
+    public void retrieveRecommendations(Long documentId, String accessToken) throws IOException {
+        String documentPrefix = env.getProperty("sss.document.name.prefix");
+        String documentUrl = documentPrefix + documentId;
+        String utf8DocumentUrl = URLEncoder.encode(URLEncoder.encode(documentUrl, "UTF-8"), "UTF-8");
+        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/recommUsersIgnoreAccessRights/realm/dieter1/entity/" + utf8DocumentUrl;
+        HttpClient client = getHttpClientFor(url);
+        HttpGet get = new HttpGet(url);
+        addHeaderInformation(get, accessToken);
+
+        BufferedReader rd = null;
+
+        HttpResponse response = client.execute(get);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            if (response.getStatusLine().getStatusCode() == 403) {
+                throw new UserNotAuthorizedException();
+            }
+        }
+
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                throw new ValidationException("access token is invalid");
+            }
+            mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            RecommUpdateResponseDto recommUpdateResponseDto = mapper.readValue(result.toString(), RecommUpdateResponseDto.class);
+            return;
+        } catch (ValidationException ve) {
+            throw ve;
+        } catch (Exception e) {
+            return;
+        } finally {
+            if (rd != null) {
+                rd.close();
             }
         }
     }

@@ -33,8 +33,8 @@ public class DocumentAddTagEvent extends DocumentResultEvent {
      *
      * @param source the object on which the event initially occurred (never {@code null})
      */
-    public DocumentAddTagEvent(Object source, Tag tag) {
-        super(source);
+    public DocumentAddTagEvent(Object source, Tag tag, String accessToken) {
+        super(source, accessToken);
         this.tag = tag;
     }
 

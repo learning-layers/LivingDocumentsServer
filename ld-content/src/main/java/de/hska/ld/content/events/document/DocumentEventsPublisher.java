@@ -24,8 +24,11 @@ package de.hska.ld.content.events.document;
 
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
+import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -33,20 +36,29 @@ public class DocumentEventsPublisher {
     @Autowired
     private ApplicationEventPublisher publisher;
 
+    private String extractAuthenticationInformation() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+        return token.getAccessTokenValue();
+    }
+
     public DocumentCreationEvent sendDocumentCreationEvent(Document document) {
-        DocumentCreationEvent event = new DocumentCreationEvent(document);
+        String accessToken = extractAuthenticationInformation();
+        DocumentCreationEvent event = new DocumentCreationEvent(document, accessToken);
         this.publisher.publishEvent(event);
         return event;
     }
 
     public DocumentReadEvent sendDocumentReadEvent(Document document) {
-        DocumentReadEvent event = new DocumentReadEvent(document);
+        String accessToken = extractAuthenticationInformation();
+        DocumentReadEvent event = new DocumentReadEvent(document, accessToken);
         this.publisher.publishEvent(event);
         return event;
     }
 
     public DocumentAddTagEvent sendAddTagEvent(Document document, Tag tag) {
-        DocumentAddTagEvent event = new DocumentAddTagEvent(document, tag);
+        String accessToken = extractAuthenticationInformation();
+        DocumentAddTagEvent event = new DocumentAddTagEvent(document, tag, accessToken);
         this.publisher.publishEvent(event);
         return event;
     }

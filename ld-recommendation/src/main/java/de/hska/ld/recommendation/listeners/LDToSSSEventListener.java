@@ -29,12 +29,9 @@ import de.hska.ld.content.persistence.domain.Tag;
 import de.hska.ld.recommendation.client.SSSClient;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
 import de.hska.ld.recommendation.service.DocumentRecommInfoService;
-import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -55,9 +52,7 @@ public class LDToSSSEventListener {
         DocumentRecommInfo documentRecommInfo = documentRecommInfoService.findByDocument(document);
         if (documentRecommInfo == null) {
             // send current tags of the document to the SSS
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-            sssClient.performInitialSSSTagLoad(document.getId(), token.getAccessTokenValue());
+            sssClient.performInitialSSSTagLoad(document.getId(), event.getAccessToken());
         }
         event.setResultDocument(document);
     }
@@ -67,11 +62,7 @@ public class LDToSSSEventListener {
     public void handleDocumentAddTagEvent(DocumentAddTagEvent event) throws IOException {
         Document document = (Document) event.getSource();
         Tag tag = event.getTag();
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-
-        sssClient.addTagToDocument(document.getId(), tag.getId(), token.getAccessTokenValue());
+        sssClient.addTagToDocument(document.getId(), tag.getId(), event.getAccessToken());
         event.setResultDocument(document);
     }
 }

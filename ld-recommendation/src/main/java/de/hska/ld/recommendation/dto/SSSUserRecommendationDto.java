@@ -20,13 +20,25 @@
  *  limitations under the License.
  */
 
-package de.hska.ld.recommendation.service;
+package de.hska.ld.recommendation.dto;
 
-import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
+public class SSSUserRecommendationDto {
+    SSSUserDto user;
+    Double likelihood;
 
-public interface DocumentRecommInfoService {
-    DocumentRecommInfo findByDocument(Document document);
+    public SSSUserDto getUser() {
+        return user;
+    }
 
-    void addDocumentRecommInfo(Long documentId);
+    public void setUser(SSSUserDto user) {
+        this.user = user;
+    }
+
+    public Double getLikelihood() {
+        return likelihood;
+    }
+
+    public void setLikelihood(Double likelihood) {
+        this.likelihood = likelihood;
+    }
 }

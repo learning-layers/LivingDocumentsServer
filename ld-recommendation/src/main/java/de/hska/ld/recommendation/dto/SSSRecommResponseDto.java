@@ -20,40 +20,27 @@
  *  limitations under the License.
  */
 
-package de.hska.ld.content.events.document;
+package de.hska.ld.recommendation.dto;
 
-import de.hska.ld.content.persistence.domain.Document;
-import org.springframework.context.ApplicationEvent;
+import java.util.List;
 
-public class DocumentResultEvent extends ApplicationEvent {
-    private static final long serialVersionUID = -1903319969171271551L;
+public class SSSRecommResponseDto {
+    String op;
+    List<SSSUserRecommendationDto> users;
 
-    private Document resultDocument;
-    private String accessToken;
-
-    /**
-     * Create a new ApplicationEvent.
-     *
-     * @param source the object on which the event initially occurred (never {@code null})
-     */
-    public DocumentResultEvent(Object source, String accessToken) {
-        super(source);
-        this.accessToken = accessToken;
+    public String getOp() {
+        return op;
     }
 
-    public Document getResultDocument() {
-        return resultDocument;
+    public void setOp(String op) {
+        this.op = op;
     }
 
-    public void setResultDocument(Document resultDocument) {
-        this.resultDocument = resultDocument;
+    public List<SSSUserRecommendationDto> getUsers() {
+        return users;
     }
 
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
+    public void setUsers(List<SSSUserRecommendationDto> users) {
+        this.users = users;
     }
 }

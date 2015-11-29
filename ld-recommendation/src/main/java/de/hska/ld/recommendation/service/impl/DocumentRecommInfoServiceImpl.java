@@ -23,20 +23,38 @@
 package de.hska.ld.recommendation.service.impl;
 
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
 import de.hska.ld.recommendation.persistence.repository.DocumentRecommInfoRepository;
 import de.hska.ld.recommendation.service.DocumentRecommInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DocumentRecommInfoServiceImpl implements DocumentRecommInfoService {
 
     @Autowired
-    private DocumentRecommInfoRepository documentRecommInfoRepository;
+    private DocumentService documentService;
+
+    @Autowired
+    private DocumentRecommInfoRepository repository;
 
     @Override
     public DocumentRecommInfo findByDocument(Document document) {
-        return documentRecommInfoRepository.findByDocument(document);
+        return repository.findByDocument(document);
+    }
+
+    @Transactional
+    public void addDocumentRecommInfo(Long documentId) {
+        Document document = documentService.findById(documentId);
+        DocumentRecommInfo documentRecommInfo = new DocumentRecommInfo();
+        documentRecommInfo.setDocument(document);
+        documentRecommInfo.setInitialImportToSSSDone(true);
+        repository.save(documentRecommInfo);
+    }
+
+    public DocumentRecommInfoRepository getRepository() {
+        return repository;
     }
 }
