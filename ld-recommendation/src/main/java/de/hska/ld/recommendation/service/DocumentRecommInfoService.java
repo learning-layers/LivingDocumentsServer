@@ -38,5 +38,5 @@ public interface DocumentRecommInfoService {
 
     List<LDRecommendationDocumentDto> fetchDocumentRecommendationDatasets(List<LDRecommendationDocumentDto> userIdList);
 
-    List<Document> addMissingRecommendationUpdates();
+    List<Document> addMissingRecommendationUpdates(String accessToken);
 }

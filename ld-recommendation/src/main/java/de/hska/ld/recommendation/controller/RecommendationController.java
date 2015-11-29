@@ -57,7 +57,9 @@ public class RecommendationController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity performInitialSSSUpdate() throws IOException {
-        return new ResponseEntity<List<Document>>(documentRecommInfoService.addMissingRecommendationUpdates(), HttpStatus.OK);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+        return new ResponseEntity<List<Document>>(documentRecommInfoService.addMissingRecommendationUpdates(token.getAccessTokenValue()), HttpStatus.OK);
     }
 
     @Secured(Core.ROLE_USER)

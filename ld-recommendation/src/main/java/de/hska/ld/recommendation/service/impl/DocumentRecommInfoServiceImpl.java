@@ -26,6 +26,7 @@ import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
+import de.hska.ld.recommendation.client.SSSClient;
 import de.hska.ld.recommendation.dto.LDRecommendationDocumentDto;
 import de.hska.ld.recommendation.dto.LDRecommendationUserDto;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -48,6 +50,9 @@ public class DocumentRecommInfoServiceImpl implements DocumentRecommInfoService 
 
     @Autowired
     private DocumentRecommInfoRepository repository;
+
+    @Autowired
+    private SSSClient sssClient;
 
     @Override
     public DocumentRecommInfo findByDocument(Document document) {
@@ -91,10 +96,21 @@ public class DocumentRecommInfoServiceImpl implements DocumentRecommInfoService 
     }
 
     @Override
-    @Transactional
-    public List<Document> addMissingRecommendationUpdates() {
-        List<Document> documentList = repository.findAllWithoutDocumentRecommInfo();
-        return documentList;
+    //@Transactional
+    public List<Document> addMissingRecommendationUpdates(String accessToken) {
+        List<Document> documentWithMissingRecommendationsList = repository.findAllWithoutDocumentRecommInfo();
+        documentWithMissingRecommendationsList.forEach(dwmr -> {
+            DocumentRecommInfo documentRecommInfo = findByDocument(dwmr);
+            if (documentRecommInfo == null) {
+                // send current tags of the document to the SSS
+                try {
+                    sssClient.performInitialSSSTagLoad(dwmr.getId(), accessToken);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        return documentWithMissingRecommendationsList;
     }
 
     public DocumentRecommInfoRepository getRepository() {
