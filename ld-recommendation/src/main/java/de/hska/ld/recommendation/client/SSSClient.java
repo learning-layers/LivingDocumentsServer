@@ -394,4 +394,8 @@ public class SSSClient {
             }
         }
     }
+
+    public void addTagToUser(Long userId, Long tagId, String accessToken) {
+
+    }
 }
