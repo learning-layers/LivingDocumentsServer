@@ -53,6 +53,7 @@ import org.apache.http.ssl.TrustStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.net.ssl.SSLContext;
 import javax.persistence.EntityManager;
@@ -90,6 +91,7 @@ public class SSSClient {
     @Autowired
     private TagService tagService;
 
+    @Transactional
     public void performInitialSSSTagLoad(Long documentId, String accessToken) throws IOException {
         String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
         Document document = documentService.findById(documentId);
