@@ -22,6 +22,7 @@
 
 package de.hska.ld.recommendation.controller;
 
+import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.recommendation.client.SSSClient;
 import de.hska.ld.recommendation.dto.*;
@@ -49,8 +50,15 @@ public class RecommendationController {
     @Autowired
     private SSSClient sssClient;
 
+
     @Autowired
     private DocumentRecommInfoService documentRecommInfoService;
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST)
+    public ResponseEntity performInitialSSSUpdate() throws IOException {
+        return new ResponseEntity<List<Document>>(documentRecommInfoService.addMissingRecommendationUpdates(), HttpStatus.OK);
+    }
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}")

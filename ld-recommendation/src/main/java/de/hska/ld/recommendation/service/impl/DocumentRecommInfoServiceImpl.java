@@ -54,6 +54,7 @@ public class DocumentRecommInfoServiceImpl implements DocumentRecommInfoService 
         return repository.findByDocument(document);
     }
 
+    @Override
     @Transactional
     public void addDocumentRecommInfo(Long documentId) {
         Document document = documentService.findById(documentId);
@@ -87,6 +88,13 @@ public class DocumentRecommInfoServiceImpl implements DocumentRecommInfoService 
             }
         }
         return documentIdList;
+    }
+
+    @Override
+    @Transactional
+    public List<Document> addMissingRecommendationUpdates() {
+        List<Document> documentList = repository.findAllWithoutDocumentRecommInfo();
+        return documentList;
     }
 
     public DocumentRecommInfoRepository getRepository() {

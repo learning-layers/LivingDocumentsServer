@@ -24,10 +24,17 @@ package de.hska.ld.recommendation.persistence.repository;
 
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+
+import java.util.List;
 
 public interface DocumentRecommInfoRepository extends CrudRepository<DocumentRecommInfo, Long> {
     DocumentRecommInfo findByDocument(Document document);
 
     DocumentRecommInfo findById(Long id);
+
+    // TODO add delted flag to query
+    @Query("SELECT DISTINCT d FROM Document d WHERE NOT EXISTS (SELECT doc FROM Document doc, DocumentRecommInfo dri WHERE dri.document.id = doc.id AND doc.id = d.id)")
+    List<Document> findAllWithoutDocumentRecommInfo();
 }
