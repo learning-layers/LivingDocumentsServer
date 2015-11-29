@@ -23,6 +23,7 @@
 package de.hska.ld.recommendation.service;
 
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.recommendation.dto.LDRecommendationDocumentDto;
 import de.hska.ld.recommendation.dto.LDRecommendationUserDto;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
@@ -38,5 +39,9 @@ public interface DocumentRecommInfoService {
 
     List<LDRecommendationDocumentDto> fetchDocumentRecommendationDatasets(List<LDRecommendationDocumentDto> userIdList);
 
-    List<Document> addMissingRecommendationUpdates(String accessToken);
+    List<Document> addMissingRecommendationUpdatesDocuments(String accessToken);
+
+    List<User> addMissingRecommendationUpdatesUsers(String accessTokenValue);
+
+    void addUserRecommInfo(Long userId);
 }

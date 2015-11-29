@@ -30,12 +30,15 @@ import de.hska.ld.recommendation.client.SSSClient;
 import de.hska.ld.recommendation.dto.LDRecommendationDocumentDto;
 import de.hska.ld.recommendation.dto.LDRecommendationUserDto;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
+import de.hska.ld.recommendation.persistence.domain.UserRecommInfo;
 import de.hska.ld.recommendation.persistence.repository.DocumentRecommInfoRepository;
+import de.hska.ld.recommendation.persistence.repository.UserRecommInfoRepository;
 import de.hska.ld.recommendation.service.DocumentRecommInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.util.List;
 
@@ -52,7 +55,13 @@ public class DocumentRecommInfoServiceImpl implements DocumentRecommInfoService 
     private DocumentRecommInfoRepository repository;
 
     @Autowired
+    private UserRecommInfoRepository userRecommInfoRepository;
+
+    @Autowired
     private SSSClient sssClient;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Override
     public DocumentRecommInfo findByDocument(Document document) {
@@ -97,8 +106,8 @@ public class DocumentRecommInfoServiceImpl implements DocumentRecommInfoService 
 
     @Override
     //@Transactional
-    public List<Document> addMissingRecommendationUpdates(String accessToken) {
-        List<Document> documentWithMissingRecommendationsList = repository.findAllWithoutDocumentRecommInfo();
+    public List<Document> addMissingRecommendationUpdatesDocuments(String accessToken) {
+        List<Document> documentWithMissingRecommendationsList = repository.findAllDocumentsWithoutDocumentRecommInfo();
         documentWithMissingRecommendationsList.forEach(dwmr -> {
             DocumentRecommInfo documentRecommInfo = findByDocument(dwmr);
             if (documentRecommInfo == null) {
@@ -111,6 +120,33 @@ public class DocumentRecommInfoServiceImpl implements DocumentRecommInfoService 
             }
         });
         return documentWithMissingRecommendationsList;
+    }
+
+    @Override
+    public List<User> addMissingRecommendationUpdatesUsers(String accessToken) {
+        List<User> userWithMissingRecommendationsList = userRecommInfoRepository.findAllUserWithoutUserRecommInfo();
+        userWithMissingRecommendationsList.forEach(uwmr -> {
+            UserRecommInfo userRecommInfo = userRecommInfoRepository.findByUser(uwmr);
+            if (userRecommInfo == null) {
+                // send current tags of the document to the SSS
+                try {
+                    sssClient.performInitialSSSTagLoadUsers(uwmr.getId(), accessToken);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        return userWithMissingRecommendationsList;
+    }
+
+    @Override
+    @Transactional
+    public void addUserRecommInfo(Long userId) {
+        User user = userService.findById(userId);
+        UserRecommInfo userRecommInfo = new UserRecommInfo();
+        userRecommInfo.setUser(user);
+        userRecommInfo.setInitialImportToSSSDone(true);
+        userRecommInfoRepository.save(userRecommInfo);
     }
 
     public DocumentRecommInfoRepository getRepository() {

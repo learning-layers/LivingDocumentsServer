@@ -36,5 +36,5 @@ public interface DocumentRecommInfoRepository extends CrudRepository<DocumentRec
 
     // TODO add delted flag to query
     @Query("SELECT DISTINCT d FROM Document d WHERE NOT EXISTS (SELECT doc FROM Document doc, DocumentRecommInfo dri WHERE dri.document.id = doc.id AND doc.id = d.id)")
-    List<Document> findAllWithoutDocumentRecommInfo();
+    List<Document> findAllDocumentsWithoutDocumentRecommInfo();
 }

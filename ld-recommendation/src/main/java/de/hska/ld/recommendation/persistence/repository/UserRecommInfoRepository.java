@@ -20,21 +20,21 @@
  *  limitations under the License.
  */
 
-package de.hska.ld.content.service;
+package de.hska.ld.recommendation.persistence.repository;
 
-import de.hska.ld.content.persistence.domain.Tag;
-import de.hska.ld.content.persistence.domain.UserContentInfo;
-import org.springframework.data.domain.Page;
+import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.recommendation.persistence.domain.UserRecommInfo;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 
-public interface UserContentInfoService {
+import java.util.List;
 
-    UserContentInfo addTag(Long id, Long tagId);
+public interface UserRecommInfoRepository extends CrudRepository<UserRecommInfo, Long> {
+    UserRecommInfo findByUser(User user);
 
-    void removeTag(Long userId, Long tagId);
+    UserRecommInfo findById(Long id);
 
-    Page<Tag> getUserContentTagsPage(Long userId, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
-
-    UserContentInfo findByUserId(Long userId);
-
-    UserContentInfo createInitialUserContentInfo(Long userId);
+    // TODO add deleted flag to query
+    @Query("SELECT DISTINCT u FROM User u WHERE NOT EXISTS (SELECT user FROM User user, UserRecommInfo uri WHERE uri.user.id = user.id AND user.id = u.id)")
+    List<User> findAllUserWithoutUserRecommInfo();
 }

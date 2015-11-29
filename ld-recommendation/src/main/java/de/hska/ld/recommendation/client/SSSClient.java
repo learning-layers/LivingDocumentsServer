@@ -26,8 +26,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.persistence.domain.UserContentInfo;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.content.service.TagService;
+import de.hska.ld.content.service.UserContentInfoService;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
@@ -80,6 +82,9 @@ public class SSSClient {
     private DocumentService documentService;
 
     @Autowired
+    private UserContentInfoService userContentInfoService;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
@@ -106,8 +111,7 @@ public class SSSClient {
             tagStringList.add(t.getName());
         });
         if (tagStringList.size() > 0) {
-            User currentUser = Core.currentUser();
-            String userPrefix = env.getProperty("sss.user.name.prefix");
+            /*String userPrefix = env.getProperty("sss.user.name.prefix");
             String documentPrefix = env.getProperty("sss.document.name.prefix");
 
             RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
@@ -163,10 +167,17 @@ public class SSSClient {
                 if (rd != null) {
                     rd.close();
                 }
-            }
+            }*/
+            addTagToDocumentUser(url, document, tagStringList, accessToken);
+            addTagToDocumentDocument(url, document, tagStringList, accessToken);
+            documentRecommInfoService.addDocumentRecommInfo(documentId);
         } else {
             documentRecommInfoService.addDocumentRecommInfo(documentId);
         }
+    }
+
+    private void addTagToDocumentUser(String url, Document document, List<String> tagStringList, String accessToken) throws IOException {
+        this.addTagToDocumentUser(url, document, tagStringList, null, accessToken);
     }
 
     private CloseableHttpClient createHttpsClient() throws IOException {
@@ -278,8 +289,13 @@ public class SSSClient {
 
         RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
         recommUpdateDto.setRealm("dieter1");
-        Long creatorId = tag.getCreator().getId();
-        if (creatorId == null) {
+        Long creatorId = null;
+        if (tag != null) {
+            creatorId = tag.getCreator().getId();
+            if (creatorId == null) {
+                creatorId = Core.currentUser().getId();
+            }
+        } else {
             creatorId = Core.currentUser().getId();
         }
         recommUpdateDto.setForUser(userPrefix + creatorId);
@@ -323,12 +339,12 @@ public class SSSClient {
                 throw new Exception("Updating recommendations didn't work!");
             } else {
                 EntityTransaction tx = entityManager.getTransaction();
-                document = documentService.findById(document.getId());
-                DocumentRecommInfo documentRecommInfo = new DocumentRecommInfo();
-                documentRecommInfo.setDocument(document);
-                documentRecommInfo.setInitialImportToSSSDone(true);
                 try {
                     tx.begin();
+                    document = documentService.findById(document.getId());
+                    DocumentRecommInfo documentRecommInfo = new DocumentRecommInfo();
+                    documentRecommInfo.setDocument(document);
+                    documentRecommInfo.setInitialImportToSSSDone(true);
                     entityManager.persist(documentRecommInfo);
                     entityManager.flush();
                     tx.commit();
@@ -407,12 +423,12 @@ public class SSSClient {
                 throw new Exception("Updating recommendations didn't work!");
             } else {
                 EntityTransaction tx = entityManager.getTransaction();
-                document = documentService.findById(document.getId());
-                DocumentRecommInfo documentRecommInfo = new DocumentRecommInfo();
-                documentRecommInfo.setDocument(document);
-                documentRecommInfo.setInitialImportToSSSDone(true);
                 try {
                     tx.begin();
+                    document = documentService.findById(document.getId());
+                    DocumentRecommInfo documentRecommInfo = new DocumentRecommInfo();
+                    documentRecommInfo.setDocument(document);
+                    documentRecommInfo.setInitialImportToSSSDone(true);
                     entityManager.persist(documentRecommInfo);
                     entityManager.flush();
                     tx.commit();
@@ -500,8 +516,13 @@ public class SSSClient {
 
         RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
         recommUpdateDto.setRealm("dieter1");
-        Long creatorId = tag.getCreator().getId();
-        if (creatorId == null) {
+        Long creatorId = null;
+        if (tag != null) {
+            creatorId = tag.getCreator().getId();
+            if (creatorId == null) {
+                creatorId = Core.currentUser().getId();
+            }
+        } else {
             creatorId = Core.currentUser().getId();
         }
         recommUpdateDto.setForUser(userPrefix + creatorId);
@@ -545,12 +566,12 @@ public class SSSClient {
                 throw new Exception("Updating recommendations didn't work!");
             } else {
                 EntityTransaction tx = entityManager.getTransaction();
-                user = userService.findById(user.getId());
-                UserRecommInfo userRecommInfo = new UserRecommInfo();
-                userRecommInfo.setUser(user);
-                userRecommInfo.setInitialImportToSSSDone(true);
                 try {
                     tx.begin();
+                    user = userService.findById(user.getId());
+                    UserRecommInfo userRecommInfo = new UserRecommInfo();
+                    userRecommInfo.setUser(user);
+                    userRecommInfo.setInitialImportToSSSDone(true);
                     entityManager.persist(userRecommInfo);
                     entityManager.flush();
                     tx.commit();
@@ -617,12 +638,12 @@ public class SSSClient {
                 throw new Exception("Updating recommendations didn't work!");
             } else {
                 EntityTransaction tx = entityManager.getTransaction();
-                user = userService.findById(user.getId());
-                UserRecommInfo userRecommInfo = new UserRecommInfo();
-                userRecommInfo.setUser(user);
-                userRecommInfo.setInitialImportToSSSDone(true);
                 try {
                     tx.begin();
+                    user = userService.findById(user.getId());
+                    UserRecommInfo userRecommInfo = new UserRecommInfo();
+                    userRecommInfo.setUser(user);
+                    userRecommInfo.setInitialImportToSSSDone(true);
                     entityManager.persist(userRecommInfo);
                     entityManager.flush();
                     tx.commit();
@@ -641,5 +662,36 @@ public class SSSClient {
                 rd.close();
             }
         }
+    }
+
+    public void performInitialSSSTagLoadUsers(Long userId, String accessToken) throws IOException {
+        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        UserContentInfo userContentInfo = userContentInfoService.findByUserId(userId);
+        User user = userService.findById(userId);
+        if (userContentInfo == null) {
+            userContentInfo = createInitialUserContentInfo(userId);
+        }
+        List<String> tagStringList = new ArrayList<String>();
+        userContentInfo.getTagList().forEach(t -> {
+            tagStringList.add(t.getName());
+        });
+        if (tagStringList.size() > 0) {
+            this.addTagToUserTagger(url, user, tagStringList, accessToken);
+            this.addTagToUserUser(url, user, tagStringList, accessToken);
+            documentRecommInfoService.addUserRecommInfo(userId);
+        } else {
+            documentRecommInfoService.addUserRecommInfo(userId);
+        }
+    }
+
+
+    @Transactional
+    private UserContentInfo createInitialUserContentInfo(Long userId) {
+        UserContentInfo userContentInfo = userContentInfoService.createInitialUserContentInfo(userId);
+        return userContentInfo;
+    }
+
+    private void addTagToUserTagger(String url, User user, List<String> tagStringList, String accessToken) throws IOException {
+        this.addTagToUserTagger(url, user, tagStringList, null, accessToken);
     }
 }

@@ -23,6 +23,7 @@
 package de.hska.ld.recommendation.controller;
 
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.recommendation.client.SSSClient;
 import de.hska.ld.recommendation.dto.*;
@@ -55,11 +56,19 @@ public class RecommendationController {
     private DocumentRecommInfoService documentRecommInfoService;
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity performInitialSSSUpdate() throws IOException {
+    @RequestMapping(method = RequestMethod.POST, value = "/initial/document")
+    public ResponseEntity<List<Document>> performInitialSSSUpdateDocuments() throws IOException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-        return new ResponseEntity<List<Document>>(documentRecommInfoService.addMissingRecommendationUpdates(token.getAccessTokenValue()), HttpStatus.OK);
+        return new ResponseEntity<List<Document>>(documentRecommInfoService.addMissingRecommendationUpdatesDocuments(token.getAccessTokenValue()), HttpStatus.OK);
+    }
+
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/initial/user")
+    public ResponseEntity<List<User>> performInitialSSSUpdateUsers() throws IOException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+        return new ResponseEntity<List<User>>(documentRecommInfoService.addMissingRecommendationUpdatesUsers(token.getAccessTokenValue()), HttpStatus.OK);
     }
 
     @Secured(Core.ROLE_USER)
