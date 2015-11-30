@@ -127,6 +127,30 @@ public class RecommendationController {
             e.printStackTrace();
         }
 
+        Long currenUserId = Core.currentUser().getId();
+
+        // filter out current user
+        LDRecommendationUserDto found1 = null;
+        for (LDRecommendationUserDto userRecomm : userList) {
+            if (documentId.equals(userRecomm.getUserId())) {
+                found1 = userRecomm;
+            }
+        }
+        if (found1 != null) {
+            userList.remove(found1);
+        }
+
+        // filter out current document
+        LDRecommendationDocumentDto found = null;
+        for (LDRecommendationDocumentDto documentRecomm : documentList) {
+            if (documentId.equals(documentRecomm.getDocumentId())) {
+                found = documentRecomm;
+            }
+        }
+        if (found != null) {
+            documentList.remove(found);
+        }
+
         LDRecommendationDto ldRecommendationDto = new LDRecommendationDto();
         ldRecommendationDto.setUserList(userList);
         ldRecommendationDto.setDocumentList(documentList);
