@@ -131,7 +131,11 @@ public class RecommendationController {
 
         // filter out current user
         LDRecommendationUserDto found1 = null;
+        List<LDRecommendationUserDto> likelihood0Users = new ArrayList<LDRecommendationUserDto>();
         for (LDRecommendationUserDto userRecomm : userList) {
+            /*if (0d == userRecomm.getLikelihood()) {
+                likelihood0Users.add(userRecomm);
+            }*/
             if (documentId.equals(userRecomm.getUserId())) {
                 found1 = userRecomm;
             }
@@ -139,16 +143,26 @@ public class RecommendationController {
         if (found1 != null) {
             userList.remove(found1);
         }
+        if (likelihood0Users.size() > 0) {
+            userList.removeAll(likelihood0Users);
+        }
 
         // filter out current document
         LDRecommendationDocumentDto found = null;
+        List<LDRecommendationDocumentDto> likelihood0Documents = new ArrayList<LDRecommendationDocumentDto>();
         for (LDRecommendationDocumentDto documentRecomm : documentList) {
+            if (0d == documentRecomm.getLikelihood()) {
+                likelihood0Documents.add(documentRecomm);
+            }
             if (documentId.equals(documentRecomm.getDocumentId())) {
                 found = documentRecomm;
             }
         }
         if (found != null) {
             documentList.remove(found);
+        }
+        if (likelihood0Documents.size() > 0) {
+            documentList.removeAll(likelihood0Documents);
         }
 
         LDRecommendationDto ldRecommendationDto = new LDRecommendationDto();
