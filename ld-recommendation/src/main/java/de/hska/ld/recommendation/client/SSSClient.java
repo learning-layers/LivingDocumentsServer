@@ -694,4 +694,8 @@ public class SSSClient {
     private void addTagToUserTagger(String url, User user, List<String> tagStringList, String accessToken) throws IOException {
         this.addTagToUserTagger(url, user, tagStringList, null, accessToken);
     }
+
+    public void userTouchSSSRecommendations(Long userId, String accessToken) {
+
+    }
 }

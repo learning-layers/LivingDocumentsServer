@@ -26,6 +26,7 @@ import de.hska.ld.core.config.security.AjaxAuthenticationFailureHandler;
 import de.hska.ld.core.config.security.AjaxAuthenticationSuccessHandler;
 import de.hska.ld.core.config.security.AjaxLogoutSuccessHandler;
 import de.hska.ld.core.config.security.FormAuthenticationProvider;
+import de.hska.ld.core.events.user.UserEventsPublisher;
 import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.RoleService;
@@ -112,6 +113,9 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
     private RoleService roleService;
 
     @Autowired
+    private UserEventsPublisher userEventsPublisher;
+
+    @Autowired
     private Environment env;
 
     @Autowired
@@ -167,9 +171,19 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                     UserInfo oidcUserInfo = ((OIDCAuthenticationToken) source).getUserInfo();
 
                     if (currentUserInDb == null && oidcUserInfo != null) {
-                        createNewUserFirstLogin(token, subId, issuer, oidcUserInfo);
+                        User savedUser = createNewUserFirstLogin(token, subId, issuer, oidcUserInfo);
+                        try {
+                            userEventsPublisher.sendUserLoginEvent(savedUser);
+                        } catch (Exception e) {
+                            //
+                        }
                     } else if (oidcUserInfo != null) {
-                        updateUserInformationFromOIDC(token, currentUserInDb, oidcUserInfo);
+                        User savedUser = updateUserInformationFromOIDC(token, currentUserInDb, oidcUserInfo);
+                        try {
+                            userEventsPublisher.sendUserLoginEvent(savedUser);
+                        } catch (Exception e) {
+                            //
+                        }
                     } else {
                         // oidc information is null
                         throw new UnsupportedOperationException("No OIDC information found!");
@@ -177,7 +191,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 }
             }
 
-            private void updateUserInformationFromOIDC(OIDCAuthenticationToken token, User currentUserInDb, UserInfo oidcUserInfo) {
+            private User updateUserInformationFromOIDC(OIDCAuthenticationToken token, User currentUserInDb, UserInfo oidcUserInfo) {
                 // get the current authentication details of the user
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 enrichAuthoritiesWithStoredAuthorities(currentUserInDb, auth);
@@ -187,19 +201,23 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 // oidc time: "20150701_090039"
                 // oidc format: "yyyyMMdd_HHmmss"
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+                User savedUser = null;
                 try {
                     Date date = sdf.parse(oidcUpdatedTime);
                     if (currentUserInDb.getEmail() == null || currentUserInDb.getLastupdatedAt().getTime() > date.getTime()) {
                         currentUserInDb.setFullName(oidcUserInfo.getName());
                         currentUserInDb.setEmail(oidcUserInfo.getEmail());
-                        currentUserInDb = userService.save(currentUserInDb);
+                        savedUser = userService.save(currentUserInDb);
+                    } else {
+                        savedUser = currentUserInDb;
                     }
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
+                return savedUser;
             }
 
-            private void createNewUserFirstLogin(OIDCAuthenticationToken token, String subId, String issuer, UserInfo oidcUserInfo) {
+            private User createNewUserFirstLogin(OIDCAuthenticationToken token, String subId, String issuer, UserInfo oidcUserInfo) {
                 // create a new user
                 User user = new User();
                 // check for colliding user names (via preferred user name)
@@ -250,10 +268,14 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                userService.save(user);
+
+                User savedUser = userService.save(user);
+
                 // update security context
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 enrichAuthoritiesWithStoredAuthorities(user, auth);
+
+                return savedUser;
             }
 
             @Override

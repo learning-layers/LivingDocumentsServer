@@ -27,6 +27,7 @@ import de.hska.ld.content.events.document.DocumentReadEvent;
 import de.hska.ld.content.events.user.UserContentAddTagEvent;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.core.events.user.UserLoginEvent;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.recommendation.client.SSSClient;
 import de.hska.ld.recommendation.persistence.domain.DocumentRecommInfo;
@@ -75,5 +76,12 @@ public class LDToSSSEventListener {
         Tag tag = event.getTag();
         sssClient.addTagToUser(user.getId(), tag.getId(), event.getAccessToken());
         event.setResultUser(user);
+    }
+
+    @Async
+    @EventListener
+    public void handleUserLoginEvent(UserLoginEvent event) throws IOException {
+        User user = (User) event.getSource();
+        sssClient.userTouchSSSRecommendations(user.getId(), event.getAccessToken());
     }
 }
