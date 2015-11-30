@@ -22,7 +22,9 @@
 
 package de.hska.ld.recommendation.controller;
 
+import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.recommendation.client.SSSClient;
@@ -35,6 +37,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -44,6 +47,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/recommendations")
@@ -52,6 +56,8 @@ public class RecommendationController {
     @Autowired
     private SSSClient sssClient;
 
+    @Autowired
+    private DocumentService documentService;
 
     @Autowired
     private DocumentRecommInfoService documentRecommInfoService;
@@ -73,7 +79,8 @@ public class RecommendationController {
     }
 
     @Secured(Core.ROLE_USER)
-    @RequestMapping(method = RequestMethod.POST, value = "/{documentId}")
+    @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
+    @Transactional(readOnly = false, noRollbackFor = NoSuchElementException.class)
     public ResponseEntity<LDRecommendationDto> getRecommendations(@PathVariable Long documentId) throws IOException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
@@ -163,6 +170,19 @@ public class RecommendationController {
         }
         if (likelihood0Documents.size() > 0) {
             documentList.removeAll(likelihood0Documents);
+        }
+
+        // filter out documents the current user has no access to
+        List<LDRecommendationDocumentDto> noPermissionDocuments = new ArrayList<LDRecommendationDocumentDto>();
+        for (LDRecommendationDocumentDto documentRecomm : documentList) {
+            Long documentIdPermissionCheck = documentRecomm.getDocumentId();
+            Document document = documentService.findById(documentIdPermissionCheck);
+            if (!documentService.checkPermissionSave(document, Access.Permission.READ)) {
+                noPermissionDocuments.add(documentRecomm);
+            }
+        }
+        if (noPermissionDocuments.size() > 0) {
+            documentList.removeAll(noPermissionDocuments);
         }
 
         LDRecommendationDto ldRecommendationDto = new LDRecommendationDto();

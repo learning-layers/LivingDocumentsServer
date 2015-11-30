@@ -102,6 +102,8 @@ public interface DocumentService extends ContentService<Document> {
 
     void checkPermission(Document document, Access.Permission permission);
 
+    boolean checkPermissionSave(Document document, Access.Permission permission);
+
     Document addDiscussionToDocument(Long documentId, DiscussionSectionDto discussionSectionDto);
 
     Page<Access> getUsersByDocumentPermission(Long documentId, String permissions, Integer pageNumber, Integer pageSize, String sortDirection, String sortProperty);
