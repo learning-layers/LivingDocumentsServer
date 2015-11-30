@@ -190,9 +190,6 @@ public class RecommendationController {
         ldRecommendationDto.setDocumentList(documentList);
         ldRecommendationDto.setDocumentId(documentId);
 
-        // TODO filter out persons and documents that have a likelihood of 0 and have not influenced the document
-        // TODO filter out current user and current document values
-
         return new ResponseEntity<LDRecommendationDto>(ldRecommendationDto, HttpStatus.OK);
     }
 
