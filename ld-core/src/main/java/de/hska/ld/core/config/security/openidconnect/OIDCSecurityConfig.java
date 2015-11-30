@@ -221,16 +221,16 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                 // create a new user
                 User user = new User();
                 // check for colliding user names (via preferred user name)
-                User userWithGivenPreferredUserName = userService.findByUsername(oidcUserInfo.getPreferredUsername());
+                String prefferedUsername = oidcUserInfo.getPreferredUsername();
+                User userWithGivenPreferredUserName = userService.findByUsername(prefferedUsername);
                 int i = 0;
                 if (userWithGivenPreferredUserName != null) {
                     while (userWithGivenPreferredUserName != null) {
-                        String prefferedUsername = oidcUserInfo.getPreferredUsername() + "#" + i;
+                        prefferedUsername = oidcUserInfo.getPreferredUsername() + "#" + i;
                         userWithGivenPreferredUserName = userService.findByUsername(prefferedUsername);
                     }
-                } else {
-                    user.setUsername(oidcUserInfo.getPreferredUsername() + "#" + i);
                 }
+                user.setUsername(prefferedUsername);
 
                 user.setFullName(oidcUserInfo.getName());
                 user.setEmail(oidcUserInfo.getEmail());
