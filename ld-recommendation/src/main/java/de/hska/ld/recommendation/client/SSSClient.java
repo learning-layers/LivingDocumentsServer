@@ -288,7 +288,8 @@ public class SSSClient {
         String documentPrefix = env.getProperty("sss.document.name.prefix");
 
         RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
-        recommUpdateDto.setRealm("dieter1");
+
+        recommUpdateDto.setRealm(env.getProperty("sss.recomm.realm"));
         Long creatorId = null;
         if (tag != null) {
             creatorId = tag.getCreator().getId();
@@ -381,7 +382,7 @@ public class SSSClient {
         String documentPrefix = env.getProperty("sss.document.name.prefix");
 
         RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
-        recommUpdateDto.setRealm("dieter1");
+        recommUpdateDto.setRealm(env.getProperty("sss.recomm.realm"));
         recommUpdateDto.setForUser(documentPrefix + document.getId());
         recommUpdateDto.setEntity(documentPrefix + document.getId());
         recommUpdateDto.setTags(tagStringList);
@@ -453,7 +454,7 @@ public class SSSClient {
         String documentPrefix = env.getProperty("sss.document.name.prefix");
         String documentUrl = documentPrefix + documentId;
         String utf8DocumentUrl = URLEncoder.encode(URLEncoder.encode(documentUrl, "UTF-8"), "UTF-8");
-        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/users/ignoreaccessrights/realm/dieter1/entity/" + utf8DocumentUrl;
+        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/users/ignoreaccessrights/realm/" + env.getProperty("sss.recomm.realm") + "/entity/" + utf8DocumentUrl;
         HttpClient client = getHttpClientFor(url);
         HttpGet get = new HttpGet(url);
         addHeaderInformation(get, accessToken);
@@ -515,7 +516,7 @@ public class SSSClient {
         String userPrefix = env.getProperty("sss.user.name.prefix");
 
         RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
-        recommUpdateDto.setRealm("dieter1");
+        recommUpdateDto.setRealm(env.getProperty("sss.recomm.realm"));
         Long creatorId = null;
         if (tag != null) {
             creatorId = tag.getCreator().getId();
@@ -596,7 +597,7 @@ public class SSSClient {
         String userPrefix = env.getProperty("sss.user.name.prefix");
 
         RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
-        recommUpdateDto.setRealm("dieter1");
+        recommUpdateDto.setRealm(env.getProperty("sss.recomm.realm"));
         recommUpdateDto.setForUser(userPrefix + user.getId());
         recommUpdateDto.setEntity(userPrefix + user.getId());
         recommUpdateDto.setTags(tagStringList);
@@ -700,7 +701,7 @@ public class SSSClient {
         String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
 
         RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
-        recommUpdateDto.setRealm("dieter1");
+        recommUpdateDto.setRealm(env.getProperty("sss.recomm.realm"));
         recommUpdateDto.setForUser("dummyDocument/" + userId);
         recommUpdateDto.setEntity("dummyDocument/" + userId);
         List<String> tagStringList = new ArrayList<>();
