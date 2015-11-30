@@ -26,6 +26,7 @@ import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.persistence.domain.User;
+import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.recommendation.client.SSSClient;
 import de.hska.ld.recommendation.dto.*;
@@ -58,6 +59,9 @@ public class RecommendationController {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private DocumentRecommInfoService documentRecommInfoService;
@@ -135,20 +139,28 @@ public class RecommendationController {
         }
 
         Long currenUserId = Core.currentUser().getId();
+        User initialLoadUser = userService.findByUsername("aur0rp3");
 
         // filter out current user
         LDRecommendationUserDto found1 = null;
+        LDRecommendationUserDto foundInit = null;
         List<LDRecommendationUserDto> likelihood0Users = new ArrayList<LDRecommendationUserDto>();
         for (LDRecommendationUserDto userRecomm : userList) {
             /*if (0d == userRecomm.getLikelihood()) {
                 likelihood0Users.add(userRecomm);
             }*/
-            if (documentId.equals(userRecomm.getUserId())) {
+            if (currenUserId.equals(userRecomm.getUserId())) {
                 found1 = userRecomm;
+            }
+            if (initialLoadUser != null && initialLoadUser.getId().equals(userRecomm.getUserId())) {
+                foundInit = userRecomm;
             }
         }
         if (found1 != null) {
             userList.remove(found1);
+        }
+        if (foundInit != null) {
+            userIdList.remove(foundInit);
         }
         if (likelihood0Users.size() > 0) {
             userList.removeAll(likelihood0Users);
