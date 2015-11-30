@@ -22,7 +22,9 @@
 
 package de.hska.ld.content.controller;
 
+import de.hska.ld.content.events.user.UserContentEventsPublisher;
 import de.hska.ld.content.persistence.domain.Tag;
+import de.hska.ld.content.service.TagService;
 import de.hska.ld.content.service.UserContentInfoService;
 import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
@@ -51,17 +53,25 @@ public class UserContentController {
     private UserService userService;
 
     @Autowired
+    private TagService tagService;
+
+    @Autowired
     private AsyncExecutor asyncExecutor;
+
+    @Autowired
+    private UserContentEventsPublisher userContentEventsPublisher;
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/{userId}/tag/{tagId}")
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = false)
     public Callable addTag(@PathVariable Long userId, @PathVariable Long tagId) {
         return () -> {
             //User currentUser = Core.currentUser();
             //if (currentUser.getId().equals(userId)) {
             User user = userService.findById(userId);
             userContentInfoService.addTag(user.getId(), tagId);
+            Tag tag = tagService.findById(tagId);
+            userContentEventsPublisher.sendAddTagEvent(user, tag);
             // TODO publish add tag event
             return new ResponseEntity<>(HttpStatus.OK);
             /*} else {
