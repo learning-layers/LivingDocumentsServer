@@ -695,7 +695,59 @@ public class SSSClient {
         this.addTagToUserTagger(url, user, tagStringList, null, accessToken);
     }
 
-    public void userTouchSSSRecommendations(Long userId, String accessToken) {
 
+    public void userTouchSSSRecommendations(Long userId, String accessToken) throws IOException {
+        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+
+        RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
+        recommUpdateDto.setRealm("dieter1");
+        recommUpdateDto.setForUser("dummyDocument/" + userId);
+        recommUpdateDto.setEntity("dummyDocument/" + userId);
+        List<String> tagStringList = new ArrayList<>();
+        recommUpdateDto.setTags(tagStringList);
+
+        HttpClient client = getHttpClientFor(url);
+        HttpPut put = new HttpPut(url);
+        addHeaderInformation(put, accessToken);
+
+        String recommUpdateDtoString = mapper.writeValueAsString(recommUpdateDto);
+        StringEntity stringEntity = new StringEntity(recommUpdateDtoString, ContentType.create("application/json", "UTF-8"));
+        put.setEntity(stringEntity);
+        BufferedReader rd = null;
+
+        HttpResponse response = client.execute(put);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            if (response.getStatusLine().getStatusCode() == 403) {
+                throw new UserNotAuthorizedException();
+            }
+        }
+
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                throw new ValidationException("access token is invalid");
+            }
+            mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            RecommUpdateResponseDto recommUpdateResponseDto = mapper.readValue(result.toString(), RecommUpdateResponseDto.class);
+            return;
+        } catch (ValidationException ve) {
+            throw ve;
+        } catch (Exception e) {
+            return;
+        } finally {
+            if (rd != null) {
+                rd.close();
+            }
+        }
     }
 }
