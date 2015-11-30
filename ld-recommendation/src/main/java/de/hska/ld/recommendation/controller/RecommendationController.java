@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -118,6 +119,13 @@ public class RecommendationController {
         // fetch the related data sets from the living documents db
         List<LDRecommendationUserDto> userList = documentRecommInfoService.fetchUserRecommendationDatasets(userIdList);
         List<LDRecommendationDocumentDto> documentList = documentRecommInfoService.fetchDocumentRecommendationDatasets(documentIdList);
+
+        try {
+            Collections.sort(userList);
+            Collections.sort(documentList);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         LDRecommendationDto ldRecommendationDto = new LDRecommendationDto();
         ldRecommendationDto.setUserList(userList);

@@ -22,7 +22,7 @@
 
 package de.hska.ld.recommendation.dto;
 
-public class LDRecommendationDataDto {
+public class LDRecommendationDataDto implements Comparable<LDRecommendationDataDto> {
     Double likelihood;
 
     public Double getLikelihood() {
@@ -31,5 +31,9 @@ public class LDRecommendationDataDto {
 
     public void setLikelihood(Double likelihood) {
         this.likelihood = likelihood;
+    }
+
+    public int compareTo(LDRecommendationDataDto o) {
+        return java.lang.Double.compare(o.likelihood, likelihood);
     }
 }
