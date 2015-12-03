@@ -86,6 +86,10 @@ public class RecommendationController {
     @RequestMapping(method = RequestMethod.GET, value = "/{documentId}")
     @Transactional(readOnly = false, noRollbackFor = NoSuchElementException.class)
     public ResponseEntity<LDRecommendationDto> getRecommendations(@PathVariable Long documentId) throws IOException {
+        Document document = documentService.findById(documentId);
+        if (document.getTagList().size() == 0) {
+            return new ResponseEntity<LDRecommendationDto>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
         SSSRecommResponseDto sssRecommResponseDto = sssClient.retrieveRecommendations(documentId, token.getAccessTokenValue());
@@ -188,8 +192,8 @@ public class RecommendationController {
         List<LDRecommendationDocumentDto> noPermissionDocuments = new ArrayList<LDRecommendationDocumentDto>();
         for (LDRecommendationDocumentDto documentRecomm : documentList) {
             Long documentIdPermissionCheck = documentRecomm.getDocumentId();
-            Document document = documentService.findById(documentIdPermissionCheck);
-            if (!documentService.checkPermissionSave(document, Access.Permission.READ)) {
+            Document document2 = documentService.findById(documentIdPermissionCheck);
+            if (!documentService.checkPermissionSave(document2, Access.Permission.READ)) {
                 noPermissionDocuments.add(documentRecomm);
             }
         }

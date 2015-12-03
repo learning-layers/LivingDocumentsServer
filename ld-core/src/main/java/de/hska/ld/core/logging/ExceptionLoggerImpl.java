@@ -27,10 +27,10 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 import java.util.UUID;
 
 @Transactional
@@ -120,17 +120,9 @@ public class ExceptionLoggerImpl implements ExceptionLogger {
         return entry;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private UUID save(ExceptionLogEntry entry) {
-        EntityTransaction tx = entityManager.getTransaction();
-        try {
-            tx.begin();
-            entityManager.persist(entry);
-            entityManager.flush();
-            tx.commit();
-        } catch (Exception ex) {
-            tx.rollback();
-            throw ex;
-        }
+        entityManager.persist(entry);
         return entry.getId();
     }
 
