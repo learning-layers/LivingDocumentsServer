@@ -120,7 +120,7 @@ public class ExceptionLoggerImpl implements ExceptionLogger {
         return entry;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false)
     private UUID save(ExceptionLogEntry entry) {
         entityManager.persist(entry);
         return entry.getId();

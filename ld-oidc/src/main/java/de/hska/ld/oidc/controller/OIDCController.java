@@ -58,7 +58,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -174,7 +173,7 @@ public class OIDCController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document/{documentId}/share/issuerandsub")
-    @Transactional(readOnly = false)
+    @Transactional
     public ResponseEntity shareDocumentViaIssuerAndSub(HttpServletRequest request,
                                                        @RequestBody List<OIDCSubInfoDto> issuerSubList,
                                                        @PathVariable Long documentId,
@@ -204,25 +203,17 @@ public class OIDCController {
         }
         String userIds = sb.toString();
         if (!"".equals(userIds)) {
-            EntityTransaction tx = entityManager.getTransaction();
-            try {
-                tx.begin();
-                Document dbDocument = documentService.findById(document.getId());
-                dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
-                dbDocument.getAttachmentList().size();
-                entityManager.flush();
-                tx.commit();
-            } catch (Exception ex) {
-                tx.rollback();
-                throw ex;
-            }
+            Document dbDocument = documentService.findById(document.getId());
+            dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
+            dbDocument.getAttachmentList().size();
+            entityManager.flush();
         }
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document/{documentId}/share/email")
-    @Transactional(readOnly = false)
+    @Transactional
     public ResponseEntity shareDocumentViaEmailAdress(HttpServletRequest request,
                                                       @RequestBody List<String> userEmailList,
                                                       @PathVariable Long documentId,
@@ -252,18 +243,10 @@ public class OIDCController {
         }
         String userIds = sb.toString();
         if (!"".equals(userIds)) {
-            EntityTransaction tx = entityManager.getTransaction();
-            try {
-                tx.begin();
-                Document dbDocument = documentService.findById(document.getId());
-                dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
-                dbDocument.getAttachmentList().size();
-                entityManager.flush();
-                tx.commit();
-            } catch (Exception ex) {
-                tx.rollback();
-                throw ex;
-            }
+            Document dbDocument = documentService.findById(document.getId());
+            dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
+            dbDocument.getAttachmentList().size();
+            entityManager.flush();
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
