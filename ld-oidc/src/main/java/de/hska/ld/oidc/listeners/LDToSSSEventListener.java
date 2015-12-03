@@ -44,13 +44,15 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Transactional
 @Component("ld-oidc-LDToSSSEventListener")
 public class LDToSSSEventListener {
 
@@ -85,6 +87,7 @@ public class LDToSSSEventListener {
         event.setResultDocument(newDocument);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private Document createAndShareLDocWithSSSUsers(Document document, String cmd) throws IOException, CreationFailedException {
         // Create the document as well in the SSS
         List<Access> accessList = document.getAccessList();
@@ -141,18 +144,9 @@ public class LDToSSSEventListener {
                 }
                 String userIds = sb.toString();
                 if (!"".equals(userIds)) {
-                    EntityTransaction tx = entityManager.getTransaction();
-                    try {
-                        tx.begin();
-                        Document dbDocument = documentService.findById(document.getId());
-                        dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
-                        dbDocument.getAttachmentList().size();
-                        entityManager.flush();
-                        tx.commit();
-                    } catch (Exception ex) {
-                        tx.rollback();
-                        throw ex;
-                    }
+                    Document dbDocument = documentService.findById(document.getId());
+                    dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
+                    dbDocument.getAttachmentList().size();
                 }
             }
         } catch (AuthenticationNotValidException eAuth) {
