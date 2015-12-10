@@ -45,7 +45,11 @@ public class UserContentEventsPublisher {
     public UserContentAddTagEvent sendAddTagEvent(User user, Tag tag) {
         String accessToken = extractAuthenticationInformation();
         UserContentAddTagEvent event = new UserContentAddTagEvent(user, tag, accessToken);
-        this.publisher.publishEvent(event);
+        try {
+            this.publisher.publishEvent(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return event;
     }
 }

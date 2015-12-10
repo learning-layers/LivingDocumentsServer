@@ -110,7 +110,7 @@ public class ExceptionLoggerImpl implements ExceptionLogger {
         try {
             user = Core.currentUser();
         } catch (Exception e) {
-            //
+            e.printStackTrace();
         }
         entry.setLogLevel(logLevel);
         entry.setUser(user);

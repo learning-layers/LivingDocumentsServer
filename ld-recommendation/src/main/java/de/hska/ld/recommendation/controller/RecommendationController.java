@@ -202,7 +202,7 @@ public class RecommendationController {
         }
 
         LDRecommendationDto ldRecommendationDto = new LDRecommendationDto();
-        ldRecommendationDto.setUserList(userList);
+        ldRecommendationDto.setUserList(new ArrayList<>());
         ldRecommendationDto.setDocumentList(documentList);
         ldRecommendationDto.setDocumentId(documentId);
 

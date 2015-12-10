@@ -47,7 +47,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,9 +66,6 @@ public class LDToSSSEventListener {
 
     @Autowired
     private ExceptionLogger exceptionLogger;
-
-    @Autowired
-    private EntityManager entityManager;
 
     @EventListener
     public void handleDocumentReadEvent(DocumentReadEvent event) throws IOException, CreationFailedException {

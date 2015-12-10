@@ -45,21 +45,33 @@ public class DocumentEventsPublisher {
     public DocumentCreationEvent sendDocumentCreationEvent(Document document) {
         String accessToken = extractAuthenticationInformation();
         DocumentCreationEvent event = new DocumentCreationEvent(document, accessToken);
-        this.publisher.publishEvent(event);
+        try {
+            this.publisher.publishEvent(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return event;
     }
 
     public DocumentReadEvent sendDocumentReadEvent(Document document) {
         String accessToken = extractAuthenticationInformation();
         DocumentReadEvent event = new DocumentReadEvent(document, accessToken);
-        this.publisher.publishEvent(event);
+        try {
+            this.publisher.publishEvent(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return event;
     }
 
     public DocumentAddTagEvent sendAddTagEvent(Document document, Tag tag) {
         String accessToken = extractAuthenticationInformation();
         DocumentAddTagEvent event = new DocumentAddTagEvent(document, tag, accessToken);
-        this.publisher.publishEvent(event);
+        try {
+            this.publisher.publishEvent(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return event;
     }
 }

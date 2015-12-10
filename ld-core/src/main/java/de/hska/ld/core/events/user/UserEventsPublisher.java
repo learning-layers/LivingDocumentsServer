@@ -44,7 +44,11 @@ public class UserEventsPublisher {
     public UserLoginEvent sendUserLoginEvent(User user) {
         String accessToken = extractAuthenticationInformation();
         UserLoginEvent event = new UserLoginEvent(user, accessToken);
-        this.publisher.publishEvent(event);
+        try {
+            this.publisher.publishEvent(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return event;
     }
 }

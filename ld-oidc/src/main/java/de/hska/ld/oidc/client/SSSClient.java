@@ -465,29 +465,15 @@ public class SSSClient {
 
     public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, AuthenticationNotValidException {
         String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
-        PostClientRequest postClientRequest = new PostClientRequest(url, "getLDocById1");
+        PostClientRequest postClientRequest = new PostClientRequest(url, "getLDocById");
         StringEntity stringEntity = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
         try {
             postClientRequest.execute(stringEntity, accessToken);
         } catch (Exception e) {
-            exceptionLogger.log("getLDocById1 Statuscode", e);
+            exceptionLogger.log("getLDocById Statuscode", e);
         }
         SSSLivingDocResponseDto sssLivingDocResponseDto = postClientRequest.getParsedBody(SSSLivingDocResponseDto.class);
-        if (sssLivingDocResponseDto == null) {
-            // TODO HACK this is a workaround because the configuration in the production system was set wrong and the
-            // ids can't be changed in a quick way
-            String url2 = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode("http://178.62.62.23:9000/" + documentId, "UTF-8"), "UTF-8");
-            PostClientRequest postClientRequest2 = new PostClientRequest(url2, "getLDocById2");
-            StringEntity stringEntity2 = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
-            try {
-                postClientRequest2.execute(stringEntity2, accessToken);
-            } catch (Exception e) {
-                exceptionLogger.log("getLDocById2 Statuscode", e);
-            }
-            return postClientRequest2.getParsedBody(SSSLivingDocResponseDto.class);
-        } else {
-            return sssLivingDocResponseDto;
-        }
+        return sssLivingDocResponseDto;
     }
 
     private HttpClient getHttpClientFor(String url) {
