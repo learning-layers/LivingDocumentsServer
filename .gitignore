@@ -32,3 +32,7 @@ rebel.xml
 # Ignore static html files #
 ############################
 ld-core/src/main/resources/static/*
+
+# Ignore application.properties #
+#################################
+ld-core/src/main/resources/application.properties

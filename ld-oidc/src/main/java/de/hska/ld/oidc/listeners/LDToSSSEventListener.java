@@ -34,10 +34,7 @@ import de.hska.ld.core.service.UserService;
 import de.hska.ld.oidc.client.SSSClient;
 import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
 import de.hska.ld.oidc.client.exception.CreationFailedException;
-import de.hska.ld.oidc.dto.SSSLivingDocResponseDto;
-import de.hska.ld.oidc.dto.SSSLivingdoc;
-import de.hska.ld.oidc.dto.SSSLivingdocsResponseDto;
-import de.hska.ld.oidc.dto.SSSUserDto;
+import de.hska.ld.oidc.dto.*;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -80,6 +77,17 @@ public class LDToSSSEventListener {
         Document newDocument = (Document) event.getSource();
         System.out.println("LDToSSSEventListener: Creating document=" + newDocument.getId() + ", title=" + newDocument.getTitle());
         newDocument = createAndShareLDocWithSSSUsers(newDocument, "WRITE");
+        SSSCreateDiscRequestDto sssCreateDiscRequestDto = new SSSCreateDiscRequestDto();
+        sssCreateDiscRequestDto.setLabel(newDocument.getTitle());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+        try {
+            SSSCreateDiscResponseDto result = sssClient.createDiscussion(String.valueOf(newDocument.getId()), sssCreateDiscRequestDto, token.getAccessTokenValue());
+            String disc = result.getDisc();
+            System.out.println(disc);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         event.setResultDocument(newDocument);
     }
 
