@@ -946,6 +946,7 @@ public class DocumentController {
     public Callable createDiscussion(@PathVariable Long documentId, @RequestBody DiscussionSectionDto discussionSectionDto) {
         return () -> {
             Document document = documentService.addDiscussionToDocument(documentId, discussionSectionDto);
+            documentEventsPublisher.sendDocumentCreationEvent(document);
             return new ResponseEntity<>(document, HttpStatus.CREATED);
         };
     }
