@@ -38,6 +38,7 @@ import de.hska.ld.oidc.dto.*;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -64,6 +65,7 @@ public class LDToSSSEventListener {
     @Autowired
     private ExceptionLogger exceptionLogger;
 
+    @Async
     @EventListener
     public void handleDocumentReadEvent(DocumentReadEvent event) throws IOException, CreationFailedException {
         Document document = (Document) event.getSource();
@@ -72,6 +74,7 @@ public class LDToSSSEventListener {
         event.setResultDocument(document);
     }
 
+    @Async
     @EventListener
     public void handleDocumentCreationEvent(DocumentCreationEvent event) throws IOException, CreationFailedException {
         Document newDocument = (Document) event.getSource();
