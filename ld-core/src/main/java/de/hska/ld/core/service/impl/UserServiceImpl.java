@@ -50,6 +50,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 public class UserServiceImpl extends AbstractService<User> implements UserService {
 
@@ -214,6 +215,20 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         } finally {
             SecurityContextHolder.getContext().setAuthentication(authenticationBefore);
         }
+    }
+
+    @Override
+    public Callable callAs(User user, Callable callable) {
+        return () -> {
+            Authentication authenticationBefore = SecurityContextHolder.getContext().getAuthentication();
+            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user,
+                    user.getPassword(), user.getAuthorities()));
+            try {
+                return callable.call();
+            } finally {
+                SecurityContextHolder.getContext().setAuthentication(authenticationBefore);
+            }
+        };
     }
 
     @Override

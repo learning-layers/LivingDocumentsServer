@@ -1,3 +1,25 @@
+/*
+ *  Code contributed to the Learning Layers project
+ *  http://www.learning-layers.eu
+ *  Development is partly funded by the FP7 Programme of the European
+ *  Commission under Grant Agreement FP7-ICT-318209.
+ *  Copyright (c) 2016, Karlsruhe University of Applied Sciences.
+ *  For a list of contributors see the AUTHORS file at the top-level directory
+ *  of this distribution.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package de.hska.ld.etherpad.controller;
 
 import de.hska.ld.content.dto.EtherpadDocumentUpdateDto;
@@ -18,6 +40,7 @@ import de.hska.ld.etherpad.service.UserEtherpadInfoService;
 import de.hska.ld.etherpad.util.Etherpad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -25,6 +48,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -213,6 +237,34 @@ public class DocumentEtherpadController {
                 System.out.println(documentEtherpadInfo);
             }
             return new ResponseEntity<>(HttpStatus.OK);
+        };
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/etherpad/conversations")
+    public Callable getConversations(@RequestBody EtherpadDocumentUpdateDto etherpadDocumentUpdateDto) {
+        return () -> {
+            if (env.getProperty("module.etherpad.apikey").equals(etherpadDocumentUpdateDto.getApiKey())) {
+                String sessionId = etherpadDocumentUpdateDto.getAuthorId();
+                UserEtherpadInfo userEtherpadInfo = userEtherpadInfoService.findBySessionId(sessionId);
+                if (userEtherpadInfo == null) {
+                    return new ResponseEntity<>("sessionID is invalid", HttpStatus.UNAUTHORIZED);
+                }
+                DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoService.findByGroupPadId(etherpadDocumentUpdateDto.getPadId());
+                return userService.callAs(userEtherpadInfo.getUser(), () -> {
+                    // retrieve all conversations the user has access to
+                    Long documentId = documentEtherpadInfo.getDocument().getId();
+                    int pageNumber = 0;
+                    int pageSize = 10;
+                    String sortDirection = "DESC";
+                    String sortProperty = "createdAt";
+                    Page<Document> documentPage = documentService.getDiscussionDocumentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
+                    System.out.println(documentPage);
+                    List<Document> documentList = documentPage.getContent();
+                    return new ResponseEntity<>(documentList, HttpStatus.OK);
+                });
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
         };
     }
 }
