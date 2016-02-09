@@ -33,6 +33,8 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.etherpad.client.EtherpadClient;
+import de.hska.ld.etherpad.dto.ConversationsForCommentsReqDto;
+import de.hska.ld.etherpad.dto.DocumentInfo;
 import de.hska.ld.etherpad.persistence.domain.DocumentEtherpadInfo;
 import de.hska.ld.etherpad.persistence.domain.UserEtherpadInfo;
 import de.hska.ld.etherpad.service.DocumentEtherpadInfoService;
@@ -48,6 +50,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -260,7 +263,51 @@ public class DocumentEtherpadController {
                     Page<Document> documentPage = documentService.getDiscussionDocumentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
                     System.out.println(documentPage);
                     List<Document> documentList = documentPage.getContent();
-                    return new ResponseEntity<>(documentList, HttpStatus.OK);
+                    List<DocumentInfo> documentInfoList = new ArrayList<DocumentInfo>();
+                    documentList.forEach(d -> {
+                        DocumentInfo documentInfo = new DocumentInfo();
+                        documentInfo.setId(d.getId());
+                        documentInfo.setTitle(d.getTitle());
+                        documentInfoList.add(documentInfo);
+                    });
+                    return new ResponseEntity<>(documentInfoList, HttpStatus.OK);
+                });
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        };
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/etherpad/conversationsForComments")
+    public Callable getConversationsForComments(@RequestBody ConversationsForCommentsReqDto conversationsForCommentsReqDto) {
+        return () -> {
+            if (env.getProperty("module.etherpad.apikey").equals(conversationsForCommentsReqDto.getApiKey())) {
+                String sessionId = conversationsForCommentsReqDto.getAuthorId();
+                UserEtherpadInfo userEtherpadInfo = userEtherpadInfoService.findBySessionId(sessionId);
+                if (userEtherpadInfo == null) {
+                    return new ResponseEntity<>("sessionID is invalid", HttpStatus.UNAUTHORIZED);
+                }
+                ConversationsForCommentsReqDto temp = conversationsForCommentsReqDto;
+                System.out.println(temp);
+                DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoService.findByGroupPadId(conversationsForCommentsReqDto.getPadId());
+                return userService.callAs(userEtherpadInfo.getUser(), () -> {
+                    // retrieve all conversations the user has access to
+                    /*Long documentId = documentEtherpadInfo.getDocument().getId();
+                    int pageNumber = 0;
+                    int pageSize = 10;
+                    String sortDirection = "DESC";
+                    String sortProperty = "createdAt";
+                    Page<Document> documentPage = documentService.getDiscussionDocumentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
+                    System.out.println(documentPage);
+                    List<Document> documentList = documentPage.getContent();
+                    List<DocumentInfo> documentInfoList = new ArrayList<DocumentInfo>();
+                    documentList.forEach(d -> {
+                        DocumentInfo documentInfo = new DocumentInfo();
+                        documentInfo.setId(d.getId());
+                        documentInfo.setTitle(d.getTitle());
+                        documentInfoList.add(documentInfo);
+                    });*/
+                    return new ResponseEntity<>(HttpStatus.OK);
                 });
             } else {
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
