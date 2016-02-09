@@ -51,12 +51,18 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.Callable;
 
 @RestController
 @RequestMapping(Etherpad.RESOURCE_DOCUMENT_ETHERPAD)
 public class DocumentEtherpadController {
+
+    @Autowired
+    private Connection etherpadDbCon;
 
     @Autowired
     private DocumentService documentService;
@@ -308,7 +314,18 @@ public class DocumentEtherpadController {
     @RequestMapping(method = RequestMethod.GET, value = "/etherpad/padValue")
     public Callable getCommentRange() {
         return () -> {
-            String padValue = "{\"atext\":{\"text\":\"Test Hello World Greetings! Howdy!?\\n\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! How\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!\\n\\n\",\"attribs\":\"*0+5*0*5+5*0+6*1+5*1*2+1*1*4+4*1+1*0+2*0*9+2*0+2*1+1*3+1|1+1*1|2+11*1+z|1+1*1|5+4w*1+a*1*d+k*1|c+s6|1+1\"},\"pool\":{\"numToAttrib\":{\"0\":[\"author\",\"a.hGAAygbqEdeOn61q\"],\"1\":[\"author\",\"a.rbfAeHM4OgQoMFlR\"],\"2\":[\"bold\",\"true\"],\"3\":[\"author\",\"a.O9ItVBgCO18puRFb\"],\"4\":[\"italic\",\"true\"],\"5\":[\"comment\",\"c-QJdNmZaFtvODLB46\"],\"6\":[\"bold\",\"\"],\"7\":[\"italic\",\"\"],\"8\":[\"comment\",\"\"],\"9\":[\"comment\",\"c-OF96YYEMUYnOD8dj\"],\"10\":[\"insertorder\",\"first\"],\"11\":[\"lmkr\",\"1\"],\"12\":[\"pageBreak\",\"pageBreak\"],\"13\":[\"comment\",\"c-wOKOkPHQhlrz8PjQ\"]},\"nextNum\":14},\"head\":87,\"chatHead\":0,\"publicStatus\":false,\"passwordHash\":null,\"savedRevisions\":[]}";
+            String padId = "pad:" + "g.AxspflQ7TISNql8D$d80628fa-f0b4-4a9d-ae46-5700ab9857c7";
+            PreparedStatement pstmt = etherpadDbCon.prepareStatement("SELECT * FROM etherpad.store s WHERE s.key = ?");
+            pstmt.setString(1, padId);
+            ResultSet resultSet = pstmt.executeQuery();
+            String padValue = null;
+            while (resultSet.next()) {
+                String key = resultSet.getString("key");
+                padValue = resultSet.getString("value");
+                System.out.println("[key=" + key + ", value=" + padValue + "]");
+            }
+            resultSet.close();
+            pstmt.close();
 
             ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             PadValueDto padValueDto = mapper.readValue(padValue, PadValueDto.class);
