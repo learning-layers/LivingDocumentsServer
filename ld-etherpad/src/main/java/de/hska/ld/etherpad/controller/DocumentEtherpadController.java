@@ -22,6 +22,8 @@
 
 package de.hska.ld.etherpad.controller;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.dto.EtherpadDocumentUpdateDto;
 import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Attachment;
@@ -33,8 +35,7 @@ import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.etherpad.client.EtherpadClient;
-import de.hska.ld.etherpad.dto.ConversationsForCommentsReqDto;
-import de.hska.ld.etherpad.dto.DocumentInfo;
+import de.hska.ld.etherpad.dto.*;
 import de.hska.ld.etherpad.persistence.domain.DocumentEtherpadInfo;
 import de.hska.ld.etherpad.persistence.domain.UserEtherpadInfo;
 import de.hska.ld.etherpad.service.DocumentEtherpadInfoService;
@@ -50,9 +51,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 @RestController
@@ -291,27 +290,92 @@ public class DocumentEtherpadController {
                 System.out.println(temp);
                 DocumentEtherpadInfo documentEtherpadInfo = documentEtherpadInfoService.findByGroupPadId(conversationsForCommentsReqDto.getPadId());
                 return userService.callAs(userEtherpadInfo.getUser(), () -> {
-                    // retrieve all conversations the user has access to
-                    /*Long documentId = documentEtherpadInfo.getDocument().getId();
-                    int pageNumber = 0;
-                    int pageSize = 10;
-                    String sortDirection = "DESC";
-                    String sortProperty = "createdAt";
-                    Page<Document> documentPage = documentService.getDiscussionDocumentsPage(documentId, pageNumber, pageSize, sortDirection, sortProperty);
-                    System.out.println(documentPage);
-                    List<Document> documentList = documentPage.getContent();
-                    List<DocumentInfo> documentInfoList = new ArrayList<DocumentInfo>();
-                    documentList.forEach(d -> {
-                        DocumentInfo documentInfo = new DocumentInfo();
-                        documentInfo.setId(d.getId());
-                        documentInfo.setTitle(d.getTitle());
-                        documentInfoList.add(documentInfo);
-                    });*/
-                    return new ResponseEntity<>(HttpStatus.OK);
+                    if (temp.getCommentIdList().size() > 0) {
+                        CommentConversationDto commentConversationDto = new CommentConversationDto();
+                        commentConversationDto.setCommentId(temp.getCommentIdList().get(0));
+                        commentConversationDto.setConversationId("Test");
+                        return new ResponseEntity<>(commentConversationDto, HttpStatus.OK);
+                    } else {
+                        return new ResponseEntity<>("[]", HttpStatus.OK);
+                    }
                 });
             } else {
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
         };
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/etherpad/padValue")
+    public Callable getCommentRange() {
+        return () -> {
+            String padValue = "{\"atext\":{\"text\":\"Test Hello World Greetings! Howdy!?\\n\\n\",\"attribs\":\"*0+5*0*5+5*0+6*1+5*1*2+1*1*4+4*1+1*0+2*0*9+2*0+2*1+1*3+1|2+2\"},\"pool\":{\"numToAttrib\":{\"0\":[\"author\",\"a.hGAAygbqEdeOn61q\"],\"1\":[\"author\",\"a.rbfAeHM4OgQoMFlR\"],\"2\":[\"bold\",\"true\"],\"3\":[\"author\",\"a.O9ItVBgCO18puRFb\"],\"4\":[\"italic\",\"true\"],\"5\":[\"comment\",\"c-QJdNmZaFtvODLB46\"],\"6\":[\"bold\",\"\"],\"7\":[\"italic\",\"\"],\"8\":[\"comment\",\"\"],\"9\":[\"comment\",\"c-OF96YYEMUYnOD8dj\"]},\"nextNum\":10},\"head\":27,\"chatHead\":0,\"publicStatus\":false,\"passwordHash\":null,\"savedRevisions\":[]}";
+
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            PadValueDto padValueDto = mapper.readValue(padValue, PadValueDto.class);
+            //"c-OF96YYEMUYnOD8dj"
+
+            String needleCommentId = "c-QJdNmZaFtvODLB46";
+            Map<String, String[]> numToAttrib = padValueDto.getPool().getNumToAttrib();
+
+            long attributeId = getAttributeId(numToAttrib, needleCommentId);
+
+            String attribs = padValueDto.getAtext().getAttribs();
+
+            CommentRangeDto commentRangeDto = calculateCommentStartAndEnd(attribs, attributeId);
+            commentRangeDto.setCommentedText("");
+            if (commentRangeDto.getPosStart() != -1L && commentRangeDto.getPosEnd() != -1L) {
+                commentRangeDto.setCommentedText(padValueDto.getAtext().getText().substring((int) commentRangeDto.getPosStart(), (int) commentRangeDto.getPosEnd()));
+            }
+            return new ResponseEntity<>(commentRangeDto, HttpStatus.OK);
+        };
+    }
+
+    private CommentRangeDto calculateCommentStartAndEnd(String attribs, Long attributeId) {
+        CommentRangeDto commentRangeDto = new CommentRangeDto();
+        // split attribs by line breaks
+        String[] lines = attribs.split("\\|");
+        long currentPos = 0;
+        long foundStartAt = -1;
+        long foundEnd = -1;
+        for (String line : lines) {
+            String[] splittedAttribs = line.split("\\*");
+            for (String splittedAttrib : splittedAttribs) {
+                String[] attribLength = splittedAttrib.split("\\+");
+                if (attribLength.length == 2) {
+                    if (Long.parseLong(attribLength[0]) == attributeId) {
+                        // TODO check if base 24
+                        foundStartAt = currentPos;
+                    }
+                    String length = attribLength[1];
+                    long parsedLength = Long.parseLong(length, 24);
+                    currentPos += parsedLength;
+                    if (Long.parseLong(attribLength[0]) == attributeId) {
+                        foundEnd = currentPos;
+                        break;
+                    }
+                }
+            }
+            if (foundEnd != -1) {
+                break;
+            }
+        }
+
+        commentRangeDto.setPosStart(foundStartAt);
+        commentRangeDto.setPosEnd(foundEnd);
+        return commentRangeDto;
+    }
+
+    private long getAttributeId(Map<String, String[]> numToAttrib, String commentId) {
+        // TODO replace this by pattern matching
+        Set<Map.Entry<String, String[]>> entrySet = numToAttrib.entrySet();
+        for (Map.Entry<String, String[]> entry : entrySet) {
+            String[] values = entry.getValue();
+            for (String val : values) {
+                if (commentId.equals(val)) {
+                    return Long.parseLong(entry.getKey());
+                }
+            }
+        }
+        return -1;
     }
 }
