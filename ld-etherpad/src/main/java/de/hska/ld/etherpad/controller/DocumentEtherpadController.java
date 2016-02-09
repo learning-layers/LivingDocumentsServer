@@ -308,13 +308,13 @@ public class DocumentEtherpadController {
     @RequestMapping(method = RequestMethod.GET, value = "/etherpad/padValue")
     public Callable getCommentRange() {
         return () -> {
-            String padValue = "{\"atext\":{\"text\":\"Test Hello World Greetings! Howdy!?\\n\\n\",\"attribs\":\"*0+5*0*5+5*0+6*1+5*1*2+1*1*4+4*1+1*0+2*0*9+2*0+2*1+1*3+1|2+2\"},\"pool\":{\"numToAttrib\":{\"0\":[\"author\",\"a.hGAAygbqEdeOn61q\"],\"1\":[\"author\",\"a.rbfAeHM4OgQoMFlR\"],\"2\":[\"bold\",\"true\"],\"3\":[\"author\",\"a.O9ItVBgCO18puRFb\"],\"4\":[\"italic\",\"true\"],\"5\":[\"comment\",\"c-QJdNmZaFtvODLB46\"],\"6\":[\"bold\",\"\"],\"7\":[\"italic\",\"\"],\"8\":[\"comment\",\"\"],\"9\":[\"comment\",\"c-OF96YYEMUYnOD8dj\"]},\"nextNum\":10},\"head\":27,\"chatHead\":0,\"publicStatus\":false,\"passwordHash\":null,\"savedRevisions\":[]}";
+            String padValue = "{\"atext\":{\"text\":\"Test Hello World Greetings! Howdy!?\\n\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! How\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?\\nTest Hello World Greetings! Howdy!?Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!Test Hello World Greetings! Howdy!\\n\\n\",\"attribs\":\"*0+5*0*5+5*0+6*1+5*1*2+1*1*4+4*1+1*0+2*0*9+2*0+2*1+1*3+1|1+1*1|2+11*1+z|1+1*1|5+4w*1+a*1*d+k*1|c+s6|1+1\"},\"pool\":{\"numToAttrib\":{\"0\":[\"author\",\"a.hGAAygbqEdeOn61q\"],\"1\":[\"author\",\"a.rbfAeHM4OgQoMFlR\"],\"2\":[\"bold\",\"true\"],\"3\":[\"author\",\"a.O9ItVBgCO18puRFb\"],\"4\":[\"italic\",\"true\"],\"5\":[\"comment\",\"c-QJdNmZaFtvODLB46\"],\"6\":[\"bold\",\"\"],\"7\":[\"italic\",\"\"],\"8\":[\"comment\",\"\"],\"9\":[\"comment\",\"c-OF96YYEMUYnOD8dj\"],\"10\":[\"insertorder\",\"first\"],\"11\":[\"lmkr\",\"1\"],\"12\":[\"pageBreak\",\"pageBreak\"],\"13\":[\"comment\",\"c-wOKOkPHQhlrz8PjQ\"]},\"nextNum\":14},\"head\":87,\"chatHead\":0,\"publicStatus\":false,\"passwordHash\":null,\"savedRevisions\":[]}";
 
             ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             PadValueDto padValueDto = mapper.readValue(padValue, PadValueDto.class);
             //"c-OF96YYEMUYnOD8dj"
 
-            String needleCommentId = "c-QJdNmZaFtvODLB46";
+            String needleCommentId = "c-wOKOkPHQhlrz8PjQ";
             Map<String, String[]> numToAttrib = padValueDto.getPool().getNumToAttrib();
 
             long attributeId = getAttributeId(numToAttrib, needleCommentId);
@@ -342,14 +342,14 @@ public class DocumentEtherpadController {
             for (String splittedAttrib : splittedAttribs) {
                 String[] attribLength = splittedAttrib.split("\\+");
                 if (attribLength.length == 2) {
-                    if (Long.parseLong(attribLength[0]) == attributeId) {
+                    if (Long.parseLong(attribLength[0], 36) == attributeId) {
                         // TODO check if base 24
                         foundStartAt = currentPos;
                     }
                     String length = attribLength[1];
-                    long parsedLength = Long.parseLong(length, 24);
+                    long parsedLength = Long.parseLong(length, 36);
                     currentPos += parsedLength;
-                    if (Long.parseLong(attribLength[0]) == attributeId) {
+                    if (Long.parseLong(attribLength[0], 36) == attributeId) {
                         foundEnd = currentPos;
                         break;
                     }
