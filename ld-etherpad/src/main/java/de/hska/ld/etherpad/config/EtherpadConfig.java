@@ -22,14 +22,11 @@
 package de.hska.ld.etherpad.config;
 
 import de.hska.ld.etherpad.client.EtherpadClient;
+import de.hska.ld.etherpad.persistence.EtherpadConnectionManger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 @Configuration
 public class EtherpadConfig {
@@ -43,16 +40,7 @@ public class EtherpadConfig {
     }
 
     @Bean
-    public Connection etherpadDbCon() {
-        try {
-            return DriverManager.getConnection(
-                    env.getProperty("etherpad.db.url"),
-                    env.getProperty("etherpad.db.username"),
-                    env.getProperty("etherpad.db.password")
-            );
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public EtherpadConnectionManger etherpadDbCon() {
+        return new EtherpadConnectionManger(env.getProperty("etherpad.db.url"), env.getProperty("etherpad.db.username"), env.getProperty("etherpad.db.password"));
     }
 }

@@ -36,6 +36,7 @@ import de.hska.ld.core.service.UserService;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.etherpad.client.EtherpadClient;
 import de.hska.ld.etherpad.dto.*;
+import de.hska.ld.etherpad.persistence.EtherpadConnectionManger;
 import de.hska.ld.etherpad.persistence.domain.DocumentEtherpadInfo;
 import de.hska.ld.etherpad.persistence.domain.UserEtherpadInfo;
 import de.hska.ld.etherpad.service.DocumentEtherpadInfoService;
@@ -51,7 +52,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
@@ -62,7 +62,7 @@ import java.util.concurrent.Callable;
 public class DocumentEtherpadController {
 
     @Autowired
-    private Connection etherpadDbCon;
+    private EtherpadConnectionManger etherpadConMan;
 
     @Autowired
     private DocumentService documentService;
@@ -315,7 +315,7 @@ public class DocumentEtherpadController {
     public Callable getCommentRange() {
         return () -> {
             String padId = "pad:" + "g.AxspflQ7TISNql8D$d80628fa-f0b4-4a9d-ae46-5700ab9857c7";
-            PreparedStatement pstmt = etherpadDbCon.prepareStatement("SELECT * FROM etherpad.store s WHERE s.key = ?");
+            PreparedStatement pstmt = etherpadConMan.getConnection().prepareStatement("SELECT * FROM etherpad.store s WHERE s.key = ?");
             pstmt.setString(1, padId);
             ResultSet resultSet = pstmt.executeQuery();
             String padValue = null;
