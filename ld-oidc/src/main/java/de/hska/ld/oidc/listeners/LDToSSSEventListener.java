@@ -70,7 +70,7 @@ public class LDToSSSEventListener {
     public void handleDocumentReadEvent(DocumentReadEvent event) throws IOException, CreationFailedException {
         Document document = (Document) event.getSource();
         System.out.println("LDToSSSEventListener: Reading document=" + document.getId() + ", title=" + document.getTitle());
-        document = createAndShareLDocWithSSSUsers(document, "READ");
+        document = createAndShareLDocWithSSSUsers(document, "READ", event.getAccessToken());
         event.setResultDocument(document);
     }
 
@@ -79,7 +79,7 @@ public class LDToSSSEventListener {
     public void handleDocumentCreationEvent(DocumentCreationEvent event) throws IOException, CreationFailedException {
         Document newDocument = (Document) event.getSource();
         System.out.println("LDToSSSEventListener: Creating document=" + newDocument.getId() + ", title=" + newDocument.getTitle());
-        newDocument = createAndShareLDocWithSSSUsers(newDocument, "WRITE");
+        newDocument = createAndShareLDocWithSSSUsers(newDocument, "WRITE", event.getAccessToken());
         SSSCreateDiscRequestDto sssCreateDiscRequestDto = new SSSCreateDiscRequestDto();
         sssCreateDiscRequestDto.setLabel(newDocument.getTitle());
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -95,7 +95,7 @@ public class LDToSSSEventListener {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private Document createAndShareLDocWithSSSUsers(Document document, String cmd) throws IOException, CreationFailedException {
+    private Document createAndShareLDocWithSSSUsers(Document document, String cmd, String accessToken) throws IOException, CreationFailedException {
         // Create the document as well in the SSS
         List<Access> accessList = document.getAccessList();
         List<String> emailAddressesThatHaveAccess = new ArrayList<>();
@@ -103,13 +103,13 @@ public class LDToSSSEventListener {
             emailAddressesThatHaveAccess.add(access.getUser().getEmail());
         }
         // check if the living document is already known to the SSS
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+        //Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        //OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
         boolean isAlreadyKnownToSSS = false;
         String sssLivingDocId = null;
         Long newDocumentId = document.getId();
         try {
-            SSSLivingDocResponseDto documentFoundInSSS = sssClient.getLDocById(newDocumentId, token.getAccessTokenValue());
+            SSSLivingDocResponseDto documentFoundInSSS = sssClient.getLDocById(newDocumentId, accessToken);
             if (documentFoundInSSS != null) {
                 SSSLivingdoc documentFoundInSSSLDoc = documentFoundInSSS.getLivingDoc();
                 if (documentFoundInSSSLDoc != null && documentFoundInSSSLDoc.getId() != null) {
@@ -123,14 +123,14 @@ public class LDToSSSEventListener {
             if (!isAlreadyKnownToSSS) {
                 // create the living document in the SSS
                 SSSLivingdocsResponseDto sssLivingdocsResponseDto2 = null;
-                sssLivingdocsResponseDto2 = sssClient.createDocument(document, null, token.getAccessTokenValue());
+                sssLivingdocsResponseDto2 = sssClient.createDocument(document, null, accessToken);
                 sssLivingDocId = sssLivingdocsResponseDto2.getLivingDoc();
                 if (sssLivingDocId == null) {
                     throw new CreationFailedException(newDocumentId);
                 }
             }
             // Retrieve users/emails that have access to this living document declared by the SSS
-            SSSLivingDocResponseDto sssLivingdocsResponseDto = sssClient.getLDocEmailsById(newDocumentId, token.getAccessTokenValue());
+            SSSLivingDocResponseDto sssLivingdocsResponseDto = sssClient.getLDocEmailsById(newDocumentId, accessToken);
             SSSLivingdoc sssLivingDoc = sssLivingdocsResponseDto.getLivingDoc();
             if (sssLivingDoc != null && sssLivingDoc.getUsers() != null) {
                 StringBuilder sb = new StringBuilder();
@@ -157,7 +157,7 @@ public class LDToSSSEventListener {
                 }
             }
         } catch (AuthenticationNotValidException eAuth) {
-            //
+            eAuth.printStackTrace();
         }
         return document;
     }
