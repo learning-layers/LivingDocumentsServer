@@ -328,7 +328,7 @@ public class DocumentEtherpadController {
             pstmt.close();
 
             ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            PadValueDto padValueDto = mapper.readValue(padValue, PadValueDto.class);
+            EtherpadValueDto padValueDto = mapper.readValue(padValue, EtherpadValueDto.class);
             //"c-OF96YYEMUYnOD8dj"
 
             String needleCommentId = "c-wOKOkPHQhlrz8PjQ";
