@@ -242,13 +242,14 @@ public class OIDCController {
             }
         }
         String userIds = sb.toString();
+        Document dbDocument = null;
         if (!"".equals(userIds)) {
-            Document dbDocument = documentService.findById(document.getId());
+            dbDocument = documentService.findById(document.getId());
             dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
-            dbDocument.getAttachmentList().size();
-            entityManager.flush();
+            return new ResponseEntity<>(dbDocument.getAccessList(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document")
