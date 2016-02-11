@@ -111,6 +111,7 @@ public class LDToSSSEventListener {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void checkIfSSSUserInfoIsKnown(User user, String accessTokenValue) throws IOException {
+        user = userService.findById(user.getId());
         UserSSSInfo userSSSInfo = userSSSInfoService.findByUser(user);
         // if the sss user id is already known to the server do nothing
         if (userSSSInfo == null) {
@@ -131,6 +132,7 @@ public class LDToSSSEventListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private Document createAndShareLDocWithSSSUsers(Document document, String cmd, String accessToken) throws IOException, CreationFailedException {
         // Create the document as well in the SSS
+        document = documentService.findById(document.getId());
         List<Access> accessList = document.getAccessList();
         List<String> emailAddressesThatHaveAccess = new ArrayList<>();
         for (Access access : accessList) {
