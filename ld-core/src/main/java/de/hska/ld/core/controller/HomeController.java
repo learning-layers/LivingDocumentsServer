@@ -1,23 +1,27 @@
-/*******************************************************************************
- * Copyright 2014 The MITRE Corporation
- *   and the MIT Kerberos and Internet Trust Consortium
+/*
+ *  Code contributed to the Learning Layers project
+ *  http://www.learning-layers.eu
+ *  Development is partly funded by the FP7 Programme of the European
+ *  Commission under Grant Agreement FP7-ICT-318209.
+ *  Copyright (c) 2016, Karlsruhe University of Applied Sciences.
+ *  For a list of contributors see the AUTHORS file at the top-level directory
+ *  of this distribution.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *******************************************************************************/
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package de.hska.ld.core.controller;
 
 import de.hska.ld.core.config.security.FormAuthenticationProvider;
-import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
 import org.mitre.openid.connect.client.OIDCAuthenticationFilter;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
@@ -26,22 +30,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.annotation.Resource;
-import javax.naming.OperationNotSupportedException;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.nio.file.AccessDeniedException;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Set;
@@ -108,7 +106,7 @@ public class HomeController {
         return "admin";
     }
 
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    /*@RequestMapping(value = "/login", method = RequestMethod.POST)
     public String login(HttpServletRequest request, Locale locale, Model model, Principal p) throws OperationNotSupportedException, AccessDeniedException {
         String username = request.getParameter("username");
         if (username == null) {
@@ -138,7 +136,7 @@ public class HomeController {
         }
 
         return "home";
-    }
+    }*/
 
     @RequestMapping("/login_old")
     public String login(Principal p) {

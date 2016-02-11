@@ -3,7 +3,7 @@
  *  http://www.learning-layers.eu
  *  Development is partly funded by the FP7 Programme of the European
  *  Commission under Grant Agreement FP7-ICT-318209.
- *  Copyright (c) 2015, Karlsruhe University of Applied Sciences.
+ *  Copyright (c) 2016, Karlsruhe University of Applied Sciences.
  *  For a list of contributors see the AUTHORS file at the top-level directory
  *  of this distribution.
  *
@@ -20,19 +20,32 @@
  *  limitations under the License.
  */
 
-package de.hska.ld.core.events.user;
+package de.hska.ld.oidc.dto;
 
-public class UserLoginEvent extends UserResultEvent {
+import java.util.ArrayList;
+import java.util.List;
 
-    private static final long serialVersionUID = -4272763460926206088L;
+public class SSSShareEntityDto {
+    /*{
+        "users": [
+        "SSUri"
+        ],
+        "circles": [
+        "SSUri"
+        ],
+        "setPublic": false,
+            "comment": "SSTextComment"
+    }*/
+    List<String> users;
 
-    /**
-     * Create a new ApplicationEvent.
-     *
-     * @param source      the object on which the event initially occurred (never {@code null})
-     * @param accessToken
-     */
-    public UserLoginEvent(Object source, String accessToken) {
-        super(source, accessToken);
+    public List<String> getUsers() {
+        if (users == null) {
+            users = new ArrayList<>();
+        }
+        return users;
+    }
+
+    public void setUsers(List<String> users) {
+        this.users = users;
     }
 }

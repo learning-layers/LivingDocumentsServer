@@ -35,6 +35,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -525,10 +526,66 @@ public class SSSClient {
         return post;
     }
 
+    private HttpPut addHeaderInformation(HttpPut put, String accessToken) {
+        put.setHeader("Content-type", "application/json");
+        put.setHeader("User-Agent", "Mozilla/5.0");
+        put.setHeader("Authorization", "Bearer " + accessToken);
+        return put;
+    }
+
     private HttpGet addHeaderInformation(HttpGet get, String accessToken) {
         get.setHeader("Content-type", "application/json");
         get.setHeader("User-Agent", "Mozilla/5.0");
         get.setHeader("Authorization", "Bearer " + accessToken);
         return get;
+    }
+
+    public void shareLDocWith(Long documentId, List<String> sssUserIdsTheLDocIsNotSharedWith, String accessToken) throws IOException {
+        String url = env.getProperty("sss.server.endpoint") + "/entities/entities/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8") + "/share";
+
+        HttpClient client = getHttpClientFor(url);
+        HttpPut put = new HttpPut(url);
+        addHeaderInformation(put, accessToken);
+
+        SSSShareEntityDto sssShareEntityDto = new SSSShareEntityDto();
+        sssShareEntityDto.setUsers(sssUserIdsTheLDocIsNotSharedWith);
+
+        String requestDtoString = mapper.writeValueAsString(sssShareEntityDto);
+        StringEntity stringEntity = new StringEntity(requestDtoString, ContentType.create("application/json", "UTF-8"));
+        put.setEntity(stringEntity);
+        BufferedReader rd = null;
+
+        HttpResponse response = client.execute(put);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            if (response.getStatusLine().getStatusCode() == 403) {
+                throw new UserNotAuthorizedException();
+            }
+        }
+
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                throw new ValidationException("access token is invalid");
+            }
+        } catch (ValidationException ve) {
+            throw ve;
+        } catch (Exception e) {
+            e.printStackTrace();
+            //return null;
+        } finally {
+            if (rd != null) {
+                rd.close();
+            }
+        }
     }
 }

@@ -27,6 +27,8 @@ import de.hska.ld.content.events.document.DocumentReadEvent;
 import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.core.events.user.UserLoginEvent;
+import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.logging.ExceptionLogger;
 import de.hska.ld.core.persistence.domain.ExceptionLogEntry;
 import de.hska.ld.core.persistence.domain.User;
@@ -35,12 +37,15 @@ import de.hska.ld.oidc.client.SSSClient;
 import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
 import de.hska.ld.oidc.client.exception.CreationFailedException;
 import de.hska.ld.oidc.dto.*;
+import de.hska.ld.oidc.persistence.domain.UserSSSInfo;
+import de.hska.ld.oidc.service.UserSSSInfoService;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,6 +66,9 @@ public class LDToSSSEventListener {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserSSSInfoService userSSSInfoService;
 
     @Autowired
     private ExceptionLogger exceptionLogger;
@@ -92,6 +100,32 @@ public class LDToSSSEventListener {
             e.printStackTrace();
         }
         event.setResultDocument(newDocument);
+    }
+
+    @Async
+    @EventListener
+    public void handleLoginEvent(UserLoginEvent event) throws IOException {
+        User user = (User) event.getSource();
+        checkIfSSSUserInfoIsKnown(user, event.getAccessToken());
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void checkIfSSSUserInfoIsKnown(User user, String accessTokenValue) throws IOException {
+        UserSSSInfo userSSSInfo = userSSSInfoService.findByUser(user);
+        // if the sss user id is already known to the server do nothing
+        if (userSSSInfo == null) {
+            // else authenticate towards the sss to retrieve the sss user id
+            // and save that user id in the ldocs database
+            SSSAuthDto sssAuthDto = null;
+            try {
+                sssAuthDto = sssClient.authenticate(accessTokenValue);
+                String sssUserId = sssAuthDto.getUser();
+                userSSSInfoService.addUserSSSInfo(user.getId(), sssUserId);
+            } catch (UserNotAuthorizedException e) {
+                e.printStackTrace();
+                throw new UnauthorizedClientException("oidc token invalid");
+            }
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -135,8 +169,14 @@ public class LDToSSSEventListener {
             if (sssLivingDoc != null && sssLivingDoc.getUsers() != null) {
                 StringBuilder sb = new StringBuilder();
                 boolean first = true;
+                // TODO share living documents in the sss with all users that are
+                // present within living documents but not within the sss
+                // after the sharing the other way round happened
+                List<String> checkedEmailAddresses = new ArrayList<>();
                 for (SSSUserDto userDto : sssLivingDoc.getUsers()) {
-                    if (!emailAddressesThatHaveAccess.contains(userDto.getLabel())) {
+                    boolean found = emailAddressesThatHaveAccess.contains(userDto.getLabel());
+                    checkedEmailAddresses.add(userDto.getLabel());
+                    if (!found) {
                         User user = userService.findByEmail(userDto.getLabel());
                         if (user != null && user.getId() != null && document.getCreator() != null &&
                                 document.getCreator().getId() != null && !user.getId().equals(document.getCreator().getId())) {
@@ -150,10 +190,27 @@ public class LDToSSSEventListener {
                     }
                 }
                 String userIds = sb.toString();
-                if (!"".equals(userIds)) {
-                    Document dbDocument = documentService.findById(document.getId());
-                    dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
-                    dbDocument.getAttachmentList().size();
+                try {
+                    if (!"".equals(userIds)) {
+                        Document dbDocument = documentService.findById(document.getId());
+                        dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
+                        dbDocument.getAttachmentList().size();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                emailAddressesThatHaveAccess.removeAll(checkedEmailAddresses);
+                if (emailAddressesThatHaveAccess.size() > 0) {
+                    List<String> sssUserIdsTheLDocIsNotSharedWith = new ArrayList<>();
+                    emailAddressesThatHaveAccess.forEach(email -> {
+                        UserSSSInfo sssUserInfo = userSSSInfoService.findByUserEmail(email);
+                        if (sssUserInfo != null) {
+                            sssUserIdsTheLDocIsNotSharedWith.add(sssUserInfo.getSssUserId());
+                        } else {
+                            System.out.println("No sss user id found for email address=" + email);
+                        }
+                    });
+                    sssClient.shareLDocWith(document.getId(), sssUserIdsTheLDocIsNotSharedWith, accessToken);
                 }
             }
         } catch (AuthenticationNotValidException eAuth) {
