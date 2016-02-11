@@ -74,4 +74,15 @@ public class DocumentEventsPublisher {
         }
         return event;
     }
+
+    public DocumentSharingEvent sendDocumentSharingEvent(Document document) {
+        String accessToken = extractAuthenticationInformation();
+        DocumentSharingEvent event = new DocumentSharingEvent(document, accessToken);
+        try {
+            this.publisher.publishEvent(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return event;
+    }
 }

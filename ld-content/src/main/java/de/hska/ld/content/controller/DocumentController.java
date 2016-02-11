@@ -863,8 +863,8 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.POST, value = "/{documentId}/share")
     public Callable shareDocumentWithUser(@PathVariable Long documentId, @RequestParam String userIds, @RequestParam String permissions) {
         return () -> {
-            documentService.addAccess(documentId, userIds, permissions);
-            // TODO add sharing event -> listen to it via the oidc module to share it via sss
+            Document document = documentService.addAccess(documentId, userIds, permissions);
+            documentEventsPublisher.sendDocumentSharingEvent(document);
             return new ResponseEntity<>(HttpStatus.OK);
         };
     }

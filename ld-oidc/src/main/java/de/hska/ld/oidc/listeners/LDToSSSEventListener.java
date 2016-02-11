@@ -24,6 +24,7 @@ package de.hska.ld.oidc.listeners;
 
 import de.hska.ld.content.events.document.DocumentCreationEvent;
 import de.hska.ld.content.events.document.DocumentReadEvent;
+import de.hska.ld.content.events.document.DocumentSharingEvent;
 import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
@@ -100,6 +101,15 @@ public class LDToSSSEventListener {
             e.printStackTrace();
         }
         event.setResultDocument(newDocument);
+    }
+
+    @Async
+    @EventListener
+    public void handleDocumentSharingEvent(DocumentSharingEvent event) throws IOException, CreationFailedException {
+        Document document = (Document) event.getSource();
+        System.out.println("LDToSSSEventListener: Sharing document=" + document.getId() + ", title=" + document.getTitle());
+        document = createAndShareLDocWithSSSUsers(document, "READ", event.getAccessToken());
+        event.setResultDocument(document);
     }
 
     @Async
