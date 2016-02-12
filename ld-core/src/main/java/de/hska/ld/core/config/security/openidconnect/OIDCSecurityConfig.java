@@ -174,6 +174,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         User savedUser = createNewUserFirstLogin(token, subId, issuer, oidcUserInfo);
                         try {
                             userEventsPublisher.sendUserLoginEvent(savedUser);
+                            userEventsPublisher.sendUserFirstLoginEvent(savedUser);
                         } catch (Exception e) {
                             //
                         }

@@ -37,6 +37,7 @@ public class UserSharingBuffer {
     private String email;
     private String sub;
     private String issuer;
+    private String permissionString;
 
     public void setDocumentId(Long documentId) {
         this.documentId = documentId;
@@ -76,5 +77,13 @@ public class UserSharingBuffer {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getPermissionString() {
+        return permissionString;
+    }
+
+    public void setPermissionString(String permissionString) {
+        this.permissionString = permissionString;
     }
 }

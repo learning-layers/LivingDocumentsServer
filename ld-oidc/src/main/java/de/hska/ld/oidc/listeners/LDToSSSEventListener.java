@@ -28,6 +28,7 @@ import de.hska.ld.content.events.document.DocumentSharingEvent;
 import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.core.events.user.UserFirstLoginEvent;
 import de.hska.ld.core.events.user.UserLoginEvent;
 import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.logging.ExceptionLogger;
@@ -39,7 +40,9 @@ import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
 import de.hska.ld.oidc.client.exception.CreationFailedException;
 import de.hska.ld.oidc.dto.*;
 import de.hska.ld.oidc.persistence.domain.UserSSSInfo;
+import de.hska.ld.oidc.persistence.domain.UserSharingBuffer;
 import de.hska.ld.oidc.service.UserSSSInfoService;
+import de.hska.ld.oidc.service.UserSharingBufferService;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -73,6 +76,9 @@ public class LDToSSSEventListener {
 
     @Autowired
     private ExceptionLogger exceptionLogger;
+
+    @Autowired
+    private UserSharingBufferService userSharingBufferService;
 
     @Async
     @EventListener
@@ -117,6 +123,28 @@ public class LDToSSSEventListener {
     public void handleLoginEvent(UserLoginEvent event) throws IOException {
         User user = (User) event.getSource();
         checkIfSSSUserInfoIsKnown(user, event.getAccessToken());
+    }
+
+    @Async
+    @EventListener
+    public void handleFirstLoginEvent(UserFirstLoginEvent event) throws IOException {
+        User user = (User) event.getSource();
+        sharePreviouslySharedDocumentsWithTheNewUser(user);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void sharePreviouslySharedDocumentsWithTheNewUser(User user) {
+        UserSharingBuffer userSharingBuffer = userSharingBufferService.findByEmail(user.getEmail());
+        if (userSharingBuffer == null) {
+            userSharingBuffer = userSharingBufferService.findBySubAndIssuer(user.getSubId(), user.getIssuer());
+        }
+        if (userSharingBuffer != null) {
+            String userIds = user.getId().toString();
+            if (!"".equals(userIds)) {
+                Document dbDocument = documentService.findById(userSharingBuffer.getDocumentId());
+                documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, userSharingBuffer.getPermissionString());
+            }
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

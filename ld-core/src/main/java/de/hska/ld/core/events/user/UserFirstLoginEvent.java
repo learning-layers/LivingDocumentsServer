@@ -3,7 +3,7 @@
  *  http://www.learning-layers.eu
  *  Development is partly funded by the FP7 Programme of the European
  *  Commission under Grant Agreement FP7-ICT-318209.
- *  Copyright (c) 2016, Karlsruhe University of Applied Sciences.
+ *  Copyright (c) 2015, Karlsruhe University of Applied Sciences.
  *  For a list of contributors see the AUTHORS file at the top-level directory
  *  of this distribution.
  *
@@ -20,13 +20,19 @@
  *  limitations under the License.
  */
 
-package de.hska.ld.oidc.persistence.repository;
+package de.hska.ld.core.events.user;
 
-import de.hska.ld.oidc.persistence.domain.UserSharingBuffer;
-import org.springframework.data.repository.CrudRepository;
+public class UserFirstLoginEvent extends UserResultEvent {
 
-public interface UserSharingBufferRepository extends CrudRepository<UserSharingBuffer, Long> {
-    UserSharingBuffer findByEmail(String email);
+    private static final long serialVersionUID = 8863991500037492282L;
 
-    UserSharingBuffer findByIssuerAndSub(String issuer, String subId);
+    /**
+     * Create a new ApplicationEvent.
+     *
+     * @param source      the object on which the event initially occurred (never {@code null})
+     * @param accessToken
+     */
+    public UserFirstLoginEvent(Object source, String accessToken) {
+        super(source, accessToken);
+    }
 }

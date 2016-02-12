@@ -51,4 +51,15 @@ public class UserEventsPublisher {
         }
         return event;
     }
+
+    public UserFirstLoginEvent sendUserFirstLoginEvent(User user) {
+        String accessToken = extractAuthenticationInformation();
+        UserFirstLoginEvent event = new UserFirstLoginEvent(user, accessToken);
+        try {
+            this.publisher.publishEvent(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return event;
+    }
 }

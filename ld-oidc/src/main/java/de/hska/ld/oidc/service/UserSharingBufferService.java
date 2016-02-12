@@ -22,8 +22,14 @@
 
 package de.hska.ld.oidc.service;
 
-public interface UserSharingBufferService {
-    void addUserSharingBuffer(Long documentId, String email);
+import de.hska.ld.oidc.persistence.domain.UserSharingBuffer;
 
-    void addUserSharingBuffer(Long documentId, String sub, String issuer);
+public interface UserSharingBufferService {
+    void addUserSharingBuffer(Long documentId, String email, String permissionString);
+
+    void addUserSharingBuffer(Long documentId, String sub, String issuer, String permissionString);
+
+    UserSharingBuffer findBySubAndIssuer(String subId, String issuer);
+
+    UserSharingBuffer findByEmail(String email);
 }

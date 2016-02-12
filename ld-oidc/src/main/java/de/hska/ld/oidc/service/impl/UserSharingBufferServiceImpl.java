@@ -34,19 +34,31 @@ public class UserSharingBufferServiceImpl implements UserSharingBufferService {
     @Autowired
     private UserSharingBufferRepository repository;
 
-    public void addUserSharingBuffer(Long documentId, String email) {
+    public void addUserSharingBuffer(Long documentId, String email, String permissionString) {
         UserSharingBuffer userSharingBuffer = new UserSharingBuffer();
         userSharingBuffer.setDocumentId(documentId);
         userSharingBuffer.setEmail(email);
+        userSharingBuffer.setPermissionString(permissionString);
         repository.save(userSharingBuffer);
     }
 
-    public void addUserSharingBuffer(Long documentId, String sub, String issuer) {
+    public void addUserSharingBuffer(Long documentId, String sub, String issuer, String permissionString) {
         UserSharingBuffer userSharingBuffer = new UserSharingBuffer();
         userSharingBuffer.setDocumentId(documentId);
         userSharingBuffer.setSub(sub);
         userSharingBuffer.setIssuer(issuer);
+        userSharingBuffer.setPermissionString(permissionString);
         repository.save(userSharingBuffer);
+    }
+
+    @Override
+    public UserSharingBuffer findBySubAndIssuer(String subId, String issuer) {
+        return repository.findByIssuerAndSub(issuer, subId);
+    }
+
+    @Override
+    public UserSharingBuffer findByEmail(String email) {
+        return repository.findByEmail(email);
     }
 
     public UserSharingBufferRepository getRepository() {

@@ -214,18 +214,17 @@ public class OIDCController {
         // remember all the user sub and issuers that the document should be shared with but which are
         // not know to the system right now
         userIssuerAndSubsThatDontHaveALDAccountRightNow.forEach(isserSubDto -> {
-            userSharingBufferService.addUserSharingBuffer(documentId, isserSubDto.getSub(), isserSubDto.getIssuer());
+            userSharingBufferService.addUserSharingBuffer(documentId, isserSubDto.getSub(), isserSubDto.getIssuer(), "READ;WRITE");
         });
 
         String userIds = sb.toString();
         if (!"".equals(userIds)) {
             Document dbDocument = documentService.findById(document.getId());
             dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
-            dbDocument.getAttachmentList().size();
-            entityManager.flush();
+            return new ResponseEntity<>(dbDocument.getAccessList(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.OK);
         }
-
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document/{documentId}/share/email")
@@ -266,7 +265,7 @@ public class OIDCController {
         // remember all the user emails that the document should be shared with but which are
         // not know to the system right now
         userEmailsThatDontHaveALDAccountRightNow.forEach(userEmail -> {
-            userSharingBufferService.addUserSharingBuffer(documentId, userEmail);
+            userSharingBufferService.addUserSharingBuffer(documentId, userEmail, "READ;WRITE");
         });
 
         String userIds = sb.toString();
