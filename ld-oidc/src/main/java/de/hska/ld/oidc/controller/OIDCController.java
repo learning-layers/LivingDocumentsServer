@@ -40,6 +40,7 @@ import de.hska.ld.oidc.dto.OIDCSubInfoDto;
 import de.hska.ld.oidc.dto.OIDCUserinfoDto;
 import de.hska.ld.oidc.dto.SSSAuthDto;
 import de.hska.ld.oidc.dto.SSSLivingdocsResponseDto;
+import de.hska.ld.oidc.service.UserSharingBufferService;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
@@ -88,6 +89,9 @@ public class OIDCController {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private UserSharingBufferService userSharingBufferService;
 
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
     public User authenticate(HttpServletRequest request,
@@ -189,6 +193,7 @@ public class OIDCController {
 
         StringBuilder sb = new StringBuilder();
         boolean first = true;
+        List<OIDCSubInfoDto> userIssuerAndSubsThatDontHaveALDAccountRightNow = new ArrayList<>();
         for (OIDCSubInfoDto isserSubDto : issuerSubList) {
             User user = userService.findBySubIdAndIssuer(isserSubDto.getSub(), isserSubDto.getIssuer());
             if (user != null && user.getId() != null && document.getCreator() != null &&
@@ -199,8 +204,19 @@ public class OIDCController {
                 } else {
                     sb.append(";").append(user.getId());
                 }
+            } else if (user == null) {
+                // remember the issuer and subs used in the sharing process and store them in
+                // case these users login into living documents at a later time
+                userIssuerAndSubsThatDontHaveALDAccountRightNow.add(isserSubDto);
             }
         }
+
+        // remember all the user sub and issuers that the document should be shared with but which are
+        // not know to the system right now
+        userIssuerAndSubsThatDontHaveALDAccountRightNow.forEach(isserSubDto -> {
+            userSharingBufferService.addUserSharingBuffer(documentId, isserSubDto.getSub(), isserSubDto.getIssuer());
+        });
+
         String userIds = sb.toString();
         if (!"".equals(userIds)) {
             Document dbDocument = documentService.findById(document.getId());
@@ -229,6 +245,7 @@ public class OIDCController {
 
         StringBuilder sb = new StringBuilder();
         boolean first = true;
+        List<String> userEmailsThatDontHaveALDAccountRightNow = new ArrayList<>();
         for (String userEmail : userEmailList) {
             User user = userService.findByEmail(userEmail);
             if (user != null && user.getId() != null && document.getCreator() != null &&
@@ -239,8 +256,19 @@ public class OIDCController {
                 } else {
                     sb.append(";").append(user.getId());
                 }
+            } else if (user == null) {
+                // remember the email address used in the sharing process and store them in
+                // case these users login into living documents at a later time
+                userEmailsThatDontHaveALDAccountRightNow.add(userEmail);
             }
         }
+
+        // remember all the user emails that the document should be shared with but which are
+        // not know to the system right now
+        userEmailsThatDontHaveALDAccountRightNow.forEach(userEmail -> {
+            userSharingBufferService.addUserSharingBuffer(documentId, userEmail);
+        });
+
         String userIds = sb.toString();
         Document dbDocument = null;
         if (!"".equals(userIds)) {
