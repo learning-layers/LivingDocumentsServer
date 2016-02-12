@@ -32,4 +32,6 @@ public interface UserSharingBufferService {
     UserSharingBuffer findBySubAndIssuer(String subId, String issuer);
 
     UserSharingBuffer findByEmail(String email);
+
+    void removeUserSharingBuffer(Long id);
 }

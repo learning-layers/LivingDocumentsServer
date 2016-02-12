@@ -61,6 +61,11 @@ public class UserSharingBufferServiceImpl implements UserSharingBufferService {
         return repository.findByEmail(email);
     }
 
+    @Override
+    public void removeUserSharingBuffer(Long id) {
+        repository.delete(id);
+    }
+
     public UserSharingBufferRepository getRepository() {
         return repository;
     }

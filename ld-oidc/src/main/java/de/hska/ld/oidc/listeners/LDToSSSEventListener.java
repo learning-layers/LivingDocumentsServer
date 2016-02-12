@@ -143,6 +143,7 @@ public class LDToSSSEventListener {
             if (!"".equals(userIds)) {
                 Document dbDocument = documentService.findById(userSharingBuffer.getDocumentId());
                 documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, userSharingBuffer.getPermissionString());
+                userSharingBufferService.removeUserSharingBuffer(userSharingBuffer.getId());
             }
         }
     }
