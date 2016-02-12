@@ -115,9 +115,16 @@ public class DiscussionController {
         return () -> {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-            String downloadLink = sssClient.getSssServerAddress() +
-                    "/files/files/download?" +
-                    "file=" + fileEntityId + "&key=" + token.getAccessTokenValue();
+            String downloadLink = null;
+            if (sssClient.getSssAPIVersion() == 1) {
+                downloadLink = sssClient.getSssServerAddress() +
+                        "/files/files/download?" +
+                        "file=" + fileEntityId + "&key=" + token.getAccessTokenValue();
+            } else {
+                downloadLink = sssClient.getSssServerAddress() +
+                        "/rest/files/download?" +
+                        "file=" + fileEntityId + "&key=" + token.getAccessTokenValue();
+            }
             return new ResponseEntity<>(downloadLink, HttpStatus.OK);
         };
     }

@@ -103,9 +103,23 @@ public class SSSClient {
     @Autowired
     private TagService tagService;
 
+    private int sssAPIVersion = -1;
+
+    public int getSssAPIVersion() {
+        if (sssAPIVersion == -1) {
+            sssAPIVersion = Integer.parseInt(env.getProperty("sss.api.version"));
+        }
+        return sssAPIVersion;
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void performInitialSSSTagLoad(Long documentId, String accessToken) throws IOException {
-        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/recomm/update";
+        }
         Document document = documentService.findById(documentId);
         List<String> tagStringList = new ArrayList<String>();
         document.getTagList().forEach(t -> {
@@ -207,7 +221,12 @@ public class SSSClient {
     }
 
     public SSSAuthDto authenticate(String accessToken) throws IOException {
-        String url = env.getProperty("sss.server.endpoint") + "/auth/auth/";
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/auth/auth/";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/auth/";
+        }
 
         HttpClient client = getHttpClientFor(url);
         HttpGet get = new HttpGet(url);
@@ -361,7 +380,12 @@ public class SSSClient {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void addTagToDocument(Long documentId, Long tagId, String accessToken) throws IOException {
-        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/recomm/update";
+        }
         Document document = documentService.findById(documentId);
         List<String> tagStringList = new ArrayList<String>();
         Tag tag = tagService.findById(tagId);
@@ -440,7 +464,13 @@ public class SSSClient {
         String documentPrefix = env.getProperty("sss.document.name.prefix");
         String documentUrl = documentPrefix + documentId;
         String utf8DocumentUrl = URLEncoder.encode(URLEncoder.encode(documentUrl, "UTF-8"), "UTF-8");
-        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/users/ignoreaccessrights/realm/" + env.getProperty("sss.recomm.realm") + "/entity/" + utf8DocumentUrl;
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/users/ignoreaccessrights/realm/" + env.getProperty("sss.recomm.realm") + "/entity/" + utf8DocumentUrl;
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/recomm/users/ignoreaccessrights/realm/" + env.getProperty("sss.recomm.realm") + "/entity/" + utf8DocumentUrl;
+        }
+
         HttpClient client = getHttpClientFor(url);
         HttpGet get = new HttpGet(url);
         addHeaderInformation(get, accessToken);
@@ -488,7 +518,12 @@ public class SSSClient {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void addTagToUser(Long userId, Long tagId, String accessToken) throws IOException {
-        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/recomm/update";
+        }
         User user = userService.findById(userId);
         List<String> tagStringList = new ArrayList<String>();
         Tag tag = tagService.findById(tagId);
@@ -636,7 +671,13 @@ public class SSSClient {
     }
 
     public void performInitialSSSTagLoadUsers(Long userId, String accessToken) throws IOException {
-        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/recomm/update";
+        }
+
         UserContentInfo userContentInfo = userContentInfoService.findByUserId(userId);
         User user = userService.findById(userId);
         if (userContentInfo == null) {
@@ -667,7 +708,12 @@ public class SSSClient {
     }
 
     public void userTouchSSSRecommendations(Long userId, String accessToken) throws IOException {
-        String url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/recomm/recomm/update";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/recomm/update";
+        }
 
         RecommUpdateDto recommUpdateDto = new RecommUpdateDto();
         recommUpdateDto.setRealm(env.getProperty("sss.recomm.realm"));
