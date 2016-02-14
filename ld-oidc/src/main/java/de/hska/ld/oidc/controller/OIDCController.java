@@ -22,6 +22,7 @@
 
 package de.hska.ld.oidc.controller;
 
+import de.hska.ld.content.events.document.DocumentEventsPublisher;
 import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
@@ -58,7 +59,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -88,10 +88,10 @@ public class OIDCController {
     private Environment env;
 
     @Autowired
-    private EntityManager entityManager;
+    private UserSharingBufferService userSharingBufferService;
 
     @Autowired
-    private UserSharingBufferService userSharingBufferService;
+    private DocumentEventsPublisher documentEventsPublisher;
 
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
     public User authenticate(HttpServletRequest request,
@@ -221,6 +221,7 @@ public class OIDCController {
         if (!"".equals(userIds)) {
             Document dbDocument = documentService.findById(document.getId());
             dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
+            documentEventsPublisher.sendDocumentSharingEvent(dbDocument);
             return new ResponseEntity<>(dbDocument.getAccessList(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.OK);
@@ -273,6 +274,7 @@ public class OIDCController {
         if (!"".equals(userIds)) {
             dbDocument = documentService.findById(document.getId());
             dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
+            documentEventsPublisher.sendDocumentSharingEvent(dbDocument);
             return new ResponseEntity<>(dbDocument.getAccessList(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.OK);
