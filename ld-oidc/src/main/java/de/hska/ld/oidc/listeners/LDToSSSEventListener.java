@@ -129,11 +129,11 @@ public class LDToSSSEventListener {
     @EventListener
     public void handleFirstLoginEvent(UserFirstLoginEvent event) throws IOException {
         User user = (User) event.getSource();
-        sharePreviouslySharedDocumentsWithTheNewUser(user);
+        sharePreviouslySharedDocumentsWithTheNewUser(user, event);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void sharePreviouslySharedDocumentsWithTheNewUser(User user) {
+    private void sharePreviouslySharedDocumentsWithTheNewUser(User user, UserFirstLoginEvent event) {
         UserSharingBuffer userSharingBuffer = userSharingBufferService.findByEmail(user.getEmail());
         if (userSharingBuffer == null) {
             userSharingBuffer = userSharingBufferService.findBySubAndIssuer(user.getSubId(), user.getIssuer());
@@ -143,6 +143,12 @@ public class LDToSSSEventListener {
             if (!"".equals(userIds)) {
                 Document dbDocument = documentService.findById(userSharingBuffer.getDocumentId());
                 documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, userSharingBuffer.getPermissionString());
+                try {
+                    System.out.println("LDToSSSEventListener: Sharing document=" + dbDocument.getId() + ", title=" + dbDocument.getTitle());
+                    createAndShareLDocWithSSSUsers(dbDocument, "READ", event.getAccessToken());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 userSharingBufferService.removeUserSharingBuffer(userSharingBuffer.getId());
             }
         }
