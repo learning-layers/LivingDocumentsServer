@@ -317,6 +317,8 @@ public class DocumentController {
     public Callable removeDocument(@PathVariable Long documentId) {
         return () -> {
             documentService.markAsDeleted(documentId);
+            // TODO remove document from SSS as well
+
             return new ResponseEntity<>(HttpStatus.OK);
         };
     }
