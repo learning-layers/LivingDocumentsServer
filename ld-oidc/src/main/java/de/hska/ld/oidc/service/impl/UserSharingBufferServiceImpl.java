@@ -27,6 +27,7 @@ import de.hska.ld.oidc.persistence.repository.UserSharingBufferRepository;
 import de.hska.ld.oidc.service.UserSharingBufferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserSharingBufferServiceImpl implements UserSharingBufferService {
@@ -34,6 +35,7 @@ public class UserSharingBufferServiceImpl implements UserSharingBufferService {
     @Autowired
     private UserSharingBufferRepository repository;
 
+    @Transactional
     public void addUserSharingBuffer(Long documentId, String email, String permissionString) {
         UserSharingBuffer userSharingBuffer = new UserSharingBuffer();
         userSharingBuffer.setDocumentId(documentId);
@@ -42,6 +44,7 @@ public class UserSharingBufferServiceImpl implements UserSharingBufferService {
         repository.save(userSharingBuffer);
     }
 
+    @Transactional
     public void addUserSharingBuffer(Long documentId, String sub, String issuer, String permissionString) {
         UserSharingBuffer userSharingBuffer = new UserSharingBuffer();
         userSharingBuffer.setDocumentId(documentId);

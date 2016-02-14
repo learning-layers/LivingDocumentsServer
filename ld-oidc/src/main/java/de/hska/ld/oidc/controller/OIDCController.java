@@ -56,6 +56,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -211,17 +212,31 @@ public class OIDCController {
             }
         }
 
-        // remember all the user sub and issuers that the document should be shared with but which are
-        // not know to the system right now
-        userIssuerAndSubsThatDontHaveALDAccountRightNow.forEach(isserSubDto -> {
-            userSharingBufferService.addUserSharingBuffer(documentId, isserSubDto.getSub(), isserSubDto.getIssuer(), "READ;WRITE");
-        });
+        try {
+            // remember all the user sub and issuers that the document should be shared with but which are
+            // not know to the system right now
+            userIssuerAndSubsThatDontHaveALDAccountRightNow.forEach(isserSubDto -> {
+                userSharingBufferService.addUserSharingBuffer(documentId, isserSubDto.getSub(), isserSubDto.getIssuer(), "READ;WRITE");
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         String userIds = sb.toString();
         if (!"".equals(userIds)) {
             Document dbDocument = documentService.findById(document.getId());
-            dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
-            documentEventsPublisher.sendDocumentSharingEvent(dbDocument);
+            dbDocument = addAccessWithNewTransaction(dbDocument.getId(), userIds, "READ;WRITE");
+            try {
+                String oidcToken = null;
+                try {
+                    oidcToken = Authorization.substring("Bearer ".length(), Authorization.length());
+                } catch (Exception e) {
+                    throw new ValidationException("malformed oidc token information");
+                }
+                documentEventsPublisher.sendDocumentSharingEvent(dbDocument, oidcToken, dbDocument.getAccessList());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return new ResponseEntity<>(dbDocument.getAccessList(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.OK);
@@ -265,20 +280,39 @@ public class OIDCController {
 
         // remember all the user emails that the document should be shared with but which are
         // not know to the system right now
-        userEmailsThatDontHaveALDAccountRightNow.forEach(userEmail -> {
-            userSharingBufferService.addUserSharingBuffer(documentId, userEmail, "READ;WRITE");
-        });
+        try {
+            userEmailsThatDontHaveALDAccountRightNow.forEach(userEmail -> {
+                userSharingBufferService.addUserSharingBuffer(documentId, userEmail, "READ;WRITE");
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         String userIds = sb.toString();
         Document dbDocument = null;
         if (!"".equals(userIds)) {
             dbDocument = documentService.findById(document.getId());
-            dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
-            documentEventsPublisher.sendDocumentSharingEvent(dbDocument);
+            dbDocument = addAccessWithNewTransaction(dbDocument.getId(), userIds, "READ;WRITE");
+            try {
+                String oidcToken = null;
+                try {
+                    oidcToken = Authorization.substring("Bearer ".length(), Authorization.length());
+                } catch (Exception e) {
+                    throw new ValidationException("malformed oidc token information");
+                }
+                documentEventsPublisher.sendDocumentSharingEvent(dbDocument, oidcToken, dbDocument.getAccessList());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return new ResponseEntity<>(dbDocument.getAccessList(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.OK);
         }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private Document addAccessWithNewTransaction(Long dbDocument, String userIds, String permissions) {
+        return documentService.addAccessWithoutTransactional(dbDocument, userIds, permissions);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document")

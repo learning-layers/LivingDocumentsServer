@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.events.document;
 
+import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.persistence.domain.Tag;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
@@ -30,6 +31,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class DocumentEventsPublisher {
@@ -78,6 +81,16 @@ public class DocumentEventsPublisher {
     public DocumentSharingEvent sendDocumentSharingEvent(Document document) {
         String accessToken = extractAuthenticationInformation();
         DocumentSharingEvent event = new DocumentSharingEvent(document, accessToken);
+        try {
+            this.publisher.publishEvent(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return event;
+    }
+
+    public DocumentSharingEvent sendDocumentSharingEvent(Document document, String accessTokeValue, List<Access> accessList) {
+        DocumentSharingEvent event = new DocumentSharingEvent(document, accessTokeValue, accessList);
         try {
             this.publisher.publishEvent(event);
         } catch (Exception e) {

@@ -22,9 +22,16 @@
 
 package de.hska.ld.content.events.document;
 
+import de.hska.ld.content.persistence.domain.Access;
+import de.hska.ld.content.persistence.domain.Document;
+
+import java.util.List;
+
 public class DocumentSharingEvent extends DocumentResultEvent {
 
     private static final long serialVersionUID = -1131915608991304982L;
+
+    private List<Access> accessList = null;
 
     /**
      * Create a new ApplicationEvent.
@@ -34,5 +41,18 @@ public class DocumentSharingEvent extends DocumentResultEvent {
      */
     public DocumentSharingEvent(Object source, String accessToken) {
         super(source, accessToken);
+    }
+
+    public DocumentSharingEvent(Document document, String accessToken, List<Access> accessList) {
+        super(document, accessToken);
+        this.accessList = accessList;
+    }
+
+    public List<Access> getAccessList() {
+        return accessList;
+    }
+
+    public void setAccessList(List<Access> accessList) {
+        this.accessList = accessList;
     }
 }

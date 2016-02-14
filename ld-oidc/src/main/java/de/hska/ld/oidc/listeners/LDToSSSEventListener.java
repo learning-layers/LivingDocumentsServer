@@ -85,7 +85,7 @@ public class LDToSSSEventListener {
     public void handleDocumentReadEvent(DocumentReadEvent event) throws IOException, CreationFailedException {
         Document document = (Document) event.getSource();
         System.out.println("LDToSSSEventListener: Reading document=" + document.getId() + ", title=" + document.getTitle());
-        document = createAndShareLDocWithSSSUsers(document, "READ", event.getAccessToken());
+        document = createAndShareLDocWithSSSUsers(document, "READ", event.getAccessToken(), null);
         event.setResultDocument(document);
     }
 
@@ -94,7 +94,7 @@ public class LDToSSSEventListener {
     public void handleDocumentCreationEvent(DocumentCreationEvent event) throws IOException, CreationFailedException {
         Document newDocument = (Document) event.getSource();
         System.out.println("LDToSSSEventListener: Creating document=" + newDocument.getId() + ", title=" + newDocument.getTitle());
-        newDocument = createAndShareLDocWithSSSUsers(newDocument, "WRITE", event.getAccessToken());
+        newDocument = createAndShareLDocWithSSSUsers(newDocument, "WRITE", event.getAccessToken(), null);
         SSSCreateDiscRequestDto sssCreateDiscRequestDto = new SSSCreateDiscRequestDto();
         sssCreateDiscRequestDto.setLabel(newDocument.getTitle());
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -114,7 +114,7 @@ public class LDToSSSEventListener {
     public void handleDocumentSharingEvent(DocumentSharingEvent event) throws IOException, CreationFailedException {
         Document document = (Document) event.getSource();
         System.out.println("LDToSSSEventListener: Sharing document=" + document.getId() + ", title=" + document.getTitle());
-        document = createAndShareLDocWithSSSUsers(document, "READ", event.getAccessToken());
+        document = createAndShareLDocWithSSSUsers(document, "READ", event.getAccessToken(), event.getAccessList());
         event.setResultDocument(document);
     }
 
@@ -145,7 +145,7 @@ public class LDToSSSEventListener {
                 documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, userSharingBuffer.getPermissionString());
                 try {
                     System.out.println("LDToSSSEventListener: Sharing document=" + dbDocument.getId() + ", title=" + dbDocument.getTitle());
-                    createAndShareLDocWithSSSUsers(dbDocument, "READ", event.getAccessToken());
+                    createAndShareLDocWithSSSUsers(dbDocument, "READ", event.getAccessToken(), null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -175,10 +175,12 @@ public class LDToSSSEventListener {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private Document createAndShareLDocWithSSSUsers(Document document, String cmd, String accessToken) throws IOException, CreationFailedException {
+    private Document createAndShareLDocWithSSSUsers(Document document, String cmd, String accessToken, List<Access> accessList) throws IOException, CreationFailedException {
         // Create the document as well in the SSS
         document = documentService.findById(document.getId());
-        List<Access> accessList = document.getAccessList();
+        if (accessList == null) {
+            accessList = document.getAccessList();
+        }
         List<String> emailAddressesThatHaveAccess = new ArrayList<>();
         for (Access access : accessList) {
             emailAddressesThatHaveAccess.add(access.getUser().getEmail());
