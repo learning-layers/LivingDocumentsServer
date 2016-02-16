@@ -144,6 +144,9 @@ subprojects {
         compile "io.springfox:springfox-swagger2:2.2.0"
         compile "io.springfox:springfox-swagger-ui:2.2.0"
 
+        // Tinylog
+        compile "org.tinylog:tinylog:1.1-rc-2"
+
         // Add the core project as a dependency for each sub project
         if (project.name != 'ld-core') {
             compile project(path: ':ld-core')

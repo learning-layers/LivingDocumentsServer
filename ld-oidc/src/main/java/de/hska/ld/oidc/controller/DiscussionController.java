@@ -27,6 +27,8 @@ import de.hska.ld.core.util.Core;
 import de.hska.ld.oidc.client.SSSClient;
 import de.hska.ld.oidc.dto.*;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
+import org.pmw.tinylog.Logger;
+import org.pmw.tinylog.LoggingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -125,6 +127,14 @@ public class DiscussionController {
                         "/rest/files/download?" +
                         "file=" + fileEntityId + "&key=" + token.getAccessTokenValue();
             }
+            try {
+                LoggingContext.put("user_email", Core.currentUser().getEmail());
+                LoggingContext.put("sssFileEntityId", fileEntityId);
+                Logger.trace("User downloads file from discussions.");
+                LoggingContext.clear();
+            } catch (Exception e) {
+                Logger.error(e);
+            }
             return new ResponseEntity<>(downloadLink, HttpStatus.OK);
         };
     }
@@ -149,6 +159,15 @@ public class DiscussionController {
         discRequestDto.setTags(null);
         try {
             sssCreateDiscResponseDto = sssClient.createDiscussion(documentId, discRequestDto, token.getAccessTokenValue());
+            try {
+                LoggingContext.put("user_email", Core.currentUser().getEmail());
+                LoggingContext.put("documentId", documentId);
+                LoggingContext.put("sssDiscussionLabel", sssCreateDiscResponseDto.getDisc());
+                Logger.trace("User created discussion.");
+                LoggingContext.clear();
+            } catch (Exception e) {
+                Logger.error(e);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -177,6 +196,15 @@ public class DiscussionController {
         entryForDiscRequestDto.setTags(null);
         try {
             sssEntryForDiscussionResponseDto = sssClient.createEntryForDiscussion(entryForDiscRequestDto, token.getAccessTokenValue());
+            try {
+                LoggingContext.put("user_email", Core.currentUser().getEmail());
+                LoggingContext.put("sssDiscussionLabel", sssEntryForDiscussionResponseDto.getDisc());
+                LoggingContext.put("sssEntryLabel", sssEntryForDiscussionResponseDto.getEntry());
+                Logger.trace("User created comment for discussion.");
+                LoggingContext.clear();
+            } catch (Exception e) {
+                Logger.error(e);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

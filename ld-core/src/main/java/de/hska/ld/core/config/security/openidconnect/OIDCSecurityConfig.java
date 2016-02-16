@@ -36,6 +36,8 @@ import org.mitre.openid.connect.client.*;
 import org.mitre.openid.connect.client.service.impl.*;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.mitre.openid.connect.model.UserInfo;
+import org.pmw.tinylog.Logger;
+import org.pmw.tinylog.LoggingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -80,7 +82,6 @@ import java.util.regex.Pattern;
 @EnableWebMvcSecurity
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true, proxyTargetClass = true)
 public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
-
     // client configuration wiki
     // @see https://github.com/mitreid-connect/OpenID-Connect-Java-Spring-Server/wiki/Client-configuration
 
@@ -178,6 +179,9 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         } catch (Exception e) {
                             //
                         }
+                        LoggingContext.put("user_email", savedUser.getEmail());
+                        Logger.trace("User logs in for the first time.");
+                        LoggingContext.clear();
                     } else if (oidcUserInfo != null) {
                         User savedUser = updateUserInformationFromOIDC(token, currentUserInDb, oidcUserInfo);
                         try {
@@ -185,6 +189,9 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         } catch (Exception e) {
                             //
                         }
+                        LoggingContext.put("user_email", savedUser.getEmail());
+                        Logger.trace("User logs in.");
+                        LoggingContext.clear();
                     } else {
                         // oidc information is null
                         throw new UnsupportedOperationException("No OIDC information found!");

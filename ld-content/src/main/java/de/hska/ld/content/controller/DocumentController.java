@@ -39,6 +39,8 @@ import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
 import org.apache.commons.io.IOUtils;
+import org.pmw.tinylog.Logger;
+import org.pmw.tinylog.LoggingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -195,6 +197,16 @@ public class DocumentController {
     public Callable createDiscussion(@PathVariable Long documentId, @RequestBody Document document) {
         return () -> {
             Document discussion = documentService.addDiscussionToDocument(documentId, document);
+            try {
+                LoggingContext.put("user_email", Core.currentUser().getEmail());
+                LoggingContext.put("conversationId", discussion.getId());
+                LoggingContext.put("conversationSection", document.getDescription());
+                LoggingContext.put("documentId", documentId);
+                Logger.trace("User created conversation for document.");
+                LoggingContext.clear();
+            } catch (Exception e) {
+                Logger.error(e);
+            }
             return new ResponseEntity<>(discussion, HttpStatus.CREATED);
         };
     }
@@ -278,6 +290,14 @@ public class DocumentController {
                 }
             } else {
                 throw new NotFoundException("id");
+            }
+            try {
+                LoggingContext.put("user_email", Core.currentUser().getEmail());
+                LoggingContext.put("documentId", documentId);
+                Logger.trace("User opens document.");
+                LoggingContext.clear();
+            } catch (Exception e) {
+                Logger.error(e);
             }
             Document documentClone = cloner.shallowClone(document);
             documentService.loadContentCollection(document, Comment.class, Tag.class, Hyperlink.class, User.class);
@@ -372,6 +392,15 @@ public class DocumentController {
     public Callable addComment(@PathVariable Long documentId, @RequestBody Comment comment) {
         return () -> {
             Comment newComment = documentService.addComment(documentId, comment);
+            try {
+                LoggingContext.put("user_email", Core.currentUser().getEmail());
+                LoggingContext.put("commentId", newComment.getId());
+                LoggingContext.put("documentId", documentId);
+                Logger.trace("User created comment for document.");
+                LoggingContext.clear();
+            } catch (Exception e) {
+                Logger.error(e);
+            }
             return new ResponseEntity<>(newComment, HttpStatus.CREATED);
         };
     }
@@ -398,6 +427,15 @@ public class DocumentController {
             if (document != null) {
                 documentService.addTag(documentId, tagId);
                 Tag tag = tagService.findById(tagId);
+                try {
+                    LoggingContext.put("user_email", Core.currentUser().getEmail());
+                    LoggingContext.put("tagId", tag.getId());
+                    LoggingContext.put("documentId", documentId);
+                    Logger.trace("User added tag to document.");
+                    LoggingContext.clear();
+                } catch (Exception e) {
+                    Logger.error(e);
+                }
                 documentEventsPublisher.sendAddTagEvent(document, tag);
             }
             return new ResponseEntity<>(HttpStatus.OK);
@@ -523,6 +561,14 @@ public class DocumentController {
             String name = file.getOriginalFilename();
             if (!file.isEmpty()) {
                 Long updatedAttachmentId = documentService.updateAttachment(documentId, attachmentId, file, name);
+                try {
+                    LoggingContext.put("user_email", Core.currentUser().getEmail());
+                    LoggingContext.put("updatedAttachmentId", updatedAttachmentId);
+                    Logger.trace("User uploaded file.");
+                    LoggingContext.clear();
+                } catch (Exception e) {
+                    Logger.error(e);
+                }
                 return new ResponseEntity<>(updatedAttachmentId, HttpStatus.OK);
             } else {
                 throw new ValidationException("file");
@@ -543,6 +589,14 @@ public class DocumentController {
                 }
                 Attachment attachment = document.getAttachmentList().get(0);
                 Long attachmentId = documentService.updateAttachment(documentId, attachment.getId(), file, name);
+                try {
+                    LoggingContext.put("user_email", Core.currentUser().getEmail());
+                    LoggingContext.put("updatedAttachmentId", attachmentId);
+                    Logger.trace("User uploaded main file.");
+                    LoggingContext.clear();
+                } catch (Exception e) {
+                    Logger.error(e);
+                }
                 return new ResponseEntity<>(attachmentId, HttpStatus.OK);
             } else {
                 throw new ValidationException("file");
@@ -570,6 +624,14 @@ public class DocumentController {
             String name = file.getOriginalFilename();
             if (!file.isEmpty()) {
                 Long attachmentId = documentService.addAttachment(documentId, file, name);
+                try {
+                    LoggingContext.put("user_email", Core.currentUser().getEmail());
+                    LoggingContext.put("updatedAttachmentId", attachmentId);
+                    Logger.trace("User uploaded file (2).");
+                    LoggingContext.clear();
+                } catch (Exception e) {
+                    Logger.error(e);
+                }
                 return new ResponseEntity<>(attachmentId, HttpStatus.OK);
             } else {
                 throw new ValidationException("file");
@@ -601,6 +663,14 @@ public class DocumentController {
         return () -> {
             try {
                 Attachment attachment = documentService.getAttachment(documentId, position);
+                try {
+                    LoggingContext.put("user_email", Core.currentUser().getEmail());
+                    LoggingContext.put("attachmentId", attachment.getId());
+                    Logger.trace("User downloads file.");
+                    LoggingContext.clear();
+                } catch (Exception e) {
+                    Logger.error(e);
+                }
                 byte[] source = attachment.getSource();
                 InputStream is = new ByteArrayInputStream(source);
                 response.setContentType(attachment.getMimeType());
@@ -640,6 +710,14 @@ public class DocumentController {
         return () -> {
             try {
                 Attachment attachment = documentService.getAttachmentByAttachmentId(documentId, attachmentId);
+                try {
+                    LoggingContext.put("user_email", Core.currentUser().getEmail());
+                    LoggingContext.put("attachmentId", attachment.getId());
+                    Logger.trace("User downloads file (2).");
+                    LoggingContext.clear();
+                } catch (Exception e) {
+                    Logger.error(e);
+                }
                 InputStream is = null;
                 if (attachment.getFileBlobBean() != null && attachment.getFileBlobBean().getSourceBlob() != null) {
                     Blob blob = attachment.getFileBlobBean().getSourceBlob();
@@ -866,6 +944,15 @@ public class DocumentController {
     public Callable shareDocumentWithUser(@PathVariable Long documentId, @RequestParam String userIds, @RequestParam String permissions) {
         return () -> {
             Document document = documentService.addAccess(documentId, userIds, permissions);
+            try {
+                LoggingContext.put("user_email", Core.currentUser().getEmail());
+                LoggingContext.put("documentId", documentId);
+                LoggingContext.put("userIds", userIds);
+                Logger.trace("User shares a document with others.");
+                LoggingContext.clear();
+            } catch (Exception e) {
+                Logger.error(e);
+            }
             documentEventsPublisher.sendDocumentSharingEvent(document);
             return new ResponseEntity<>(HttpStatus.OK);
         };
@@ -951,6 +1038,20 @@ public class DocumentController {
     public Callable createDiscussion(@PathVariable Long documentId, @RequestBody DiscussionSectionDto discussionSectionDto) {
         return () -> {
             Document document = documentService.addDiscussionToDocument(documentId, discussionSectionDto);
+            try {
+                LoggingContext.put("user_email", Core.currentUser().getEmail());
+                try {
+                    LoggingContext.put("discussionId", document.getDiscussionList().get(document.getDiscussionList().size() - 1));
+                } catch (Exception e) {
+                    Logger.error(e);
+                }
+                LoggingContext.put("conversationSection", discussionSectionDto.getSectionText());
+                LoggingContext.put("documentId", documentId);
+                Logger.trace("User created conversation for document.");
+                LoggingContext.clear();
+            } catch (Exception e) {
+                Logger.error(e);
+            }
             documentEventsPublisher.sendDocumentCreationEvent(document);
             return new ResponseEntity<>(document, HttpStatus.CREATED);
         };
