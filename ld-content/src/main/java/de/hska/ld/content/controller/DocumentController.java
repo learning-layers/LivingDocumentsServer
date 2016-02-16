@@ -203,9 +203,10 @@ public class DocumentController {
                 LoggingContext.put("conversationSection", document.getDescription());
                 LoggingContext.put("documentId", documentId);
                 Logger.trace("User created conversation for document.");
-                LoggingContext.clear();
             } catch (Exception e) {
                 Logger.error(e);
+            } finally {
+                LoggingContext.clear();
             }
             return new ResponseEntity<>(discussion, HttpStatus.CREATED);
         };
@@ -295,9 +296,10 @@ public class DocumentController {
                 LoggingContext.put("user_email", Core.currentUser().getEmail());
                 LoggingContext.put("documentId", documentId);
                 Logger.trace("User opens document.");
-                LoggingContext.clear();
             } catch (Exception e) {
                 Logger.error(e);
+            } finally {
+                LoggingContext.clear();
             }
             Document documentClone = cloner.shallowClone(document);
             documentService.loadContentCollection(document, Comment.class, Tag.class, Hyperlink.class, User.class);
@@ -397,9 +399,10 @@ public class DocumentController {
                 LoggingContext.put("commentId", newComment.getId());
                 LoggingContext.put("documentId", documentId);
                 Logger.trace("User created comment for document.");
-                LoggingContext.clear();
             } catch (Exception e) {
                 Logger.error(e);
+            } finally {
+                LoggingContext.clear();
             }
             return new ResponseEntity<>(newComment, HttpStatus.CREATED);
         };
@@ -432,9 +435,10 @@ public class DocumentController {
                     LoggingContext.put("tagId", tag.getId());
                     LoggingContext.put("documentId", documentId);
                     Logger.trace("User added tag to document.");
-                    LoggingContext.clear();
                 } catch (Exception e) {
                     Logger.error(e);
+                } finally {
+                    LoggingContext.clear();
                 }
                 documentEventsPublisher.sendAddTagEvent(document, tag);
             }
@@ -565,9 +569,10 @@ public class DocumentController {
                     LoggingContext.put("user_email", Core.currentUser().getEmail());
                     LoggingContext.put("updatedAttachmentId", updatedAttachmentId);
                     Logger.trace("User uploaded file.");
-                    LoggingContext.clear();
                 } catch (Exception e) {
                     Logger.error(e);
+                } finally {
+                    LoggingContext.clear();
                 }
                 return new ResponseEntity<>(updatedAttachmentId, HttpStatus.OK);
             } else {
@@ -593,9 +598,10 @@ public class DocumentController {
                     LoggingContext.put("user_email", Core.currentUser().getEmail());
                     LoggingContext.put("updatedAttachmentId", attachmentId);
                     Logger.trace("User uploaded main file.");
-                    LoggingContext.clear();
                 } catch (Exception e) {
                     Logger.error(e);
+                } finally {
+                    LoggingContext.clear();
                 }
                 return new ResponseEntity<>(attachmentId, HttpStatus.OK);
             } else {
@@ -628,9 +634,10 @@ public class DocumentController {
                     LoggingContext.put("user_email", Core.currentUser().getEmail());
                     LoggingContext.put("updatedAttachmentId", attachmentId);
                     Logger.trace("User uploaded file (2).");
-                    LoggingContext.clear();
                 } catch (Exception e) {
                     Logger.error(e);
+                } finally {
+                    LoggingContext.clear();
                 }
                 return new ResponseEntity<>(attachmentId, HttpStatus.OK);
             } else {
@@ -667,9 +674,10 @@ public class DocumentController {
                     LoggingContext.put("user_email", Core.currentUser().getEmail());
                     LoggingContext.put("attachmentId", attachment.getId());
                     Logger.trace("User downloads file.");
-                    LoggingContext.clear();
                 } catch (Exception e) {
                     Logger.error(e);
+                } finally {
+                    LoggingContext.clear();
                 }
                 byte[] source = attachment.getSource();
                 InputStream is = new ByteArrayInputStream(source);
@@ -714,9 +722,10 @@ public class DocumentController {
                     LoggingContext.put("user_email", Core.currentUser().getEmail());
                     LoggingContext.put("attachmentId", attachment.getId());
                     Logger.trace("User downloads file (2).");
-                    LoggingContext.clear();
                 } catch (Exception e) {
                     Logger.error(e);
+                } finally {
+                    LoggingContext.clear();
                 }
                 InputStream is = null;
                 if (attachment.getFileBlobBean() != null && attachment.getFileBlobBean().getSourceBlob() != null) {
@@ -949,9 +958,10 @@ public class DocumentController {
                 LoggingContext.put("documentId", documentId);
                 LoggingContext.put("userIds", userIds);
                 Logger.trace("User shares a document with others.");
-                LoggingContext.clear();
             } catch (Exception e) {
                 Logger.error(e);
+            } finally {
+                LoggingContext.clear();
             }
             documentEventsPublisher.sendDocumentSharingEvent(document);
             return new ResponseEntity<>(HttpStatus.OK);
@@ -1048,9 +1058,10 @@ public class DocumentController {
                 LoggingContext.put("conversationSection", discussionSectionDto.getSectionText());
                 LoggingContext.put("documentId", documentId);
                 Logger.trace("User created conversation for document.");
-                LoggingContext.clear();
             } catch (Exception e) {
                 Logger.error(e);
+            } finally {
+                LoggingContext.clear();
             }
             documentEventsPublisher.sendDocumentCreationEvent(document);
             return new ResponseEntity<>(document, HttpStatus.CREATED);

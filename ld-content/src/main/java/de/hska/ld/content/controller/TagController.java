@@ -108,9 +108,10 @@ public class TagController {
                     LoggingContext.put("user_email", Core.currentUser().getEmail());
                     LoggingContext.put("tagId", dbTag.getId());
                     Logger.trace("User created tag.");
-                    LoggingContext.clear();
                 } catch (Exception e) {
                     Logger.error(e);
+                } finally {
+                    LoggingContext.clear();
                 }
                 return new ResponseEntity<>(dbTag, HttpStatus.CREATED);
             } else {

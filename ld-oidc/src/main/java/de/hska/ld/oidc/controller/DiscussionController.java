@@ -131,9 +131,10 @@ public class DiscussionController {
                 LoggingContext.put("user_email", Core.currentUser().getEmail());
                 LoggingContext.put("sssFileEntityId", fileEntityId);
                 Logger.trace("User downloads file from discussions.");
-                LoggingContext.clear();
             } catch (Exception e) {
                 Logger.error(e);
+            } finally {
+                LoggingContext.clear();
             }
             return new ResponseEntity<>(downloadLink, HttpStatus.OK);
         };
@@ -164,9 +165,10 @@ public class DiscussionController {
                 LoggingContext.put("documentId", documentId);
                 LoggingContext.put("sssDiscussionLabel", sssCreateDiscResponseDto.getDisc());
                 Logger.trace("User created discussion.");
-                LoggingContext.clear();
             } catch (Exception e) {
                 Logger.error(e);
+            } finally {
+                LoggingContext.clear();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -201,9 +203,10 @@ public class DiscussionController {
                 LoggingContext.put("sssDiscussionLabel", sssEntryForDiscussionResponseDto.getDisc());
                 LoggingContext.put("sssEntryLabel", sssEntryForDiscussionResponseDto.getEntry());
                 Logger.trace("User created comment for discussion.");
-                LoggingContext.clear();
             } catch (Exception e) {
                 Logger.error(e);
+            } finally {
+                LoggingContext.clear();
             }
         } catch (Exception e) {
             e.printStackTrace();
