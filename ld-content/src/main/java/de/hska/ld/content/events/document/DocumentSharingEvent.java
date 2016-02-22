@@ -3,7 +3,7 @@
  *  http://www.learning-layers.eu
  *  Development is partly funded by the FP7 Programme of the European
  *  Commission under Grant Agreement FP7-ICT-318209.
- *  Copyright (c) 2015, Karlsruhe University of Applied Sciences.
+ *  Copyright (c) 2016, Karlsruhe University of Applied Sciences.
  *  For a list of contributors see the AUTHORS file at the top-level directory
  *  of this distribution.
  *
@@ -20,11 +20,18 @@
  *  limitations under the License.
  */
 
-package de.hska.ld.core.events.user;
+package de.hska.ld.content.events.document;
 
-public class UserLoginEvent extends UserResultEvent {
+import de.hska.ld.content.persistence.domain.Access;
+import de.hska.ld.content.persistence.domain.Document;
 
-    private static final long serialVersionUID = -4272763460926206088L;
+import java.util.List;
+
+public class DocumentSharingEvent extends DocumentResultEvent {
+
+    private static final long serialVersionUID = -1131915608991304982L;
+
+    private List<Access> accessList = null;
 
     /**
      * Create a new ApplicationEvent.
@@ -32,7 +39,20 @@ public class UserLoginEvent extends UserResultEvent {
      * @param source      the object on which the event initially occurred (never {@code null})
      * @param accessToken
      */
-    public UserLoginEvent(Object source, String accessToken) {
+    public DocumentSharingEvent(Object source, String accessToken) {
         super(source, accessToken);
+    }
+
+    public DocumentSharingEvent(Document document, String accessToken, List<Access> accessList) {
+        super(document, accessToken);
+        this.accessList = accessList;
+    }
+
+    public List<Access> getAccessList() {
+        return accessList;
+    }
+
+    public void setAccessList(List<Access> accessList) {
+        this.accessList = accessList;
     }
 }

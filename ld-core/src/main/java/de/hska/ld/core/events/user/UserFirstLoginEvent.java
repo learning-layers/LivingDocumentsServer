@@ -22,9 +22,9 @@
 
 package de.hska.ld.core.events.user;
 
-public class UserLoginEvent extends UserResultEvent {
+public class UserFirstLoginEvent extends UserResultEvent {
 
-    private static final long serialVersionUID = -4272763460926206088L;
+    private static final long serialVersionUID = 8863991500037492282L;
 
     /**
      * Create a new ApplicationEvent.
@@ -32,7 +32,7 @@ public class UserLoginEvent extends UserResultEvent {
      * @param source      the object on which the event initially occurred (never {@code null})
      * @param accessToken
      */
-    public UserLoginEvent(Object source, String accessToken) {
+    public UserFirstLoginEvent(Object source, String accessToken) {
         super(source, accessToken);
     }
 }

@@ -3,7 +3,7 @@
  *  http://www.learning-layers.eu
  *  Development is partly funded by the FP7 Programme of the European
  *  Commission under Grant Agreement FP7-ICT-318209.
- *  Copyright (c) 2015, Karlsruhe University of Applied Sciences.
+ *  Copyright (c) 2016, Karlsruhe University of Applied Sciences.
  *  For a list of contributors see the AUTHORS file at the top-level directory
  *  of this distribution.
  *
@@ -20,19 +20,18 @@
  *  limitations under the License.
  */
 
-package de.hska.ld.core.events.user;
+package de.hska.ld.oidc.service;
 
-public class UserLoginEvent extends UserResultEvent {
+import de.hska.ld.oidc.persistence.domain.UserSharingBuffer;
 
-    private static final long serialVersionUID = -4272763460926206088L;
+public interface UserSharingBufferService {
+    void addUserSharingBuffer(Long documentId, String email, String permissionString);
 
-    /**
-     * Create a new ApplicationEvent.
-     *
-     * @param source      the object on which the event initially occurred (never {@code null})
-     * @param accessToken
-     */
-    public UserLoginEvent(Object source, String accessToken) {
-        super(source, accessToken);
-    }
+    void addUserSharingBuffer(Long documentId, String sub, String issuer, String permissionString);
+
+    UserSharingBuffer findBySubAndIssuer(String subId, String issuer);
+
+    UserSharingBuffer findByEmail(String email);
+
+    void removeUserSharingBuffer(Long id);
 }

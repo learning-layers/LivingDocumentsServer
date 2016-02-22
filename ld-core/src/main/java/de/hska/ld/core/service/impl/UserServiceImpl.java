@@ -248,7 +248,7 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
         if (searchTerm == null) {
             return repository.findAll(pageable);
         } else {
-            return repository.findMentionSuggestions(searchTerm + "%", pageable);
+            return repository.findMentionSuggestions("%" + searchTerm + "%", pageable);
         }
     }
 
@@ -287,7 +287,7 @@ public class UserServiceImpl extends AbstractService<User> implements UserServic
 
     @Override
     public List<User> getMentionSuggestions(String term) {
-        return repository.findMentionSuggestions(term + "%");
+        return repository.findMentionSuggestions("%" + term + "%");
     }
 
     @Override

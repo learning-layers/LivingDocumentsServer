@@ -22,6 +22,7 @@
 
 package de.hska.ld.oidc.controller;
 
+import de.hska.ld.content.events.document.DocumentEventsPublisher;
 import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
@@ -40,6 +41,7 @@ import de.hska.ld.oidc.dto.OIDCSubInfoDto;
 import de.hska.ld.oidc.dto.OIDCUserinfoDto;
 import de.hska.ld.oidc.dto.SSSAuthDto;
 import de.hska.ld.oidc.dto.SSSLivingdocsResponseDto;
+import de.hska.ld.oidc.service.UserSharingBufferService;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
@@ -54,10 +56,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -87,7 +89,10 @@ public class OIDCController {
     private Environment env;
 
     @Autowired
-    private EntityManager entityManager;
+    private UserSharingBufferService userSharingBufferService;
+
+    @Autowired
+    private DocumentEventsPublisher documentEventsPublisher;
 
     @RequestMapping(method = RequestMethod.GET, value = "/authenticate")
     public User authenticate(HttpServletRequest request,
@@ -189,6 +194,7 @@ public class OIDCController {
 
         StringBuilder sb = new StringBuilder();
         boolean first = true;
+        List<OIDCSubInfoDto> userIssuerAndSubsThatDontHaveALDAccountRightNow = new ArrayList<>();
         for (OIDCSubInfoDto isserSubDto : issuerSubList) {
             User user = userService.findBySubIdAndIssuer(isserSubDto.getSub(), isserSubDto.getIssuer());
             if (user != null && user.getId() != null && document.getCreator() != null &&
@@ -199,17 +205,42 @@ public class OIDCController {
                 } else {
                     sb.append(";").append(user.getId());
                 }
+            } else if (user == null) {
+                // remember the issuer and subs used in the sharing process and store them in
+                // case these users login into living documents at a later time
+                userIssuerAndSubsThatDontHaveALDAccountRightNow.add(isserSubDto);
             }
         }
+
+        try {
+            // remember all the user sub and issuers that the document should be shared with but which are
+            // not know to the system right now
+            userIssuerAndSubsThatDontHaveALDAccountRightNow.forEach(isserSubDto -> {
+                userSharingBufferService.addUserSharingBuffer(documentId, isserSubDto.getSub(), isserSubDto.getIssuer(), "READ;WRITE");
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         String userIds = sb.toString();
         if (!"".equals(userIds)) {
             Document dbDocument = documentService.findById(document.getId());
-            dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
-            dbDocument.getAttachmentList().size();
-            entityManager.flush();
+            dbDocument = addAccessWithNewTransaction(dbDocument.getId(), userIds, "READ;WRITE");
+            try {
+                String oidcToken = null;
+                try {
+                    oidcToken = Authorization.substring("Bearer ".length(), Authorization.length());
+                } catch (Exception e) {
+                    throw new ValidationException("malformed oidc token information");
+                }
+                documentEventsPublisher.sendDocumentSharingEvent(dbDocument, oidcToken, dbDocument.getAccessList());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return new ResponseEntity<>(dbDocument.getAccessList(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.OK);
         }
-
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document/{documentId}/share/email")
@@ -229,6 +260,7 @@ public class OIDCController {
 
         StringBuilder sb = new StringBuilder();
         boolean first = true;
+        List<String> userEmailsThatDontHaveALDAccountRightNow = new ArrayList<>();
         for (String userEmail : userEmailList) {
             User user = userService.findByEmail(userEmail);
             if (user != null && user.getId() != null && document.getCreator() != null &&
@@ -239,16 +271,48 @@ public class OIDCController {
                 } else {
                     sb.append(";").append(user.getId());
                 }
+            } else if (user == null) {
+                // remember the email address used in the sharing process and store them in
+                // case these users login into living documents at a later time
+                userEmailsThatDontHaveALDAccountRightNow.add(userEmail);
             }
         }
-        String userIds = sb.toString();
-        if (!"".equals(userIds)) {
-            Document dbDocument = documentService.findById(document.getId());
-            dbDocument = documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, "READ;WRITE");
-            dbDocument.getAttachmentList().size();
-            entityManager.flush();
+
+        // remember all the user emails that the document should be shared with but which are
+        // not know to the system right now
+        try {
+            userEmailsThatDontHaveALDAccountRightNow.forEach(userEmail -> {
+                userSharingBufferService.addUserSharingBuffer(documentId, userEmail, "READ;WRITE");
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+
+        String userIds = sb.toString();
+        Document dbDocument = null;
+        if (!"".equals(userIds)) {
+            dbDocument = documentService.findById(document.getId());
+            dbDocument = addAccessWithNewTransaction(dbDocument.getId(), userIds, "READ;WRITE");
+            try {
+                String oidcToken = null;
+                try {
+                    oidcToken = Authorization.substring("Bearer ".length(), Authorization.length());
+                } catch (Exception e) {
+                    throw new ValidationException("malformed oidc token information");
+                }
+                documentEventsPublisher.sendDocumentSharingEvent(dbDocument, oidcToken, dbDocument.getAccessList());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return new ResponseEntity<>(dbDocument.getAccessList(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private Document addAccessWithNewTransaction(Long dbDocument, String userIds, String permissions) {
+        return documentService.addAccessWithoutTransactional(dbDocument, userIds, permissions);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document")

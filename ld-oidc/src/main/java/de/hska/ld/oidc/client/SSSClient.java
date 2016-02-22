@@ -35,6 +35,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -71,6 +72,15 @@ public class SSSClient {
     @Autowired
     private ExceptionLogger exceptionLogger;
 
+    private int sssAPIVersion = -1;
+
+    public int getSssAPIVersion() {
+        if (sssAPIVersion == -1) {
+            sssAPIVersion = Integer.parseInt(env.getProperty("sss.api.version"));
+        }
+        return sssAPIVersion;
+    }
+
     public String getSssServerAddress() {
         return env.getProperty("sss.server.endpoint");
     }
@@ -101,7 +111,12 @@ public class SSSClient {
     }
 
     public SSSAuthDto authenticate(String accessToken) throws IOException {
-        String url = env.getProperty("sss.server.endpoint") + "/auth/auth/";
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/auth/auth/";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/auth/";
+        }
 
         HttpClient client = getHttpClientFor(url);
         HttpGet get = new HttpGet(url);
@@ -143,7 +158,12 @@ public class SSSClient {
     }
 
     public SSSLivingdocsResponseDto createDocument(Document document, String discussionId, String accessToken) throws IOException, AuthenticationNotValidException {
-        String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/";
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/livingdocs/";
+        }
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
@@ -194,7 +214,12 @@ public class SSSClient {
 
     public SSSDiscsDto getDiscussionsForDocument(Long documentId, String accessToken) throws IOException {
         //http://test-ll.know-center.tugraz.at/layers.test/discs/discs/targets/http%253A%252F%252F178.62.62.23%253A9000%252Fdocument%252F65554
-        String url = env.getProperty("sss.server.endpoint") + "/discs/discs/filtered/targets/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/discs/discs/filtered/targets/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/discs/filtered/targets/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
+        }
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
@@ -260,7 +285,12 @@ public class SSSClient {
             }
         }
         attachmentIdString = URLEncoder.encode(attachmentIdString, "UTF-8");
-        String url = env.getProperty("sss.server.endpoint") + "/entities/entities/filtered/" + attachmentIdString;
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/entities/entities/filtered/" + attachmentIdString;
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/entities/filtered/" + attachmentIdString;
+        }
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
@@ -319,7 +349,12 @@ public class SSSClient {
         discRequestDto.getTargets().add(sssDocumentId);
         sssCreateDiscRequestDto.setTargets(discRequestDto.getTargets());
 
-        String url = env.getProperty("sss.server.endpoint") + "/discs/discs";
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/discs/discs";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/discs";
+        }
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
@@ -366,7 +401,12 @@ public class SSSClient {
     }
 
     public void addTagTo(String discOrEntry, String tag, String accessToken) throws IOException {
-        String url = env.getProperty("sss.server.endpoint") + "/tags/tags";
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/tags/tags";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/tags";
+        }
 
         SSSTagRequestDto sssTagRequestDto = new SSSTagRequestDto();
         sssTagRequestDto.setEntity(discOrEntry);
@@ -416,7 +456,12 @@ public class SSSClient {
     }
 
     public SSSEntryForDiscussionResponseDto createEntryForDiscussion(SSSEntryForDiscussionRequestDto entryForDiscRequestDto, String accessToken) throws IOException {
-        String url = env.getProperty("sss.server.endpoint") + "/discs/discs";
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/discs/discs";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/discs";
+        }
 
         HttpClient client = getHttpClientFor(url);
         HttpPost post = new HttpPost(url);
@@ -464,7 +509,13 @@ public class SSSClient {
     }
 
     public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, AuthenticationNotValidException {
-        String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
+        }
+
         PostClientRequest postClientRequest = new PostClientRequest(url, "getLDocById");
         StringEntity stringEntity = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
         try {
@@ -492,7 +543,14 @@ public class SSSClient {
     }
 
     public SSSLivingDocResponseDto getLDocEmailsById(Long documentId, String accessToken) throws IOException, AuthenticationNotValidException {
-        String url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
+        }
+
+
         StringEntity stringEntity = new StringEntity("{\"setUsers\": true}", ContentType.create("application/json", "UTF-8"));
         PostClientRequest postClientRequest = new PostClientRequest(url, "getLDocEmailsById1");
         try {
@@ -504,7 +562,13 @@ public class SSSClient {
         if (sssLivingDocResponseDto == null) {
             // TODO HACK this is a workaround because the configuration in the production system was set wrong and the
             // ids can't be changed in a quick way
-            String url2 = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode("http://178.62.62.23:9000/" + documentId, "UTF-8"), "UTF-8");
+            String url2 = null;
+            if (getSssAPIVersion() == 1) {
+                url2 = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode("http://178.62.62.23:9000/" + documentId, "UTF-8"), "UTF-8");
+            } else {
+                url2 = env.getProperty("sss.server.endpoint") + "/rest/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode("http://178.62.62.23:9000/" + documentId, "UTF-8"), "UTF-8");
+            }
+
             PostClientRequest postClientRequest2 = new PostClientRequest(url2, "getLDocEmailsById2");
             StringEntity stringEntity2 = new StringEntity("{}", ContentType.create("application/json", "UTF-8"));
             try {
@@ -525,10 +589,71 @@ public class SSSClient {
         return post;
     }
 
+    private HttpPut addHeaderInformation(HttpPut put, String accessToken) {
+        put.setHeader("Content-type", "application/json");
+        put.setHeader("User-Agent", "Mozilla/5.0");
+        put.setHeader("Authorization", "Bearer " + accessToken);
+        return put;
+    }
+
     private HttpGet addHeaderInformation(HttpGet get, String accessToken) {
         get.setHeader("Content-type", "application/json");
         get.setHeader("User-Agent", "Mozilla/5.0");
         get.setHeader("Authorization", "Bearer " + accessToken);
         return get;
+    }
+
+    public void shareLDocWith(Long documentId, List<String> sssUserIdsTheLDocIsNotSharedWith, String accessToken) throws IOException {
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/entities/entities/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8") + "/share";
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/entities/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8") + "/share";
+        }
+
+        HttpClient client = getHttpClientFor(url);
+        HttpPut put = new HttpPut(url);
+        addHeaderInformation(put, accessToken);
+
+        SSSShareEntityDto sssShareEntityDto = new SSSShareEntityDto();
+        sssShareEntityDto.setUsers(sssUserIdsTheLDocIsNotSharedWith);
+
+        String requestDtoString = mapper.writeValueAsString(sssShareEntityDto);
+        StringEntity stringEntity = new StringEntity(requestDtoString, ContentType.create("application/json", "UTF-8"));
+        put.setEntity(stringEntity);
+        BufferedReader rd = null;
+
+        HttpResponse response = client.execute(put);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            if (response.getStatusLine().getStatusCode() == 403) {
+                throw new UserNotAuthorizedException();
+            }
+        }
+
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                throw new ValidationException("access token is invalid");
+            }
+        } catch (ValidationException ve) {
+            throw ve;
+        } catch (Exception e) {
+            e.printStackTrace();
+            //return null;
+        } finally {
+            if (rd != null) {
+                rd.close();
+            }
+        }
     }
 }
