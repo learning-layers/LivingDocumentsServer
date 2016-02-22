@@ -2,12 +2,16 @@ package de.hska.ld.etherpad.service.impl;
 
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.etherpad.client.EtherpadClient;
+import de.hska.ld.etherpad.dto.EtherpadTextDto;
 import de.hska.ld.etherpad.persistence.domain.DocumentEtherpadInfo;
 import de.hska.ld.etherpad.persistence.repository.DocumentEtherpadInfoRepository;
 import de.hska.ld.etherpad.service.DocumentEtherpadInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
 
 @Service
 public class DocumentEtherpadInfoServiceImpl implements DocumentEtherpadInfoService {
@@ -17,6 +21,9 @@ public class DocumentEtherpadInfoServiceImpl implements DocumentEtherpadInfoServ
 
     @Autowired
     private DocumentEtherpadInfoRepository documentEtherpadInfoRepository;
+
+    @Autowired
+    private EtherpadClient etherpadClient;
 
     @Override
     @Transactional(readOnly = false)
@@ -80,4 +87,15 @@ public class DocumentEtherpadInfoServiceImpl implements DocumentEtherpadInfoServ
         return documentEtherpadInfoRepository.findByGroupPadId(padId);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public String getPadText(String groupPadId) {
+        String padText = null;
+        try {
+            padText = etherpadClient.getText(groupPadId);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        return padText;
+    }
 }

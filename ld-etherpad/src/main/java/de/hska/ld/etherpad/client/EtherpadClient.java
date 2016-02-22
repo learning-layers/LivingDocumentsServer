@@ -25,10 +25,7 @@ package de.hska.ld.etherpad.client;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.core.logging.ExceptionLogger;
-import de.hska.ld.etherpad.dto.EtherpadAuthorDto;
-import de.hska.ld.etherpad.dto.EtherpadGroupDto;
-import de.hska.ld.etherpad.dto.EtherpadGroupPadDto;
-import de.hska.ld.etherpad.dto.EtherpadSessionDto;
+import de.hska.ld.etherpad.dto.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -443,5 +440,54 @@ public class EtherpadClient {
             result.append(line);
         }
         return result;
+    }
+
+    public String getText(String groupPadId) throws IOException{
+        String endpoint = etherpadEndpoint;
+        String url = endpoint + "/api/1/getText";
+
+        //HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = createHttpsClient();
+        HttpPost post = new HttpPost(url);
+
+        // add header
+        post.setHeader("User-Agent", "Mozilla/5.0");
+
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("apikey", etherpadAPIKey));
+        urlParameters.add(new BasicNameValuePair("padID", groupPadId));
+
+        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        BufferedReader rd = null;
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+
+            //{code: 0, message:"ok", data: {readOnlyID: "r.s8oes9dhwrvt0zif"}}
+            //{code: 1, message:"padID does not exist", data: null}
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            EtherpadTextDto etherpadTextDto = mapper.readValue(result.toString(), EtherpadTextDto.class);
+            if (etherpadTextDto.getCode() != 1) {
+                return etherpadTextDto.getData().getText();
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            if (rd != null) {
+                rd.close();
+            }
+            throw e;
+        }
     }
 }
