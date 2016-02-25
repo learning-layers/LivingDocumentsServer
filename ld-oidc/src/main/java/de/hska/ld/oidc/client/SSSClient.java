@@ -508,6 +508,25 @@ public class SSSClient {
         }
     }
 
+    public SSSLivingDocResponseDto getLDocByIdWithEntities(Long documentId, String accessToken) throws IOException, AuthenticationNotValidException {
+        String url = null;
+        if (getSssAPIVersion() == 1) {
+            url = env.getProperty("sss.server.endpoint") + "/livingdocs/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
+        } else {
+            url = env.getProperty("sss.server.endpoint") + "/rest/livingdocs/filtered/" + URLEncoder.encode(URLEncoder.encode(env.getProperty("sss.document.name.prefix") + documentId, "UTF-8"), "UTF-8");
+        }
+
+        PostClientRequest postClientRequest = new PostClientRequest(url, "getLDocById");
+        StringEntity stringEntity = new StringEntity("{\"setAttachedEntities\": true}", ContentType.create("application/json", "UTF-8"));
+        try {
+            postClientRequest.execute(stringEntity, accessToken);
+        } catch (Exception e) {
+            exceptionLogger.log("getLDocByIdWithEntities Statuscode", e);
+        }
+        SSSLivingDocResponseDto sssLivingDocResponseDto = postClientRequest.getParsedBody(SSSLivingDocResponseDto.class);
+        return sssLivingDocResponseDto;
+    }
+
     public SSSLivingDocResponseDto getLDocById(Long documentId, String accessToken) throws IOException, AuthenticationNotValidException {
         String url = null;
         if (getSssAPIVersion() == 1) {

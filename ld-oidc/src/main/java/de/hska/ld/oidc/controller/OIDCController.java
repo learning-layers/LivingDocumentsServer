@@ -341,7 +341,7 @@ public class OIDCController {
             if (episodeId != null) {
                 DocumentSSSInfo documentSSSInfo = new DocumentSSSInfo();
                 documentSSSInfo.setDocument(newDocument);
-                documentSSSInfo.setEpsiodeId(episodeId);
+                documentSSSInfo.setEpisodeId(episodeId);
                 documentSSSInfoService.addDocumentInfo(documentSSSInfo);
             }
         }

@@ -35,8 +35,12 @@ public class DocumentSSSInfo {
     @Column(name = "id")
     private Long id;
 
+    @OneToOne
+    @JoinColumn(name = "document_id")
     private Document document;
-    private String epsiodeId;
+
+    @Column(name = "episode_id", nullable = true)
+    private String episodeId;
 
     public Document getDocument() {
         return document;
@@ -46,11 +50,11 @@ public class DocumentSSSInfo {
         this.document = document;
     }
 
-    public String getEpsiodeId() {
-        return epsiodeId;
+    public String getEpisodeId() {
+        return episodeId;
     }
 
-    public void setEpsiodeId(String epsiodeId) {
-        this.epsiodeId = epsiodeId;
+    public void setEpisodeId(String episodeId) {
+        this.episodeId = episodeId;
     }
 }
