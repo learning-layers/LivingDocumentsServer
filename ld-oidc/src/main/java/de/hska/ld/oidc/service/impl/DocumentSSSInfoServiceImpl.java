@@ -43,8 +43,8 @@ public class DocumentSSSInfoServiceImpl implements DocumentSSSInfoService {
     }
 
     @Override
-    public void getDocumentSSSInfo(Document document) {
-        repository.findByDocument(document);
+    public DocumentSSSInfo getDocumentSSSInfo(Document document) {
+        return repository.findByDocument(document);
     }
 
     public DocumentSSSInfoRepository getRepository() {

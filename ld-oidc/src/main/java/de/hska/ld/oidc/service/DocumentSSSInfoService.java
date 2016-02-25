@@ -28,5 +28,5 @@ import de.hska.ld.oidc.persistence.domain.DocumentSSSInfo;
 public interface DocumentSSSInfoService {
     void addDocumentInfo(DocumentSSSInfo documentSSSInfo);
 
-    void getDocumentSSSInfo(Document document);
+    DocumentSSSInfo getDocumentSSSInfo(Document document);
 }
