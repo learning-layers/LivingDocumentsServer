@@ -100,7 +100,7 @@ public class LDToSSSEventListener {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
         try {
-            SSSCreateDiscResponseDto result = sssClient.createDiscussion(String.valueOf(newDocument.getId()), sssCreateDiscRequestDto, token.getAccessTokenValue());
+            SSSCreateDiscResponseDto result = sssClient.createDiscussion(String.valueOf(newDocument.getId()), sssCreateDiscRequestDto, event.getAccessToken());
             String disc = result.getDisc();
             System.out.println(disc);
         } catch (Exception e) {

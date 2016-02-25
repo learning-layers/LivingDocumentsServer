@@ -41,6 +41,8 @@ import de.hska.ld.oidc.dto.OIDCSubInfoDto;
 import de.hska.ld.oidc.dto.OIDCUserinfoDto;
 import de.hska.ld.oidc.dto.SSSAuthDto;
 import de.hska.ld.oidc.dto.SSSLivingdocsResponseDto;
+import de.hska.ld.oidc.persistence.domain.DocumentSSSInfo;
+import de.hska.ld.oidc.service.DocumentSSSInfoService;
 import de.hska.ld.oidc.service.UserSharingBufferService;
 import org.mitre.openid.connect.client.SubjectIssuerGrantedAuthority;
 import org.mitre.openid.connect.model.DefaultUserInfo;
@@ -90,6 +92,9 @@ public class OIDCController {
 
     @Autowired
     private UserSharingBufferService userSharingBufferService;
+
+    @Autowired
+    private DocumentSSSInfoService documentSSSInfoService;
 
     @Autowired
     private DocumentEventsPublisher documentEventsPublisher;
@@ -321,7 +326,7 @@ public class OIDCController {
                                    @RequestBody Document document,
                                    @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer,
                                    @RequestHeader(required = false) String Authorization,
-                                   @RequestParam(required = false) String discussionId) throws IOException, ServletException {
+                                   @RequestParam(required = false) String discussionId, @RequestParam(required = false) String episodeId) throws IOException, ServletException {
 
         _authenticate(request, issuer, Authorization);
 
@@ -332,6 +337,13 @@ public class OIDCController {
             mainAttachment.setSource(document.getDescription().getBytes());
             //document.setDescription("");
             documentService.save(newDocument);
+
+            if (episodeId != null) {
+                DocumentSSSInfo documentSSSInfo = new DocumentSSSInfo();
+                documentSSSInfo.setDocument(newDocument);
+                documentSSSInfo.setEpsiodeId(episodeId);
+                documentSSSInfoService.addDocumentInfo(documentSSSInfo);
+            }
         }
 
         // 4. Create the document in the SSS together with the link to the discussion
