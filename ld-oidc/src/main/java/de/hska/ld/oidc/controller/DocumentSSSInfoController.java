@@ -22,25 +22,31 @@
 
 package de.hska.ld.oidc.controller;
 
+import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
+import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.util.Core;
+import de.hska.ld.oidc.client.SSSClient;
+import de.hska.ld.oidc.dto.SSSCircleInfoWrapper;
 import de.hska.ld.oidc.persistence.domain.DocumentSSSInfo;
 import de.hska.ld.oidc.service.DocumentSSSInfoService;
+import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 
 @RestController
-@RequestMapping("/api/documentsssinfo")
+@RequestMapping("/api/sssinfo")
 public class DocumentSSSInfoController {
 
     @Autowired
@@ -48,6 +54,9 @@ public class DocumentSSSInfoController {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private SSSClient sssClient;
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/document/{documentId}/episode")
@@ -63,6 +72,35 @@ public class DocumentSSSInfoController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
             return new ResponseEntity<>(documentSSSInfo, HttpStatus.OK);
+        };
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/episode/circleinfo")
+    @Transactional(readOnly = false, rollbackFor = RuntimeException.class)
+    public Callable getEpisodeCircleInformation(@RequestParam(required = false) Long documentId) throws IOException, ServletException {
+        return () -> {
+            Document document = documentService.findById(documentId);
+            documentService.checkPermission(document, Access.Permission.READ);
+
+            DocumentSSSInfo documentSSSInfo = documentSSSInfoService.getDocumentSSSInfo(document);
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+            String episodeId = null;
+            if (documentSSSInfo != null) {
+                episodeId = documentSSSInfo.getEpisodeId();
+            } else {
+                return new NotFoundException("documentId");
+            }
+            if (episodeId == null) {
+                return new NotFoundException("episodeId not available");
+            }
+            //episodeId = "http://sss.eu/132223745191788725";
+            SSSCircleInfoWrapper sssCircleInfoWrapper = sssClient.getCircleInformation(episodeId, token.getAccessTokenValue());
+            if (sssCircleInfoWrapper != null) {
+                return new ResponseEntity<>(sssCircleInfoWrapper, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
         };
     }
 }

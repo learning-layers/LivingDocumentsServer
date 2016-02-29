@@ -23,7 +23,6 @@
 package de.hska.ld.oidc.controller;
 
 import de.hska.ld.content.events.document.DocumentEventsPublisher;
-import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
@@ -38,7 +37,10 @@ import de.hska.ld.core.util.Core;
 import de.hska.ld.oidc.client.OIDCIdentityProviderClient;
 import de.hska.ld.oidc.client.SSSClient;
 import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
-import de.hska.ld.oidc.dto.*;
+import de.hska.ld.oidc.dto.OIDCSubInfoDto;
+import de.hska.ld.oidc.dto.OIDCUserinfoDto;
+import de.hska.ld.oidc.dto.SSSAuthDto;
+import de.hska.ld.oidc.dto.SSSLivingdocsResponseDto;
 import de.hska.ld.oidc.persistence.domain.DocumentSSSInfo;
 import de.hska.ld.oidc.service.DocumentSSSInfoService;
 import de.hska.ld.oidc.service.UserSharingBufferService;
@@ -68,7 +70,6 @@ import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 @RestController
 @RequestMapping(Core.RESOURCE_USER + "/oidc")
@@ -317,40 +318,6 @@ public class OIDCController {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private Document addAccessWithNewTransaction(Long dbDocument, String userIds, String permissions) {
         return documentService.addAccessWithoutTransactional(dbDocument, userIds, permissions);
-    }
-
-    @RequestMapping(method = RequestMethod.POST, value = "/episode/circleinfo")
-    @Transactional(readOnly = false, rollbackFor = RuntimeException.class)
-    public Callable getEpisodeCircleInformation(HttpServletRequest request,
-                                                @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer,
-                                                @RequestHeader(required = false) String Authorization,
-                                                @RequestParam(required = false) Long documentId) throws IOException, ServletException {
-        return () -> {
-            _authenticate(request, issuer, Authorization);
-
-            Document document = documentService.findById(documentId);
-            documentService.checkPermission(document, Access.Permission.READ);
-
-            DocumentSSSInfo documentSSSInfo = documentSSSInfoService.getDocumentSSSInfo(document);
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
-            String episodeId = null;
-            if (documentSSSInfo != null) {
-                episodeId = documentSSSInfo.getEpisodeId();
-            } else {
-                return new NotFoundException("documentId");
-            }
-            if (episodeId == null) {
-                return new NotFoundException("episodeId not available");
-            }
-            //episodeId = "http://sss.eu/132223745191788725";
-            SSSCircleInfoWrapper sssCircleInfoWrapper = sssClient.getCircleInformation(episodeId, token.getAccessTokenValue());
-            if (sssCircleInfoWrapper != null) {
-                return new ResponseEntity<>(sssCircleInfoWrapper, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        };
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/document")
