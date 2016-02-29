@@ -675,4 +675,47 @@ public class SSSClient {
             }
         }
     }
+
+    public SSSCircleInfoWrapper getCircleInformation(String episodeId, String accessToken) throws IOException {
+        String url = env.getProperty("sss.server.endpoint")
+                + "/rest/learneps/"
+                + URLEncoder.encode(URLEncoder.encode(episodeId, "UTF-8"), "UTF-8")
+                + "/structure/circles/entities";
+
+        HttpClient client = getHttpClientFor(url);
+        HttpGet get = new HttpGet(url);
+        addHeaderInformation(get, accessToken);
+
+        HttpResponse response = client.execute(get);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        if (response.getStatusLine().getStatusCode() != 200) {
+            throw new UserNotAuthorizedException();
+        }
+
+        BufferedReader rd = null;
+        try {
+            rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            if (result.toString().contains("\"error_description\":\"Invalid access token:")) {
+                throw new ValidationException("access token is invalid");
+            }
+            return mapper.readValue(result.toString(), SSSCircleInfoWrapper.class);
+        } catch (ValidationException ve) {
+            throw ve;
+        } catch (Exception e) {
+            return null;
+        } finally {
+            if (rd != null) {
+                rd.close();
+            }
+        }
+    }
 }
