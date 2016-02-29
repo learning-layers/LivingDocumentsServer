@@ -75,9 +75,9 @@ public class DocumentSSSInfoController {
         };
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/episode/circleinfo")
+    @RequestMapping(method = RequestMethod.GET, value = "/episode/circleinfo")
     @Transactional(readOnly = false, rollbackFor = RuntimeException.class)
-    public Callable getEpisodeCircleInformation(@RequestParam(required = false) Long documentId) throws IOException, ServletException {
+    public Callable getEpisodeCircleInformation(@RequestParam Long documentId) throws IOException, ServletException {
         return () -> {
             Document document = documentService.findById(documentId);
             documentService.checkPermission(document, Access.Permission.READ);
@@ -94,7 +94,6 @@ public class DocumentSSSInfoController {
             if (episodeId == null) {
                 return new NotFoundException("episodeId not available");
             }
-            //episodeId = "http://sss.eu/132223745191788725";
             SSSCircleInfoWrapper sssCircleInfoWrapper = sssClient.getCircleInformation(episodeId, token.getAccessTokenValue());
             if (sssCircleInfoWrapper != null) {
                 return new ResponseEntity<>(sssCircleInfoWrapper, HttpStatus.OK);

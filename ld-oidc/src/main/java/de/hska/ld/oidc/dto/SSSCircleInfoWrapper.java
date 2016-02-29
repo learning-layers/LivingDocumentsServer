@@ -27,7 +27,7 @@ import java.util.List;
 public class SSSCircleInfoWrapper {
     private String op;
     private List<SSSCircleItem> circles;
-    private List<SSSCircleItem> orphans;
+    private List<SSSCircleEntry> orphans;
 
     public String getOp() {
         return op;
@@ -45,11 +45,11 @@ public class SSSCircleInfoWrapper {
         this.circles = circles;
     }
 
-    public List<SSSCircleItem> getOrphans() {
+    public List<SSSCircleEntry> getOrphans() {
         return orphans;
     }
 
-    public void setOrphans(List<SSSCircleItem> orphans) {
+    public void setOrphans(List<SSSCircleEntry> orphans) {
         this.orphans = orphans;
     }
 }
