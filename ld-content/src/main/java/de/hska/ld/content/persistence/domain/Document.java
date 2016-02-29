@@ -49,6 +49,11 @@ public class Document extends Content {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO)
+    @Column(name = "document_status", nullable = true, columnDefinition = "enum('TEMPLATE','DOCUMENT')")
+    private DocumentStatus documentStatus;
+
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "ld_document_attachment",
             joinColumns = {@JoinColumn(name = "document_id")},
@@ -106,6 +111,10 @@ public class Document extends Content {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public DocumentStatus getDocumentStatus() { return documentStatus; }
+
+    public void setDocumentStatus(DocumentStatus documentStatus) { this.documentStatus = documentStatus; }
 
     public int getFileAttachmentCount() {
         return fileAttachmentCount;
