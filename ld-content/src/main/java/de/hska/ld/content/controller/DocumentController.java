@@ -172,8 +172,10 @@ public class DocumentController {
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Document> createDocument(@RequestBody Document document) {
+        document.setDocumentStatus(DocumentStatus.DOCUMENT);
         Document newDocument = documentService.save(document);
         documentEventsPublisher.sendDocumentCreationEvent(newDocument);
+
         return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
     }
 
