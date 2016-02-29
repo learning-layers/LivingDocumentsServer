@@ -1,7 +1,6 @@
 package de.hska.ld.etherpad.service;
 
 import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.etherpad.dto.EtherpadTextDto;
 import de.hska.ld.etherpad.persistence.domain.DocumentEtherpadInfo;
 
 public interface DocumentEtherpadInfoService {
@@ -20,7 +19,9 @@ public interface DocumentEtherpadInfoService {
 
     DocumentEtherpadInfo findByGroupPadId(String padId);
 
-    String getPadText(String groupPadId);
+    String getGroupPadContent(String groupPadId);
+
+    String createGroupPadWithContent(Document document, String padContent);
 }
 
 

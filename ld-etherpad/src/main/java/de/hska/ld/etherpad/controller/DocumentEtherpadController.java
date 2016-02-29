@@ -25,9 +25,11 @@ package de.hska.ld.etherpad.controller;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.dto.EtherpadDocumentUpdateDto;
+import de.hska.ld.content.events.document.DocumentEventsPublisher;
 import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Document;
+import de.hska.ld.content.persistence.domain.DocumentStatus;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
@@ -75,6 +77,9 @@ public class DocumentEtherpadController {
 
     @Autowired
     private DocumentEtherpadInfoService documentEtherpadInfoService;
+
+    @Autowired
+    private DocumentEventsPublisher documentEventsPublisher;
 
     @Autowired
     private EtherpadClient etherpadClient;
@@ -394,5 +399,31 @@ public class DocumentEtherpadController {
             }
         }
         return -1;
+    }
+
+    /**
+     * This resource allows to create a template.
+     * <p>
+     * <pre>
+     *     <b>Required roles:</b> ROLE_USER
+     *     <b>Path:</b> POST /api/documents
+     * </pre>
+     *
+     * @param document Contains title and optional description of the new document. Example:
+     *                 {title: 'New Document', description: '&lt;optional&gt;'}
+     * @return <b>200 OK</b> with the generated document<br>
+     * <b>400 Bad Request</b> if no title exists<br>
+     */
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.POST, value = "/template/{documentId}")
+    public ResponseEntity<Document> createDocumentWithContent(@RequestBody Document document, @PathVariable Long documentId) {
+        Document newDocument = documentService.save(document);
+        Document parent = documentService.findById(documentId);
+        String parentGroupPadId = documentEtherpadInfoService.getGroupPadIdForDocument(parent);
+        String padContent = documentEtherpadInfoService.getGroupPadContent(parentGroupPadId);
+        String groupPadId = documentEtherpadInfoService.createGroupPadWithContent(newDocument, padContent);
+        documentEtherpadInfoService.storeGroupPadIdForDocument(groupPadId, document);
+        documentEventsPublisher.sendDocumentCreationEvent(newDocument);
+        return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
     }
 }

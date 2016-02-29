@@ -1,6 +1,6 @@
 package de.hska.ld.etherpad.dto;
 
-public class EtherpadTextDto {
+public class EtherpadHTMLDto {
     //{code: 0, message:"ok", data: {text:"Welcome Text"}}
     long code;
     String message;
@@ -31,14 +31,14 @@ public class EtherpadTextDto {
     }
 
     public class Data {
-        String text;
+        String html;
 
-        public String getText() {
-            return text;
+        public String getHTML() {
+            return html;
         }
 
-        public void setText(String text) {
-            this.text = text;
+        public void setHTML(String html) {
+            this.html = html;
         }
     }
 }

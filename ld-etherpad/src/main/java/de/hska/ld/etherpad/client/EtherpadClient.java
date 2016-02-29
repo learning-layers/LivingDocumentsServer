@@ -442,9 +442,9 @@ public class EtherpadClient {
         return result;
     }
 
-    public String getText(String groupPadId) throws IOException{
+    public String getGroupPadContent(String groupPadId) throws IOException{
         String endpoint = etherpadEndpoint;
-        String url = endpoint + "/api/1/getText";
+        String url = endpoint + "/api/1/getHTML";
 
         //HttpClient client = HttpClientBuilder.create().build();
         HttpClient client = createHttpsClient();
@@ -477,9 +477,9 @@ public class EtherpadClient {
             //{code: 0, message:"ok", data: {readOnlyID: "r.s8oes9dhwrvt0zif"}}
             //{code: 1, message:"padID does not exist", data: null}
             ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            EtherpadTextDto etherpadTextDto = mapper.readValue(result.toString(), EtherpadTextDto.class);
-            if (etherpadTextDto.getCode() != 1) {
-                return etherpadTextDto.getData().getText();
+            EtherpadHTMLDto etherpadHTMLDto = mapper.readValue(result.toString(), EtherpadHTMLDto.class);
+            if (etherpadHTMLDto.getCode() != 1) {
+                return etherpadHTMLDto.getData().getHTML();
             } else {
                 return null;
             }
