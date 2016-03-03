@@ -116,15 +116,14 @@ public class LDToSSSEventListener {
         preventDeletionOfConnectedDocuments(event, documentId);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void preventDeletionOfConnectedDocuments(DocumentDeletionEvent event, Long documentId) {
         Document document = documentService.findById(documentId);
         if (document == null) {
-            event.setAccessToken(null);
+            event.setDeletable(true);
         } else {
             DocumentSSSInfo documentSSSInfo = documentSSSInfoService.getDocumentSSSInfo(document);
-            if (documentSSSInfo != null && documentSSSInfo.getEpisodeId() != null) {
-                event.setAccessToken(null);
+            if (documentSSSInfo == null || documentSSSInfo.getEpisodeId() == null) {
+                event.setDeletable(true);
             }
         }
     }

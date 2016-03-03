@@ -25,6 +25,8 @@ package de.hska.ld.content.events.document;
 public class DocumentDeletionEvent extends DocumentResultEvent {
     private static final long serialVersionUID = 5566404373965696509L;
 
+    private boolean isDeletable = false;
+
     /**
      * Create a new ApplicationEvent.
      *
@@ -32,5 +34,13 @@ public class DocumentDeletionEvent extends DocumentResultEvent {
      */
     public DocumentDeletionEvent(Object source, String accessToken) {
         super(source, accessToken);
+    }
+
+    public boolean isDeletable() {
+        return isDeletable;
+    }
+
+    public void setDeletable(boolean deletable) {
+        isDeletable = deletable;
     }
 }

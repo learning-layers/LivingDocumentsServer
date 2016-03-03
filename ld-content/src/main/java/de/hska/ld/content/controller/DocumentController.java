@@ -344,8 +344,7 @@ public class DocumentController {
             Document document = documentService.findById(documentId);
             documentService.checkPermission(document, Access.Permission.WRITE);
             DocumentDeletionEvent event = documentEventsPublisher.sendDocumentDeletionEvent(documentId);
-            String result = event.getAccessToken();
-            if (result == null) {
+            if (event.isDeletable()) {
                 documentService.markAsDeleted(documentId);
             }
             // TODO remove document from SSS as well
