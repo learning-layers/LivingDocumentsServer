@@ -39,8 +39,10 @@ import de.hska.ld.oidc.client.SSSClient;
 import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
 import de.hska.ld.oidc.client.exception.CreationFailedException;
 import de.hska.ld.oidc.dto.*;
+import de.hska.ld.oidc.persistence.domain.DocumentSSSInfo;
 import de.hska.ld.oidc.persistence.domain.UserSSSInfo;
 import de.hska.ld.oidc.persistence.domain.UserSharingBuffer;
+import de.hska.ld.oidc.service.DocumentSSSInfoService;
 import de.hska.ld.oidc.service.UserSSSInfoService;
 import de.hska.ld.oidc.service.UserSharingBufferService;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
@@ -80,6 +82,9 @@ public class LDToSSSEventListener {
     @Autowired
     private UserSharingBufferService userSharingBufferService;
 
+    @Autowired
+    private DocumentSSSInfoService documentSSSInfoService;
+
     @Async
     @EventListener
     public void handleDocumentReadEvent(DocumentReadEvent event) throws IOException, CreationFailedException {
@@ -99,14 +104,31 @@ public class LDToSSSEventListener {
         sssCreateDiscRequestDto.setLabel(newDocument.getTitle());
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
+        createDefaultDiscussion(event, newDocument, sssCreateDiscRequestDto);
+        event.setResultDocument(newDocument);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void createDefaultDiscussion(DocumentCreationEvent event, Document newDocument, SSSCreateDiscRequestDto sssCreateDiscRequestDto) {
         try {
-            SSSCreateDiscResponseDto result = sssClient.createDiscussion(String.valueOf(newDocument.getId()), sssCreateDiscRequestDto, event.getAccessToken());
+            String episodeId = null;
+            try {
+                Document document = documentService.findById(newDocument.getId());
+                if (document != null) {
+                    DocumentSSSInfo documentSSSInfo = documentSSSInfoService.getDocumentSSSInfo(document);
+                    if (documentSSSInfo != null) {
+                        episodeId = documentSSSInfo.getEpisodeId();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            SSSCreateDiscResponseDto result = sssClient.createDiscussion(String.valueOf(newDocument.getId()), sssCreateDiscRequestDto, event.getAccessToken(), episodeId);
             String disc = result.getDisc();
             System.out.println(disc);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        event.setResultDocument(newDocument);
     }
 
     @Async
