@@ -22,10 +22,13 @@
 
 package de.hska.ld.oidc.controller;
 
+import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.util.Core;
 import de.hska.ld.oidc.client.SSSClient;
 import de.hska.ld.oidc.dto.*;
+import de.hska.ld.oidc.persistence.domain.DocumentSSSInfo;
+import de.hska.ld.oidc.service.DocumentSSSInfoService;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.pmw.tinylog.Logger;
 import org.pmw.tinylog.LoggingContext;
@@ -51,6 +54,9 @@ public class DiscussionController {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private DocumentSSSInfoService documentSSSInfoService;
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.GET, value = "/document/{documentId}/discussions/list")
@@ -158,8 +164,21 @@ public class DiscussionController {
         // remove tag list because the sss doesn't know how to process this
         List<String> tagList = discRequestDto.getTags();
         discRequestDto.setTags(null);
+
         try {
-            sssCreateDiscResponseDto = sssClient.createDiscussion(documentId, discRequestDto, token.getAccessTokenValue());
+            String episodeId = null;
+            try {
+                Document document = documentService.findById(Long.parseLong(documentId));
+                if (document != null) {
+                    DocumentSSSInfo documentSSSInfo = documentSSSInfoService.getDocumentSSSInfo(document);
+                    if (documentSSSInfo != null) {
+                        episodeId = documentSSSInfo.getEpisodeId();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            sssCreateDiscResponseDto = sssClient.createDiscussion(documentId, discRequestDto, token.getAccessTokenValue(), episodeId);
             try {
                 LoggingContext.put("user_email", Core.currentUser().getEmail());
                 LoggingContext.put("documentId", documentId);

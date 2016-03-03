@@ -340,13 +340,16 @@ public class SSSClient {
         }
     }
 
-    public SSSCreateDiscResponseDto createDiscussion(String documentId, SSSCreateDiscRequestDto discRequestDto, String accessToken) throws IOException {
+    public SSSCreateDiscResponseDto createDiscussion(String documentId, SSSCreateDiscRequestDto discRequestDto, String accessToken, String episodeId) throws IOException {
         String sssDocumentId = env.getProperty("sss.document.name.prefix") + documentId;
         SSSCreateDiscRequestDto sssCreateDiscRequestDto = new SSSCreateDiscRequestDto();
         sssCreateDiscRequestDto.setDescription(discRequestDto.getDescription());
         sssCreateDiscRequestDto.setLabel(discRequestDto.getLabel());
         sssCreateDiscRequestDto.setEntities(discRequestDto.getEntities());
         discRequestDto.getTargets().add(sssDocumentId);
+        if (episodeId != null) {
+            discRequestDto.getTargets().add(episodeId);
+        }
         sssCreateDiscRequestDto.setTargets(discRequestDto.getTargets());
 
         String url = null;

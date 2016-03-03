@@ -86,11 +86,12 @@ public class DocumentSSSInfoController {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
             String episodeId = null;
-            if (documentSSSInfo != null) {
+            /*if (documentSSSInfo != null) {
                 episodeId = documentSSSInfo.getEpisodeId();
             } else {
                 return new NotFoundException("documentId");
-            }
+            }*/
+            episodeId = "http://sss.eu/1081078191038047873";
             if (episodeId == null) {
                 return new NotFoundException("episodeId not available");
             }
