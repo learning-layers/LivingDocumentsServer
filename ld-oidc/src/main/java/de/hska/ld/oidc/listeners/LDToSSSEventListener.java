@@ -23,6 +23,7 @@
 package de.hska.ld.oidc.listeners;
 
 import de.hska.ld.content.events.document.DocumentCreationEvent;
+import de.hska.ld.content.events.document.DocumentDeletionEvent;
 import de.hska.ld.content.events.document.DocumentReadEvent;
 import de.hska.ld.content.events.document.DocumentSharingEvent;
 import de.hska.ld.content.persistence.domain.Access;
@@ -106,6 +107,26 @@ public class LDToSSSEventListener {
         OIDCAuthenticationToken token = (OIDCAuthenticationToken) auth;
         createDefaultDiscussion(event, newDocument, sssCreateDiscRequestDto);
         event.setResultDocument(newDocument);
+    }
+
+    @EventListener
+    public void handleDocumentDeletionEvent(DocumentDeletionEvent event) throws IOException, CreationFailedException {
+        Long documentId = (long) event.getSource();
+        System.out.println("LDToSSSEventListener: Deleting document=" + documentId);
+        preventDeletionOfConnectedDocuments(event, documentId);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void preventDeletionOfConnectedDocuments(DocumentDeletionEvent event, Long documentId) {
+        Document document = documentService.findById(documentId);
+        if (document == null) {
+            event.setAccessToken(null);
+        } else {
+            DocumentSSSInfo documentSSSInfo = documentSSSInfoService.getDocumentSSSInfo(document);
+            if (documentSSSInfo != null && documentSSSInfo.getEpisodeId() != null) {
+                event.setAccessToken(null);
+            }
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

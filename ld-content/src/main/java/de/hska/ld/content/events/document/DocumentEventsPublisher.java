@@ -98,4 +98,15 @@ public class DocumentEventsPublisher {
         }
         return event;
     }
+
+    public DocumentDeletionEvent sendDocumentDeletionEvent(Long documentId) {
+        String accessToken = extractAuthenticationInformation();
+        DocumentDeletionEvent event = new DocumentDeletionEvent(documentId, accessToken);
+        try {
+            this.publisher.publishEvent(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return event;
+    }
 }

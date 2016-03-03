@@ -25,6 +25,7 @@ package de.hska.ld.content.controller;
 import com.rits.cloning.Cloner;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
+import de.hska.ld.content.events.document.DocumentDeletionEvent;
 import de.hska.ld.content.events.document.DocumentEventsPublisher;
 import de.hska.ld.content.events.document.DocumentReadEvent;
 import de.hska.ld.content.persistence.domain.*;
@@ -340,9 +341,14 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.DELETE, value = "/{documentId}")
     public Callable removeDocument(@PathVariable Long documentId) {
         return () -> {
-            documentService.markAsDeleted(documentId);
+            Document document = documentService.findById(documentId);
+            documentService.checkPermission(document, Access.Permission.WRITE);
+            DocumentDeletionEvent event = documentEventsPublisher.sendDocumentDeletionEvent(documentId);
+            String result = event.getAccessToken();
+            if (result == null) {
+                documentService.markAsDeleted(documentId);
+            }
             // TODO remove document from SSS as well
-
             return new ResponseEntity<>(HttpStatus.OK);
         };
     }
