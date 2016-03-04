@@ -182,6 +182,23 @@ public class OIDCController {
         return user;
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/document/{documentId}/ispresent")
+    @Transactional
+    public ResponseEntity isDocumentPresent(HttpServletRequest request,
+                                            @PathVariable Long documentId,
+                                            @RequestParam(defaultValue = "https://api.learning-layers.eu/o/oauth2") String issuer,
+                                            @RequestHeader(required = false) String Authorization) throws IOException, ServletException {
+
+        _authenticate(request, issuer, Authorization);
+
+        Document document = documentService.findById(documentId);
+        if (document == null) {
+            throw new NotFoundException("documentId");
+        } else {
+            return new ResponseEntity<>("exists", HttpStatus.OK);
+        }
+    }
+
     @RequestMapping(method = RequestMethod.POST, value = "/document/{documentId}/share/issuerandsub")
     @Transactional
     public ResponseEntity shareDocumentViaIssuerAndSub(HttpServletRequest request,
