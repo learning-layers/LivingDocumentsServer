@@ -47,6 +47,11 @@ public class DocumentSSSInfoServiceImpl implements DocumentSSSInfoService {
         return repository.findByDocument(document);
     }
 
+    @Override
+    public DocumentSSSInfo getDocumentSSSInfoById(Long documentId) {
+        return repository.findByDocumentId(documentId);
+    }
+
     public DocumentSSSInfoRepository getRepository() {
         return repository;
     }

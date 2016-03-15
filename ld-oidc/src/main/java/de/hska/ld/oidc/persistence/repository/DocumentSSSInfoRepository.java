@@ -24,10 +24,15 @@ package de.hska.ld.oidc.persistence.repository;
 
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.oidc.persistence.domain.DocumentSSSInfo;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 public interface DocumentSSSInfoRepository extends CrudRepository<DocumentSSSInfo, Long> {
     DocumentSSSInfo findByDocument(Document document);
 
     DocumentSSSInfo findByEpisodeId(String episodeId);
+
+    @Query("FROM DocumentSSSInfo dsi WHERE dsi.document.id = :documentId")
+    DocumentSSSInfo findByDocumentId(@Param("documentId") Long documentId);
 }

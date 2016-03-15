@@ -28,6 +28,7 @@ import de.hska.ld.content.persistence.domain.Tag;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -102,6 +103,17 @@ public class DocumentEventsPublisher {
     public DocumentDeletionEvent sendDocumentDeletionEvent(Long documentId) {
         String accessToken = extractAuthenticationInformation();
         DocumentDeletionEvent event = new DocumentDeletionEvent(documentId, accessToken);
+        try {
+            this.publisher.publishEvent(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return event;
+    }
+
+    public DocumentReadListEvent sendDocumentReadListEvent(Page<Document> documentsPage) {
+        String accessToken = extractAuthenticationInformation();
+        DocumentReadListEvent event = new DocumentReadListEvent(documentsPage, accessToken);
         try {
             this.publisher.publishEvent(event);
         } catch (Exception e) {

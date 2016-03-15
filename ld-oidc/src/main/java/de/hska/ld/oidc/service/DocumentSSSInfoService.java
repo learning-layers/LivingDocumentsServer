@@ -29,4 +29,6 @@ public interface DocumentSSSInfoService {
     void addDocumentInfo(DocumentSSSInfo documentSSSInfo);
 
     DocumentSSSInfo getDocumentSSSInfo(Document document);
+
+    DocumentSSSInfo getDocumentSSSInfoById(Long documentId);
 }

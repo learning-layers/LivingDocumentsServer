@@ -22,10 +22,8 @@
 
 package de.hska.ld.oidc.listeners;
 
-import de.hska.ld.content.events.document.DocumentCreationEvent;
-import de.hska.ld.content.events.document.DocumentDeletionEvent;
-import de.hska.ld.content.events.document.DocumentReadEvent;
-import de.hska.ld.content.events.document.DocumentSharingEvent;
+import de.hska.ld.content.dto.DocumentListItemDto;
+import de.hska.ld.content.events.document.*;
 import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
@@ -49,6 +47,9 @@ import de.hska.ld.oidc.service.UserSharingBufferService;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,6 +59,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -114,6 +116,38 @@ public class LDToSSSEventListener {
         Long documentId = (long) event.getSource();
         System.out.println("LDToSSSEventListener: Deleting document=" + documentId);
         preventDeletionOfConnectedDocuments(event, documentId);
+    }
+
+    @EventListener
+    public void handleDocumentReadListEvent(DocumentReadListEvent event) {
+        checkIfDocumentsHaveAnAttachedEpisode(event);
+    }
+
+    private void checkIfDocumentsHaveAnAttachedEpisode(DocumentReadListEvent event) {
+        Page<Document> documentPage = (Page<Document>) event.getSource();
+        List<DocumentListItemDto> documentListItemDtoList = new ArrayList<>();
+
+        documentPage.forEach(doc -> {
+            Long documentId = doc.getId();
+            DocumentSSSInfo documentSSSInfo = documentSSSInfoService.getDocumentSSSInfoById(documentId);
+            DocumentListItemDto documentListItemDto = new DocumentListItemDto(doc);
+            if (documentSSSInfo != null) {
+                documentListItemDto.setHasConnectedEpisode(true);
+            }
+            documentListItemDtoList.add(documentListItemDto);
+        });
+
+        try {
+            Field pageableField = Page.class.getDeclaredField("pageable");
+            pageableField.setAccessible(true);
+            Pageable pageable = (Pageable) pageableField.get(documentPage);
+            Page<DocumentListItemDto> documentListItemDtoPage = new PageImpl<DocumentListItemDto>(documentListItemDtoList, pageable, documentPage.getTotalElements());
+            event.setResultDocument(documentListItemDtoPage);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     private void preventDeletionOfConnectedDocuments(DocumentDeletionEvent event, Long documentId) {

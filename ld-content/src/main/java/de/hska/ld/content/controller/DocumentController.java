@@ -25,9 +25,11 @@ package de.hska.ld.content.controller;
 import com.rits.cloning.Cloner;
 import de.hska.ld.content.dto.BreadcrumbDto;
 import de.hska.ld.content.dto.DiscussionSectionDto;
+import de.hska.ld.content.dto.DocumentListItemDto;
 import de.hska.ld.content.events.document.DocumentDeletionEvent;
 import de.hska.ld.content.events.document.DocumentEventsPublisher;
 import de.hska.ld.content.events.document.DocumentReadEvent;
+import de.hska.ld.content.events.document.DocumentReadListEvent;
 import de.hska.ld.content.persistence.domain.*;
 import de.hska.ld.content.service.CommentService;
 import de.hska.ld.content.service.DocumentService;
@@ -116,7 +118,13 @@ public class DocumentController {
         return () -> {
             Page<Document> documentsPage = documentService.getDocumentsPage(pageNumber, pageSize, sortDirection, sortProperty, searchTerm);
             if (documentsPage != null) {
-                return new ResponseEntity<>(documentsPage, HttpStatus.OK);
+                DocumentReadListEvent documentReadListEvent = documentEventsPublisher.sendDocumentReadListEvent(documentsPage);
+                Page<DocumentListItemDto> documentListPage = documentReadListEvent.getResultDocumentList();
+                if (documentListPage != null) {
+                    return new ResponseEntity<>(documentListPage, HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(documentsPage, HttpStatus.OK);
+                }
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
