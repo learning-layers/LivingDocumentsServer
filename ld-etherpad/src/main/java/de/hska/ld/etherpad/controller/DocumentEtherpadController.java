@@ -29,7 +29,6 @@ import de.hska.ld.content.events.document.DocumentEventsPublisher;
 import de.hska.ld.content.persistence.domain.Access;
 import de.hska.ld.content.persistence.domain.Attachment;
 import de.hska.ld.content.persistence.domain.Document;
-import de.hska.ld.content.persistence.domain.DocumentStatus;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
@@ -89,9 +88,12 @@ public class DocumentEtherpadController {
 
     private String etherpadEndpoint = null;
 
+    private String etherpadEndpointExternal = null;
+
     @PostConstruct
     public void postConstruct() {
         etherpadEndpoint = env.getProperty("module.etherpad.endpoint");
+        etherpadEndpointExternal = env.getProperty("module.etherpad.endpoint.external");
     }
 
     @Secured(Core.ROLE_USER)
@@ -228,9 +230,9 @@ public class DocumentEtherpadController {
             // return Etherpad URL path
             String padURL = null;
             if (readOnly) {
-                padURL = etherpadEndpoint + "/p/" + readOnlyId;
+                padURL = etherpadEndpointExternal + "/p/" + readOnlyId;
             } else {
-                padURL = etherpadEndpoint + "/p/" + groupPadId;
+                padURL = etherpadEndpointExternal + "/p/" + groupPadId;
             }
 
             return new ResponseEntity<>(padURL, HttpStatus.CREATED);
