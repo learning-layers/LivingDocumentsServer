@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.hska.ld.content.persistence.domain.Document;
 
 import java.lang.reflect.Field;
@@ -59,10 +60,12 @@ public class DocumentListItemDto extends Document {
         }
     }
 
+    @JsonProperty("hasConnectedEpisode")
     public boolean isHasConnectedEpisode() {
         return hasConnectedEpisode;
     }
 
+    @JsonProperty("hasConnectedEpisode")
     public void setHasConnectedEpisode(boolean hasConnectedEpisode) {
         this.hasConnectedEpisode = hasConnectedEpisode;
     }

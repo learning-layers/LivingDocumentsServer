@@ -138,7 +138,7 @@ public class LDToSSSEventListener {
         });
 
         try {
-            Field pageableField = Page.class.getDeclaredField("pageable");
+            Field pageableField = PageImpl.class.getSuperclass().getDeclaredField("pageable");
             pageableField.setAccessible(true);
             Pageable pageable = (Pageable) pageableField.get(documentPage);
             Page<DocumentListItemDto> documentListItemDtoPage = new PageImpl<DocumentListItemDto>(documentListItemDtoList, pageable, documentPage.getTotalElements());
