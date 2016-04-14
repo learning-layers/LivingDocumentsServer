@@ -41,6 +41,7 @@ import de.hska.ld.core.exception.UserNotAuthorizedException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.util.Core;
+import de.hska.ld.core.util.EscapeUtil;
 import org.apache.commons.io.IOUtils;
 import org.pmw.tinylog.Logger;
 import org.pmw.tinylog.LoggingContext;
@@ -211,7 +212,7 @@ public class DocumentController {
             try {
                 LoggingContext.put("user_email", Core.currentUser().getEmail());
                 LoggingContext.put("conversationId", discussion.getId());
-                LoggingContext.put("conversationSection", document.getDescription());
+                LoggingContext.put("conversationSection", EscapeUtil.escapeJsonForLogging(document.getDescription()));
                 LoggingContext.put("documentId", documentId);
                 Logger.trace("User created conversation for document.");
             } catch (Exception e) {
@@ -447,7 +448,7 @@ public class DocumentController {
                 Tag tag = tagService.findById(tagId);
                 try {
                     LoggingContext.put("user_email", Core.currentUser().getEmail());
-                    LoggingContext.put("tagId", tag.getId());
+                    LoggingContext.put("tagId", EscapeUtil.escapeJsonForLogging(tag.getId().toString()));
                     LoggingContext.put("documentId", documentId);
                     Logger.trace("User added tag to document.");
                 } catch (Exception e) {
@@ -1070,7 +1071,7 @@ public class DocumentController {
                 } catch (Exception e) {
                     Logger.error(e);
                 }
-                LoggingContext.put("conversationSection", discussionSectionDto.getSectionText());
+                LoggingContext.put("conversationSection", EscapeUtil.escapeJsonForLogging(discussionSectionDto.getSectionText()));
                 LoggingContext.put("documentId", documentId);
                 Logger.trace("User created conversation for document.");
             } catch (Exception e) {
