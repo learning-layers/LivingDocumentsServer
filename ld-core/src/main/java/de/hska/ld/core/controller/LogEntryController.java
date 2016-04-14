@@ -24,6 +24,7 @@ package de.hska.ld.core.controller;
 
 import de.hska.ld.core.service.LogEntryService;
 import de.hska.ld.core.util.Core;
+import de.hska.ld.core.util.EscapeUtil;
 import org.pmw.tinylog.Logger;
 import org.pmw.tinylog.LoggingContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,12 +64,12 @@ public class LogEntryController {
     public Callable addClientLogEntry(List<String> values) {
         return () -> {
             try {
-                LoggingContext.put("user_email", Core.currentUser().getEmail());
+                LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
                 values.forEach(v -> {
                     String[] splittedValue = v.split("###");
                     String key = splittedValue[0];
                     String value = splittedValue[1];
-                    LoggingContext.put(key, value);
+                    LoggingContext.put(key, EscapeUtil.escapeJsonForLogging(value));
                 });
                 Logger.trace("Client-side logging event.");
                 return new ResponseEntity<>(HttpStatus.OK);

@@ -28,6 +28,7 @@ import de.hska.ld.content.util.Content;
 import de.hska.ld.core.exception.NotFoundException;
 import de.hska.ld.core.exception.ValidationException;
 import de.hska.ld.core.util.Core;
+import de.hska.ld.core.util.EscapeUtil;
 import org.pmw.tinylog.Logger;
 import org.pmw.tinylog.LoggingContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,8 +106,8 @@ public class TagController {
                 }
                 Tag dbTag = tagService.save(tag);
                 try {
-                    LoggingContext.put("user_email", Core.currentUser().getEmail());
-                    LoggingContext.put("tagId", dbTag.getId());
+                    LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                    LoggingContext.put("tagId", EscapeUtil.escapeJsonForLogging(dbTag.getId().toString()));
                     Logger.trace("User created tag.");
                 } catch (Exception e) {
                     Logger.error(e);

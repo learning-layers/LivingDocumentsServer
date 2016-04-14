@@ -25,6 +25,7 @@ package de.hska.ld.oidc.controller;
 import de.hska.ld.content.persistence.domain.Document;
 import de.hska.ld.content.service.DocumentService;
 import de.hska.ld.core.util.Core;
+import de.hska.ld.core.util.EscapeUtil;
 import de.hska.ld.oidc.client.SSSClient;
 import de.hska.ld.oidc.dto.*;
 import de.hska.ld.oidc.persistence.domain.DocumentSSSInfo;
@@ -134,8 +135,8 @@ public class DiscussionController {
                         "file=" + fileEntityId + "&key=" + token.getAccessTokenValue();
             }
             try {
-                LoggingContext.put("user_email", Core.currentUser().getEmail());
-                LoggingContext.put("sssFileEntityId", fileEntityId);
+                LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                LoggingContext.put("sssFileEntityId", EscapeUtil.escapeJsonForLogging(fileEntityId.toString()));
                 Logger.trace("User downloads file from discussions.");
             } catch (Exception e) {
                 Logger.error(e);
@@ -180,9 +181,9 @@ public class DiscussionController {
             }
             sssCreateDiscResponseDto = sssClient.createDiscussion(documentId, discRequestDto, token.getAccessTokenValue(), episodeId);
             try {
-                LoggingContext.put("user_email", Core.currentUser().getEmail());
-                LoggingContext.put("documentId", documentId);
-                LoggingContext.put("sssDiscussionLabel", sssCreateDiscResponseDto.getDisc());
+                LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                LoggingContext.put("documentId", EscapeUtil.escapeJsonForLogging(documentId.toString()));
+                LoggingContext.put("sssDiscussionLabel", EscapeUtil.escapeJsonForLogging(sssCreateDiscResponseDto.getDisc()));
                 Logger.trace("User created discussion.");
             } catch (Exception e) {
                 Logger.error(e);
@@ -218,9 +219,9 @@ public class DiscussionController {
         try {
             sssEntryForDiscussionResponseDto = sssClient.createEntryForDiscussion(entryForDiscRequestDto, token.getAccessTokenValue());
             try {
-                LoggingContext.put("user_email", Core.currentUser().getEmail());
-                LoggingContext.put("sssDiscussionLabel", sssEntryForDiscussionResponseDto.getDisc());
-                LoggingContext.put("sssEntryLabel", sssEntryForDiscussionResponseDto.getEntry());
+                LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                LoggingContext.put("sssDiscussionLabel", EscapeUtil.escapeJsonForLogging(sssEntryForDiscussionResponseDto.getDisc()));
+                LoggingContext.put("sssEntryLabel", EscapeUtil.escapeJsonForLogging(sssEntryForDiscussionResponseDto.getEntry()));
                 Logger.trace("User created comment for discussion.");
             } catch (Exception e) {
                 Logger.error(e);

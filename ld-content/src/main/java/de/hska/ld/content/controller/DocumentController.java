@@ -189,6 +189,13 @@ public class DocumentController {
         return new ResponseEntity<>(newDocument, HttpStatus.CREATED);
     }
 
+    @Secured(Core.ROLE_USER)
+    @RequestMapping(method = RequestMethod.GET, value = "/escape")
+    public ResponseEntity<String> escapeJSONString() {
+        String testSentence = EscapeUtil.escapeJsonForLogging("This is a test, sentence");
+        return new ResponseEntity<String>(testSentence, HttpStatus.OK);
+    }
+
     /**
      * This resource allows it to create a discussion (sub document) and append it to a document.
      * <p>
@@ -210,10 +217,10 @@ public class DocumentController {
         return () -> {
             Document discussion = documentService.addDiscussionToDocument(documentId, document);
             try {
-                LoggingContext.put("user_email", Core.currentUser().getEmail());
-                LoggingContext.put("conversationId", discussion.getId());
+                LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                LoggingContext.put("conversationId", EscapeUtil.escapeJsonForLogging(discussion.getId().toString()));
                 LoggingContext.put("conversationSection", EscapeUtil.escapeJsonForLogging(document.getDescription()));
-                LoggingContext.put("documentId", documentId);
+                LoggingContext.put("documentId", EscapeUtil.escapeJsonForLogging(documentId.toString()));
                 Logger.trace("User created conversation for document.");
             } catch (Exception e) {
                 Logger.error(e);
@@ -305,8 +312,8 @@ public class DocumentController {
                 throw new NotFoundException("id");
             }
             try {
-                LoggingContext.put("user_email", Core.currentUser().getEmail());
-                LoggingContext.put("documentId", documentId);
+                LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                LoggingContext.put("documentId", EscapeUtil.escapeJsonForLogging(documentId.toString()));
                 Logger.trace("User opens document.");
             } catch (Exception e) {
                 Logger.error(e);
@@ -411,9 +418,9 @@ public class DocumentController {
         return () -> {
             Comment newComment = documentService.addComment(documentId, comment);
             try {
-                LoggingContext.put("user_email", Core.currentUser().getEmail());
-                LoggingContext.put("commentId", newComment.getId());
-                LoggingContext.put("documentId", documentId);
+                LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                LoggingContext.put("commentId", EscapeUtil.escapeJsonForLogging(newComment.getId().toString()));
+                LoggingContext.put("documentId", EscapeUtil.escapeJsonForLogging(documentId.toString()));
                 Logger.trace("User created comment for document.");
             } catch (Exception e) {
                 Logger.error(e);
@@ -447,9 +454,9 @@ public class DocumentController {
                 documentService.addTag(documentId, tagId);
                 Tag tag = tagService.findById(tagId);
                 try {
-                    LoggingContext.put("user_email", Core.currentUser().getEmail());
+                    LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
                     LoggingContext.put("tagId", EscapeUtil.escapeJsonForLogging(tag.getId().toString()));
-                    LoggingContext.put("documentId", documentId);
+                    LoggingContext.put("documentId", EscapeUtil.escapeJsonForLogging(documentId.toString()));
                     Logger.trace("User added tag to document.");
                 } catch (Exception e) {
                     Logger.error(e);
@@ -582,8 +589,8 @@ public class DocumentController {
             if (!file.isEmpty()) {
                 Long updatedAttachmentId = documentService.updateAttachment(documentId, attachmentId, file, name);
                 try {
-                    LoggingContext.put("user_email", Core.currentUser().getEmail());
-                    LoggingContext.put("updatedAttachmentId", updatedAttachmentId);
+                    LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                    LoggingContext.put("updatedAttachmentId", EscapeUtil.escapeJsonForLogging(updatedAttachmentId.toString()));
                     Logger.trace("User uploaded file.");
                 } catch (Exception e) {
                     Logger.error(e);
@@ -611,8 +618,8 @@ public class DocumentController {
                 Attachment attachment = document.getAttachmentList().get(0);
                 Long attachmentId = documentService.updateAttachment(documentId, attachment.getId(), file, name);
                 try {
-                    LoggingContext.put("user_email", Core.currentUser().getEmail());
-                    LoggingContext.put("updatedAttachmentId", attachmentId);
+                    LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                    LoggingContext.put("updatedAttachmentId", EscapeUtil.escapeJsonForLogging(attachmentId.toString()));
                     Logger.trace("User uploaded main file.");
                 } catch (Exception e) {
                     Logger.error(e);
@@ -647,8 +654,8 @@ public class DocumentController {
             if (!file.isEmpty()) {
                 Long attachmentId = documentService.addAttachment(documentId, file, name);
                 try {
-                    LoggingContext.put("user_email", Core.currentUser().getEmail());
-                    LoggingContext.put("updatedAttachmentId", attachmentId);
+                    LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                    LoggingContext.put("updatedAttachmentId", EscapeUtil.escapeJsonForLogging(attachmentId.toString()));
                     Logger.trace("User uploaded file (2).");
                 } catch (Exception e) {
                     Logger.error(e);
@@ -687,8 +694,8 @@ public class DocumentController {
             try {
                 Attachment attachment = documentService.getAttachment(documentId, position);
                 try {
-                    LoggingContext.put("user_email", Core.currentUser().getEmail());
-                    LoggingContext.put("attachmentId", attachment.getId());
+                    LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                    LoggingContext.put("attachmentId", EscapeUtil.escapeJsonForLogging(attachment.getId().toString()));
                     Logger.trace("User downloads file.");
                 } catch (Exception e) {
                     Logger.error(e);
@@ -735,8 +742,8 @@ public class DocumentController {
             try {
                 Attachment attachment = documentService.getAttachmentByAttachmentId(documentId, attachmentId);
                 try {
-                    LoggingContext.put("user_email", Core.currentUser().getEmail());
-                    LoggingContext.put("attachmentId", attachment.getId());
+                    LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                    LoggingContext.put("attachmentId", EscapeUtil.escapeJsonForLogging(attachment.getId().toString()));
                     Logger.trace("User downloads file (2).");
                 } catch (Exception e) {
                     Logger.error(e);
@@ -970,9 +977,9 @@ public class DocumentController {
         return () -> {
             Document document = documentService.addAccess(documentId, userIds, permissions);
             try {
-                LoggingContext.put("user_email", Core.currentUser().getEmail());
-                LoggingContext.put("documentId", documentId);
-                LoggingContext.put("userIds", userIds);
+                LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
+                LoggingContext.put("documentId", EscapeUtil.escapeJsonForLogging(documentId.toString()));
+                LoggingContext.put("userIds", EscapeUtil.escapeJsonForLogging(userIds));
                 Logger.trace("User shares a document with others.");
             } catch (Exception e) {
                 Logger.error(e);
@@ -1065,14 +1072,14 @@ public class DocumentController {
         return () -> {
             Document document = documentService.addDiscussionToDocument(documentId, discussionSectionDto);
             try {
-                LoggingContext.put("user_email", Core.currentUser().getEmail());
+                LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(Core.currentUser().getEmail()));
                 try {
-                    LoggingContext.put("discussionId", document.getDiscussionList().get(document.getDiscussionList().size() - 1));
+                    LoggingContext.put("discussionId", EscapeUtil.escapeJsonForLogging(document.getDiscussionList().get(document.getDiscussionList().size() - 1).getId().toString()));
                 } catch (Exception e) {
                     Logger.error(e);
                 }
                 LoggingContext.put("conversationSection", EscapeUtil.escapeJsonForLogging(discussionSectionDto.getSectionText()));
-                LoggingContext.put("documentId", documentId);
+                LoggingContext.put("documentId", EscapeUtil.escapeJsonForLogging(documentId.toString()));
                 Logger.trace("User created conversation for document.");
             } catch (Exception e) {
                 Logger.error(e);

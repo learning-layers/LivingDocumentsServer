@@ -31,6 +31,7 @@ import de.hska.ld.core.persistence.domain.Role;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.RoleService;
 import de.hska.ld.core.service.UserService;
+import de.hska.ld.core.util.EscapeUtil;
 import org.mitre.oauth2.service.impl.DefaultClientUserDetailsService;
 import org.mitre.openid.connect.client.*;
 import org.mitre.openid.connect.client.service.impl.*;
@@ -179,7 +180,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         } catch (Exception e) {
                             //
                         }
-                        LoggingContext.put("user_email", savedUser.getEmail());
+                        LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(savedUser.getEmail()));
                         Logger.trace("User logs in for the first time.");
                         LoggingContext.clear();
                     } else if (oidcUserInfo != null) {
@@ -189,7 +190,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         } catch (Exception e) {
                             //
                         }
-                        LoggingContext.put("user_email", savedUser.getEmail());
+                        LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(savedUser.getEmail()));
                         Logger.trace("User logs in.");
                         LoggingContext.clear();
                     } else {
