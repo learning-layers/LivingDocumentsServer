@@ -23,7 +23,6 @@
 package de.hska.ld.content.controller;
 
 import de.hska.ld.content.client.PDFGenClient;
-import de.hska.ld.content.dto.HTMLForPDFGenDto;
 import de.hska.ld.core.util.Core;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,12 +44,9 @@ public class ExportController {
 
     @Secured(Core.ROLE_USER)
     @RequestMapping(method = RequestMethod.POST, value = "/pdf")
-    public Callable createPDF(@RequestBody HTMLForPDFGenDto htmlForPDFGenDto) {
+    public Callable createPDF(@RequestBody String htmlForPDFString) {
         return () -> {
-            // call the pdfGen server with the according HTMLForPDFGenWithApiKeyDto instance
-            // receive back the generated base64 PDF
-            String jsonHtml = htmlForPDFGenDto.getJsonHtml();
-            String base64PDF = pdfGenClient.createPDF(jsonHtml);
+            String base64PDF = pdfGenClient.createPDF(htmlForPDFString);
             return new ResponseEntity<>(base64PDF, HttpStatus.OK);
         };
     }
