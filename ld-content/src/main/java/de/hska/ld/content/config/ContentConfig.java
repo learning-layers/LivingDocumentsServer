@@ -22,6 +22,7 @@
 
 package de.hska.ld.content.config;
 
+import de.hska.ld.content.client.EmailExportClient;
 import de.hska.ld.content.client.PDFGenClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,5 +32,10 @@ public class ContentConfig {
     @Bean
     public PDFGenClient pdfGenClient() {
         return new PDFGenClient();
+    }
+
+    @Bean
+    public EmailExportClient emailExportClient() {
+        return new EmailExportClient();
     }
 }
