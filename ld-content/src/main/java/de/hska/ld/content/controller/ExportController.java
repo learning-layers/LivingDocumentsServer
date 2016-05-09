@@ -67,6 +67,7 @@ public class ExportController {
         return () -> {
             Document document = documentService.findById(exportPDFViaMailDto.getDocumentId());
             if (document != null) {
+                exportPDFViaMailDto.setSenderEmail(Core.currentUser().getEmail());
                 boolean worked = emailExportClient.sendMail(exportPDFViaMailDto);
                 if (worked) {
                     return new ResponseEntity<>(HttpStatus.OK);

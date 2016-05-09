@@ -29,6 +29,7 @@ public class ExportPDFViaMailDto {
     String htmlForPDFGeneration;
     String apiKey;
     String recipientList;
+    String senderEmail;
 
     public Long getDocumentId() {
         return documentId;
@@ -76,5 +77,13 @@ public class ExportPDFViaMailDto {
 
     public void setRecipientList(String recipientList) {
         this.recipientList = recipientList;
+    }
+
+    public String getSenderEmail() {
+        return senderEmail;
+    }
+
+    public void setSenderEmail(String senderEmail) {
+        this.senderEmail = senderEmail;
     }
 }
