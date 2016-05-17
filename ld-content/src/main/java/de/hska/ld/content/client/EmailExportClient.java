@@ -24,6 +24,7 @@ package de.hska.ld.content.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.hska.ld.content.dto.ExportPDFViaMailDto;
+import de.hska.ld.core.util.Core;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -88,6 +89,16 @@ public class EmailExportClient {
         // add header
         post.setHeader("User-Agent", "Mozilla/5.0");
         exportPDFViaMailDto.setApiKey(apiKey);
+        if (exportPDFViaMailDto.getSubject() != null && !"".equals(exportPDFViaMailDto.getSubject())) {
+            exportPDFViaMailDto.setSubject("Exported document sent by " + Core.currentUser().getEmail() + " - " + exportPDFViaMailDto.getSubject());
+        } else {
+            exportPDFViaMailDto.setSubject("Exported document sent by " + Core.currentUser().getEmail());
+        }
+        if (exportPDFViaMailDto.getMessage() != null && !"".equals(exportPDFViaMailDto.getMessage())) {
+            exportPDFViaMailDto.setMessage("<i>This is an automatically generated email please answer to " + Core.currentUser().getEmail() + " and don't reply to this email directly.</i>\n\n<b>Subject: " + exportPDFViaMailDto.getSubject() + "</b>\n\nMessage: " + exportPDFViaMailDto.getMessage() + "\n\n\n ");
+        } else {
+            exportPDFViaMailDto.setMessage("<i>This is an automatically generated email please answer to " + Core.currentUser().getEmail() + " and don't reply to this email directly.</i>\n\n<b>Subject: " + exportPDFViaMailDto.getSubject() + "</b>\n\n\n ");
+        }
         String jsonRequest = mapper.writeValueAsString(exportPDFViaMailDto);
 
         post.setEntity(
