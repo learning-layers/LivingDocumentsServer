@@ -34,6 +34,7 @@ import de.hska.ld.core.logging.ExceptionLogger;
 import de.hska.ld.core.persistence.domain.ExceptionLogEntry;
 import de.hska.ld.core.persistence.domain.User;
 import de.hska.ld.core.service.UserService;
+import de.hska.ld.core.util.EscapeUtil;
 import de.hska.ld.oidc.client.SSSClient;
 import de.hska.ld.oidc.client.exception.AuthenticationNotValidException;
 import de.hska.ld.oidc.client.exception.CreationFailedException;
@@ -45,6 +46,8 @@ import de.hska.ld.oidc.service.DocumentSSSInfoService;
 import de.hska.ld.oidc.service.UserSSSInfoService;
 import de.hska.ld.oidc.service.UserSharingBufferService;
 import org.mitre.openid.connect.model.OIDCAuthenticationToken;
+import org.pmw.tinylog.Logger;
+import org.pmw.tinylog.LoggingContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
@@ -61,6 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Transactional
@@ -210,23 +214,55 @@ public class LDToSSSEventListener {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void sharePreviouslySharedDocumentsWithTheNewUser(User user, UserFirstLoginEvent event) {
-        UserSharingBuffer userSharingBuffer = userSharingBufferService.findByEmail(user.getEmail());
-        if (userSharingBuffer == null) {
-            userSharingBuffer = userSharingBufferService.findBySubAndIssuer(user.getSubId(), user.getIssuer());
-        }
-        if (userSharingBuffer != null) {
-            String userIds = user.getId().toString();
-            if (!"".equals(userIds)) {
-                Document dbDocument = documentService.findById(userSharingBuffer.getDocumentId());
-                documentService.addAccessWithoutTransactional(dbDocument.getId(), userIds, userSharingBuffer.getPermissionString());
-                try {
-                    System.out.println("LDToSSSEventListener: Sharing document=" + dbDocument.getId() + ", title=" + dbDocument.getTitle());
-                    createAndShareLDocWithSSSUsers(dbDocument, "READ", event.getAccessToken(), null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                userSharingBufferService.removeUserSharingBuffer(userSharingBuffer.getId());
+        try {
+            try {
+                LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(user.getEmail()));
+                Logger.debug("BEGIN Sharing process after user logs in for the first time.");
+            } catch (Exception e) {
+                Logger.error(e);
             }
+            UserSharingBuffer userSharingBuffer = userSharingBufferService.findByEmail(user.getEmail());
+            if (userSharingBuffer == null) {
+                userSharingBuffer = userSharingBufferService.findBySubAndIssuer(user.getSubId(), user.getIssuer());
+                if (userSharingBuffer != null) {
+                    Logger.debug("FOUND sharing buffer (2): Sharing process after user logs in for the first time.");
+                }
+            } else {
+                Logger.debug("FOUND sharing buffer (1): Sharing process after user logs in for the first time.");
+            }
+            if (userSharingBuffer != null) {
+                try {
+                    Document dbDocument = documentService.findById(userSharingBuffer.getDocumentId());
+                    Access newAccess = new Access();
+                    User dbUser = userService.findById(user.getId());
+                    newAccess.setUser(dbUser);
+                    newAccess.setCreatedAt(new Date());
+                    newAccess.setCreator(dbUser);
+                    List<Access.Permission> permissionList = new ArrayList<>();
+                    permissionList.add(Access.Permission.READ);
+                    permissionList.add(Access.Permission.WRITE);
+                    permissionList.add(Access.Permission.COMMENT_DOCUMENT);
+                    permissionList.add(Access.Permission.ATTACH_FILES);
+                    newAccess.setPermissionList(permissionList);
+                    dbDocument.getAccessList().add(newAccess);
+                    documentService.save(dbDocument);
+                    try {
+                        Logger.debug("LDToSSSEventListener: Sharing document=" + dbDocument.getId() + ", title=" + dbDocument.getTitle());
+                        createAndShareLDocWithSSSUsers(dbDocument, "READ", event.getAccessToken(), null);
+                    } catch (Exception e) {
+                        Logger.error(e);
+                    }
+                    userSharingBufferService.removeUserSharingBuffer(userSharingBuffer.getId());
+                } catch (Exception e) {
+                    Logger.error(e);
+                }
+            } else {
+                Logger.debug("DIDN'T FIND sharing buffer: Sharing process after user logs in for the first time.");
+            }
+        } catch (Exception e) {
+            Logger.error(e);
+        } finally {
+            LoggingContext.clear();
         }
     }
 

@@ -187,6 +187,7 @@ public class OIDCSecurityConfig extends WebSecurityConfigurerAdapter {
                         User savedUser = updateUserInformationFromOIDC(token, currentUserInDb, oidcUserInfo);
                         try {
                             userEventsPublisher.sendUserLoginEvent(savedUser);
+                            userEventsPublisher.sendUserFirstLoginEvent(savedUser);
                         } catch (Exception e) {
                             //
                         }
