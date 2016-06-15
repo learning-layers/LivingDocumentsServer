@@ -53,7 +53,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
@@ -92,7 +91,7 @@ public class LDToSSSEventListener {
     @Autowired
     private DocumentSSSInfoService documentSSSInfoService;
 
-    @Async
+    // @Async
     @EventListener
     public void handleDocumentReadEvent(DocumentReadEvent event) throws IOException, CreationFailedException {
         Document document = (Document) event.getSource();
@@ -101,7 +100,7 @@ public class LDToSSSEventListener {
         event.setResultDocument(document);
     }
 
-    @Async
+    // @Async
     @EventListener
     public void handleDocumentCreationEvent(DocumentCreationEvent event) throws IOException, CreationFailedException {
         Document newDocument = (Document) event.getSource();
@@ -189,7 +188,7 @@ public class LDToSSSEventListener {
         }
     }
 
-    @Async
+    // @Async
     @EventListener
     public void handleDocumentSharingEvent(DocumentSharingEvent event) throws IOException, CreationFailedException {
         Document document = (Document) event.getSource();
@@ -198,14 +197,14 @@ public class LDToSSSEventListener {
         event.setResultDocument(document);
     }
 
-    @Async
+    // @Async
     @EventListener
     public void handleLoginEvent(UserLoginEvent event) throws IOException {
         User user = (User) event.getSource();
         checkIfSSSUserInfoIsKnown(user, event.getAccessToken());
     }
 
-    @Async
+    // @Async
     @EventListener
     public void handleFirstLoginEvent(UserFirstLoginEvent event) throws IOException {
         User user = (User) event.getSource();
