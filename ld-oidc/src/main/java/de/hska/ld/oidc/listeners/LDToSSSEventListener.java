@@ -209,11 +209,12 @@ public class LDToSSSEventListener {
     @EventListener
     public void handleFirstLoginEvent(UserFirstLoginEvent event) throws IOException {
         User user = (User) event.getSource();
-        sharePreviouslySharedDocumentsWithTheNewUser(user, event);
+        String accessToken = event.getAccessToken();
+        sharePreviouslySharedDocumentsWithTheNewUser(user, accessToken);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void sharePreviouslySharedDocumentsWithTheNewUser(User user, UserFirstLoginEvent event) {
+    private void sharePreviouslySharedDocumentsWithTheNewUser(User user, String accessToken) {
         try {
             try {
                 LoggingContext.put("user_email", EscapeUtil.escapeJsonForLogging(user.getEmail()));
@@ -248,7 +249,7 @@ public class LDToSSSEventListener {
                     documentService.save(dbDocument);
                     try {
                         Logger.debug("LDToSSSEventListener: Sharing document=" + dbDocument.getId() + ", title=" + dbDocument.getTitle());
-                        createAndShareLDocWithSSSUsers(dbDocument, "READ", event.getAccessToken(), null);
+                        createAndShareLDocWithSSSUsers(dbDocument, "READ", accessToken, null);
                     } catch (Exception e) {
                         Logger.error(e);
                     }
